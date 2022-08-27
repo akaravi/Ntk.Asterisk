@@ -1,0 +1,17 @@
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\bin\Debug\net6.0-windows\Asterisk.WinForm.exe
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\bin\Debug\net6.0-windows\Asterisk.WinForm.deps.json
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\bin\Debug\net6.0-windows\Asterisk.WinForm.runtimeconfig.json
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\bin\Debug\net6.0-windows\Asterisk.WinForm.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\bin\Debug\net6.0-windows\Asterisk.WinForm.pdb
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.csproj.AssemblyReference.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.Form1.resources
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.csproj.GenerateResource.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.GeneratedMSBuildEditorConfig.editorconfig
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.AssemblyInfoInputs.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.AssemblyInfo.cs
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.csproj.CoreCompileInputs.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\refint\Asterisk.WinForm.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.pdb
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\Asterisk.WinForm.genruntimeconfig.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.WinForm\obj\Debug\net6.0-windows\ref\Asterisk.WinForm.dll

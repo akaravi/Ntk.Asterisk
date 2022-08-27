@@ -1,0 +1,44 @@
+﻿/*
+	AsterNET ARI Framework
+	Automatically generated file @ 9/22/2016 4:43:49 PM
+*/
+using System;
+using System.Collections.Generic;
+using Ntk.AsterNet.ARI.Actions;
+
+namespace Ntk.AsterNet.ARI.Models
+{
+    /// <summary>
+    /// Details of an Asterisk module
+    /// </summary>
+    public class Module
+    {
+
+
+        /// <summary>
+        /// The name of this module
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The description of this module
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// The number of times this module is being used
+        /// </summary>
+        public int Use_count { get; set; }
+
+        /// <summary>
+        /// The running status of this module
+        /// </summary>
+        public string Status { get; set; }
+
+        /// <summary>
+        /// The support state of this module
+        /// </summary>
+        public string Support_level { get; set; }
+
+    }
+}

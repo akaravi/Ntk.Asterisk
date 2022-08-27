@@ -1,0 +1,10 @@
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\bin\Debug\netstandard2.0\Ntk.AsterNet.ARI.deps.json
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\bin\Debug\netstandard2.0\Ntk.AsterNet.ARI.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\bin\Debug\netstandard2.0\Ntk.AsterNet.ARI.pdb
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.csproj.AssemblyReference.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.GeneratedMSBuildEditorConfig.editorconfig
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.AssemblyInfoInputs.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.AssemblyInfo.cs
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.csproj.CoreCompileInputs.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Ntk.AsterNet.ARI\obj\Debug\netstandard2.0\Ntk.AsterNet.ARI.pdb

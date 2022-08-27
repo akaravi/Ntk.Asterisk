@@ -1,0 +1,15 @@
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\bin\Debug\net6.0\Asterisk.Console.exe
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\bin\Debug\net6.0\Asterisk.Console.deps.json
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\bin\Debug\net6.0\Asterisk.Console.runtimeconfig.json
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\bin\Debug\net6.0\Asterisk.Console.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\bin\Debug\net6.0\Asterisk.Console.pdb
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.csproj.AssemblyReference.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.GeneratedMSBuildEditorConfig.editorconfig
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.AssemblyInfoInputs.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.AssemblyInfo.cs
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.csproj.CoreCompileInputs.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\refint\Asterisk.Console.dll
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.pdb
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\Asterisk.Console.genruntimeconfig.cache
+D:\SourceKaravi\GitHub\Ntk.Asterisk\Asterisk.Console\obj\Debug\net6.0\ref\Asterisk.Console.dll
