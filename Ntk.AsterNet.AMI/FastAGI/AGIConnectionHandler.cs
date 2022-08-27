@@ -92,10 +92,11 @@ namespace Ntk.AsterNet.AMI.FastAGI
                 }
                 else
                 {
+
+#if LOGGER
                     var error = "A connection was made with no requests";
-                    #if LOGGER
                         logger.Error(error);
-                    #endif
+#endif
                 }
             }
             catch (AGIHangupException)

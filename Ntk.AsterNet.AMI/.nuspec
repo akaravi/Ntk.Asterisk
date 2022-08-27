@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package  xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+	<metadata>
+		<id>Ntk.AsterNet.AMI</id>
+		<version>1.1.1</version>
+		<title>NTK Asterisk AMI Client</title>
+		<authors>Alireza Karavi</authors>
+		<owners></owners>
+		<licenseUrl>https://github.com/akaravi/Ntk.Cms.HyperTools/blob/master/LICENSE</licenseUrl>
+		<projectUrl>https://github.com/akaravi/Ntk.Cms.HyperTools</projectUrl>
+		<iconUrl>http://ntkcms.ir/favicon.ico</iconUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Tools For Help To develop Client Asterisk</description>
+		<releaseNotes>This Ver Is Release</releaseNotes>
+		<copyright>Copyright © 2010 Docular Limited All rights reserved</copyright>
+		<tags></tags>
+		<dependencies>
+			<dependency id="" />
+		</dependencies>
+		<summary></summary>
+	</metadata>
+	<files>
+		<file src="" target="" />
+	</files>
+</package>

@@ -72,9 +72,9 @@ namespace Ntk.AsterNet.ARI.Actions
             var request = GetNewRequest(path, HttpMethod.PUT);
             if (mailboxName != null)
                 request.AddUrlSegment("mailboxName", mailboxName);
-            if (oldMessages != null)
+            if (oldMessages >0)
                 request.AddParameter("oldMessages", oldMessages, ParameterType.QueryString);
-            if (newMessages != null)
+            if (newMessages >0)
                 request.AddParameter("newMessages", newMessages, ParameterType.QueryString);
             var response = Execute(request);
             if ((int)response.StatusCode >= 200 && (int)response.StatusCode < 300)
@@ -162,9 +162,9 @@ namespace Ntk.AsterNet.ARI.Actions
             var request = GetNewRequest(path, HttpMethod.PUT);
             if (mailboxName != null)
                 request.AddUrlSegment("mailboxName", mailboxName);
-            if (oldMessages != null)
+            if (oldMessages >0)
                 request.AddParameter("oldMessages", oldMessages, ParameterType.QueryString);
-            if (newMessages != null)
+            if (newMessages >0)
                 request.AddParameter("newMessages", newMessages, ParameterType.QueryString);
             var response = await ExecuteTask(request);
             if ((int)response.StatusCode >= 200 && (int)response.StatusCode < 300)
