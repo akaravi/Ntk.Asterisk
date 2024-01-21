@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Ntk.AsterNet.AMI\Ntk.AsterNet.AMI.csproj" />
+    <ProjectReference Include="..\Ntk.AsterNet.ARI\Ntk.AsterNet.ARI.csproj" />
+  </ItemGroup>
+
 </Project>
