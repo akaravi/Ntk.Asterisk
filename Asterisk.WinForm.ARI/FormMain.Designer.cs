@@ -1,6 +1,6 @@
-﻿namespace Asterisk.WinForm
+﻿namespace Asterisk.WinForm.ARI
 {
-    partial class Form1
+    partial class FormMain
     {
         /// <summary>
         ///  Required designer variable.
