@@ -28,145 +28,301 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.lable1 = new System.Windows.Forms.Label();
-            this.tbAddress = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.btnDisconnect = new System.Windows.Forms.Button();
-            this.btnConnect = new System.Windows.Forms.Button();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.tbUser = new System.Windows.Forms.TextBox();
-            this.tbPassword = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.tbPort = new System.Windows.Forms.TextBox();
-            this.groupBox1.SuspendLayout();
-            this.SuspendLayout();
+            lable1 = new Label();
+            tbAddress = new TextBox();
+            groupBox1 = new GroupBox();
+            btnDisconnect = new Button();
+            btnConnect = new Button();
+            label4 = new Label();
+            label3 = new Label();
+            tbUser = new TextBox();
+            tbPassword = new TextBox();
+            label2 = new Label();
+            tbPort = new TextBox();
+            groupBoxAction = new GroupBox();
+            label7 = new Label();
+            textBoxActionFromChannel = new TextBox();
+            label6 = new Label();
+            textBoxActionCallerId = new TextBox();
+            buttonActionHungup = new Button();
+            buttonActionCall = new Button();
+            label5 = new Label();
+            textBoxActionToNumber = new TextBox();
+            label1 = new Label();
+            textBoxActionFromNumber = new TextBox();
+            radioButtonActionMode = new RadioButton();
+            groupBox1.SuspendLayout();
+            groupBoxAction.SuspendLayout();
+            SuspendLayout();
             // 
             // lable1
             // 
-            this.lable1.AutoSize = true;
-            this.lable1.Location = new System.Drawing.Point(6, 24);
-            this.lable1.Name = "lable1";
-            this.lable1.Size = new System.Drawing.Size(29, 13);
-            this.lable1.TabIndex = 0;
-            this.lable1.Text = "Host";
+            lable1.AutoSize = true;
+            lable1.Location = new Point(7, 28);
+            lable1.Margin = new Padding(4, 0, 4, 0);
+            lable1.Name = "lable1";
+            lable1.Size = new Size(32, 15);
+            lable1.TabIndex = 0;
+            lable1.Text = "Host";
             // 
             // tbAddress
             // 
-            this.tbAddress.Location = new System.Drawing.Point(94, 19);
-            this.tbAddress.Name = "tbAddress";
-            this.tbAddress.Size = new System.Drawing.Size(100, 20);
-            this.tbAddress.TabIndex = 1;
-            this.tbAddress.Text = "192.168.15.10";
+            tbAddress.Location = new Point(110, 22);
+            tbAddress.Margin = new Padding(4, 3, 4, 3);
+            tbAddress.Name = "tbAddress";
+            tbAddress.Size = new Size(116, 23);
+            tbAddress.TabIndex = 1;
+            tbAddress.Text = "192.168.15.10";
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.btnDisconnect);
-            this.groupBox1.Controls.Add(this.btnConnect);
-            this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.tbUser);
-            this.groupBox1.Controls.Add(this.tbPassword);
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.tbPort);
-            this.groupBox1.Controls.Add(this.lable1);
-            this.groupBox1.Controls.Add(this.tbAddress);
-            this.groupBox1.Location = new System.Drawing.Point(1, 1);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(200, 150);
-            this.groupBox1.TabIndex = 2;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Parameters connection";
+            groupBox1.Controls.Add(btnDisconnect);
+            groupBox1.Controls.Add(btnConnect);
+            groupBox1.Controls.Add(label4);
+            groupBox1.Controls.Add(label3);
+            groupBox1.Controls.Add(tbUser);
+            groupBox1.Controls.Add(tbPassword);
+            groupBox1.Controls.Add(label2);
+            groupBox1.Controls.Add(tbPort);
+            groupBox1.Controls.Add(lable1);
+            groupBox1.Controls.Add(tbAddress);
+            groupBox1.Location = new Point(1, 1);
+            groupBox1.Margin = new Padding(4, 3, 4, 3);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new Padding(4, 3, 4, 3);
+            groupBox1.Size = new Size(233, 173);
+            groupBox1.TabIndex = 2;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Parameters connection";
             // 
             // btnDisconnect
             // 
-            this.btnDisconnect.Enabled = false;
-            this.btnDisconnect.Location = new System.Drawing.Point(94, 123);
-            this.btnDisconnect.Name = "btnDisconnect";
-            this.btnDisconnect.Size = new System.Drawing.Size(100, 23);
-            this.btnDisconnect.TabIndex = 9;
-            this.btnDisconnect.Text = "Disconnect";
-            this.btnDisconnect.UseVisualStyleBackColor = true;
-            this.btnDisconnect.Click += new System.EventHandler(this.btnDisconnect_Click);
+            btnDisconnect.Enabled = false;
+            btnDisconnect.Location = new Point(110, 142);
+            btnDisconnect.Margin = new Padding(4, 3, 4, 3);
+            btnDisconnect.Name = "btnDisconnect";
+            btnDisconnect.Size = new Size(117, 27);
+            btnDisconnect.TabIndex = 9;
+            btnDisconnect.Text = "Disconnect";
+            btnDisconnect.UseVisualStyleBackColor = true;
+            btnDisconnect.Click += btnDisconnect_Click;
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(9, 123);
-            this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(75, 23);
-            this.btnConnect.TabIndex = 8;
-            this.btnConnect.Text = "Connect";
-            this.btnConnect.UseVisualStyleBackColor = true;
-            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+            btnConnect.Location = new Point(10, 142);
+            btnConnect.Margin = new Padding(4, 3, 4, 3);
+            btnConnect.Name = "btnConnect";
+            btnConnect.Size = new Size(88, 27);
+            btnConnect.TabIndex = 8;
+            btnConnect.Text = "Connect";
+            btnConnect.UseVisualStyleBackColor = true;
+            btnConnect.Click += btnConnect_Click;
             // 
             // label4
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 102);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(53, 13);
-            this.label4.TabIndex = 6;
-            this.label4.Text = "Password";
+            label4.AutoSize = true;
+            label4.Location = new Point(7, 118);
+            label4.Margin = new Padding(4, 0, 4, 0);
+            label4.Name = "label4";
+            label4.Size = new Size(57, 15);
+            label4.TabIndex = 6;
+            label4.Text = "Password";
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 76);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(29, 13);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "User";
+            label3.AutoSize = true;
+            label3.Location = new Point(7, 88);
+            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(30, 15);
+            label3.TabIndex = 4;
+            label3.Text = "User";
             // 
             // tbUser
             // 
-            this.tbUser.Location = new System.Drawing.Point(94, 71);
-            this.tbUser.Name = "tbUser";
-            this.tbUser.Size = new System.Drawing.Size(100, 20);
-            this.tbUser.TabIndex = 5;
-            this.tbUser.Text = "admin";
+            tbUser.Location = new Point(110, 82);
+            tbUser.Margin = new Padding(4, 3, 4, 3);
+            tbUser.Name = "tbUser";
+            tbUser.Size = new Size(116, 23);
+            tbUser.TabIndex = 5;
+            tbUser.Text = "admin";
             // 
             // tbPassword
             // 
-            this.tbPassword.Location = new System.Drawing.Point(94, 97);
-            this.tbPassword.Name = "tbPassword";
-            this.tbPassword.Size = new System.Drawing.Size(100, 20);
-            this.tbPassword.TabIndex = 7;
-            this.tbPassword.Text = "123Test";
+            tbPassword.Location = new Point(110, 112);
+            tbPassword.Margin = new Padding(4, 3, 4, 3);
+            tbPassword.Name = "tbPassword";
+            tbPassword.Size = new Size(116, 23);
+            tbPassword.TabIndex = 7;
+            tbPassword.Text = "123Test";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 50);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(26, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Port";
+            label2.AutoSize = true;
+            label2.Location = new Point(7, 58);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(29, 15);
+            label2.TabIndex = 2;
+            label2.Text = "Port";
             // 
             // tbPort
             // 
-            this.tbPort.Location = new System.Drawing.Point(94, 45);
-            this.tbPort.Name = "tbPort";
-            this.tbPort.Size = new System.Drawing.Size(100, 20);
-            this.tbPort.TabIndex = 3;
-            this.tbPort.Text = "5038";
+            tbPort.Location = new Point(110, 52);
+            tbPort.Margin = new Padding(4, 3, 4, 3);
+            tbPort.Name = "tbPort";
+            tbPort.Size = new Size(116, 23);
+            tbPort.TabIndex = 3;
+            tbPort.Text = "5038";
+            // 
+            // groupBoxAction
+            // 
+            groupBoxAction.Controls.Add(radioButtonActionMode);
+            groupBoxAction.Controls.Add(label7);
+            groupBoxAction.Controls.Add(textBoxActionFromChannel);
+            groupBoxAction.Controls.Add(label6);
+            groupBoxAction.Controls.Add(textBoxActionCallerId);
+            groupBoxAction.Controls.Add(buttonActionHungup);
+            groupBoxAction.Controls.Add(buttonActionCall);
+            groupBoxAction.Controls.Add(label5);
+            groupBoxAction.Controls.Add(textBoxActionToNumber);
+            groupBoxAction.Controls.Add(label1);
+            groupBoxAction.Controls.Add(textBoxActionFromNumber);
+            groupBoxAction.Location = new Point(1, 187);
+            groupBoxAction.Name = "groupBoxAction";
+            groupBoxAction.Size = new Size(233, 244);
+            groupBoxAction.TabIndex = 3;
+            groupBoxAction.TabStop = false;
+            groupBoxAction.Text = "Action";
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(4, 48);
+            label7.Margin = new Padding(4, 0, 4, 0);
+            label7.Name = "label7";
+            label7.Size = new Size(82, 15);
+            label7.TabIndex = 16;
+            label7.Text = "From Channel";
+            // 
+            // textBoxActionFromChannel
+            // 
+            textBoxActionFromChannel.Location = new Point(107, 42);
+            textBoxActionFromChannel.Margin = new Padding(4, 3, 4, 3);
+            textBoxActionFromChannel.Name = "textBoxActionFromChannel";
+            textBoxActionFromChannel.Size = new Size(116, 23);
+            textBoxActionFromChannel.TabIndex = 17;
+            textBoxActionFromChannel.Text = "DAHDI/g1";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(4, 19);
+            label6.Margin = new Padding(4, 0, 4, 0);
+            label6.Name = "label6";
+            label6.Size = new Size(81, 15);
+            label6.TabIndex = 14;
+            label6.Text = "From Caller Id";
+            // 
+            // textBoxActionCallerId
+            // 
+            textBoxActionCallerId.Location = new Point(107, 13);
+            textBoxActionCallerId.Margin = new Padding(4, 3, 4, 3);
+            textBoxActionCallerId.Name = "textBoxActionCallerId";
+            textBoxActionCallerId.Size = new Size(116, 23);
+            textBoxActionCallerId.TabIndex = 15;
+            textBoxActionCallerId.Text = "NTK Auto";
+            // 
+            // buttonActionHungup
+            // 
+            buttonActionHungup.Enabled = false;
+            buttonActionHungup.Location = new Point(106, 211);
+            buttonActionHungup.Margin = new Padding(4, 3, 4, 3);
+            buttonActionHungup.Name = "buttonActionHungup";
+            buttonActionHungup.Size = new Size(117, 27);
+            buttonActionHungup.TabIndex = 10;
+            buttonActionHungup.Text = "hungup";
+            buttonActionHungup.UseVisualStyleBackColor = true;
+            buttonActionHungup.Click += buttonActionHungup_Click;
+            // 
+            // buttonActionCall
+            // 
+            buttonActionCall.Location = new Point(6, 211);
+            buttonActionCall.Margin = new Padding(4, 3, 4, 3);
+            buttonActionCall.Name = "buttonActionCall";
+            buttonActionCall.Size = new Size(88, 27);
+            buttonActionCall.TabIndex = 10;
+            buttonActionCall.Text = "Call";
+            buttonActionCall.UseVisualStyleBackColor = true;
+            buttonActionCall.Click += buttonActionCall_Click;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(3, 77);
+            label5.Margin = new Padding(4, 0, 4, 0);
+            label5.Name = "label5";
+            label5.Size = new Size(82, 15);
+            label5.TabIndex = 12;
+            label5.Text = "From Number";
+            // 
+            // textBoxActionToNumber
+            // 
+            textBoxActionToNumber.Location = new Point(106, 71);
+            textBoxActionToNumber.Margin = new Padding(4, 3, 4, 3);
+            textBoxActionToNumber.Name = "textBoxActionToNumber";
+            textBoxActionToNumber.Size = new Size(116, 23);
+            textBoxActionToNumber.TabIndex = 13;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(4, 106);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(66, 15);
+            label1.TabIndex = 10;
+            label1.Text = "To Number";
+            // 
+            // textBoxActionFromNumber
+            // 
+            textBoxActionFromNumber.Location = new Point(107, 100);
+            textBoxActionFromNumber.Margin = new Padding(4, 3, 4, 3);
+            textBoxActionFromNumber.Name = "textBoxActionFromNumber";
+            textBoxActionFromNumber.Size = new Size(116, 23);
+            textBoxActionFromNumber.TabIndex = 11;
+            // 
+            // radioButtonActionMode
+            // 
+            radioButtonActionMode.AutoSize = true;
+            radioButtonActionMode.Location = new Point(8, 138);
+            radioButtonActionMode.Name = "radioButtonActionMode";
+            radioButtonActionMode.Size = new Size(94, 19);
+            radioButtonActionMode.TabIndex = 18;
+            radioButtonActionMode.TabStop = true;
+            radioButtonActionMode.Text = "radioButton1";
+            radioButtonActionMode.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(203, 155);
-            this.Controls.Add(this.groupBox1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "FormMain";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Client for Asterisk";
-            this.TopMost = true;
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(237, 443);
+            Controls.Add(groupBoxAction);
+            Controls.Add(groupBox1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Margin = new Padding(4, 3, 4, 3);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FormMain";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Client for Asterisk";
+            TopMost = true;
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            groupBoxAction.ResumeLayout(false);
+            groupBoxAction.PerformLayout();
+            ResumeLayout(false);
         }
 
         #endregion
@@ -182,6 +338,17 @@
         private System.Windows.Forms.TextBox tbPassword;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.Button btnDisconnect;
-
+        private GroupBox groupBoxAction;
+        private Button buttonActionHungup;
+        private Button buttonActionCall;
+        private Label label5;
+        private TextBox textBoxActionToNumber;
+        private Label label1;
+        private TextBox textBoxActionFromNumber;
+        private Label label6;
+        private TextBox textBoxActionCallerId;
+        private Label label7;
+        private TextBox textBoxActionFromChannel;
+        private RadioButton radioButtonActionMode;
     }
 }
