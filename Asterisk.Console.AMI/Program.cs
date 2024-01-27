@@ -8,7 +8,7 @@ using Ntk.AsterNet.AMI.Manager.Event;
 using Ntk.AsterNet.AMI.FastAGI.MappingStrategies;
 using System.Collections.Generic;
 
-namespace AsterNET.Test
+namespace Asterisk.Console.AMI
 {
     class Program
     {
@@ -39,7 +39,7 @@ namespace AsterNET.Test
         #region checkFastAGI()
         private static void checkFastAGI()
         {
-            Console.WriteLine(@"
+            System.Console.WriteLine(@"
 Add next lines to your extension.conf file
 	exten => 200,1,agi(agi://" + DEV_HOST + @"/customivr)
 	exten => 200,2,Hangup()
@@ -89,9 +89,9 @@ Ctrl-C to exit");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-                Console.ReadLine();
+           System.     Console.WriteLine(ex.Message);
+           System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
+           System.Console.ReadLine();
                 return;
             }
 
@@ -111,21 +111,21 @@ Ctrl-C to exit");
                 if (e is QueueParamsEvent)
                 {
                     QueueParamsEvent qe = (QueueParamsEvent)e;
-                    Console.WriteLine("QueueParamsEvent" + "\n\tQueue:\t\t" + qe.Queue + "\n\tServiceLevel:\t" + qe.ServiceLevel);
+                    System.Console.WriteLine("QueueParamsEvent" + "\n\tQueue:\t\t" + qe.Queue + "\n\tServiceLevel:\t" + qe.ServiceLevel);
                 }
                 else if (e is QueueMemberEvent)
                 {
                     QueueMemberEvent qme = (QueueMemberEvent)e;
-                    Console.WriteLine("QueueMemberEvent" + "\n\tQueue:\t\t" + qme.Queue + "\n\tLocation:\t" + qme.Location);
+                    System.Console.WriteLine("QueueMemberEvent" + "\n\tQueue:\t\t" + qme.Queue + "\n\tLocation:\t" + qme.Location);
                 }
                 else if (e is QueueEntryEvent)
                 {
                     QueueEntryEvent qee = (QueueEntryEvent)e;
-                    Console.WriteLine("QueueEntryEvent" + "\n\tQueue:\t\t" + qee.Queue + "\n\tChannel:\t" + qee.Channel + "\n\tPosition:\t" + qee.Position);
+                    System.Console.WriteLine("QueueEntryEvent" + "\n\tQueue:\t\t" + qee.Queue + "\n\tChannel:\t" + qee.Channel + "\n\tPosition:\t" + qee.Position);
                 }
             }
-            Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-            Console.ReadLine();
+            System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
+            System.Console.ReadLine();
         }
         #endregion
 
@@ -156,49 +156,49 @@ Ctrl-C to exit");
             {
                 manager.Login();            // Login only (fast)
 
-                Console.WriteLine("Asterisk version : " + manager.Version);
+                System.Console.WriteLine("Asterisk version : " + manager.Version);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
-                Console.ReadLine();
+                System.Console.WriteLine(ex);
+                System.Console.ReadLine();
                 manager.Logoff();
                 return;
             }
 
             {
-                Console.WriteLine("\nGetConfig action");
+                System.Console.WriteLine("\nGetConfig action");
                 ManagerResponse response = manager.SendAction(new GetConfigAction("manager.conf"));
                 if (response.IsSuccess())
                 {
                     GetConfigResponse responseConfig = (GetConfigResponse)response;
                     foreach (int key in responseConfig.Categories.Keys)
                     {
-                        Console.WriteLine(string.Format("{0}:{1}", key, responseConfig.Categories[key]));
+                        System.Console.WriteLine(string.Format("{0}:{1}", key, responseConfig.Categories[key]));
                         foreach (int keyLine in responseConfig.Lines(key).Keys)
                         {
-                            Console.WriteLine(string.Format("\t{0}:{1}", keyLine, responseConfig.Lines(key)[keyLine]));
+                            System.Console.WriteLine(string.Format("\t{0}:{1}", keyLine, responseConfig.Lines(key)[keyLine]));
                         }
                     }
                 }
                 else
-                    Console.WriteLine(response);
+                    System.Console.WriteLine(response);
             }
 
             {
-                Console.WriteLine("\nUpdateConfig action");
+                System.Console.WriteLine("\nUpdateConfig action");
                 UpdateConfigAction config = new UpdateConfigAction("manager.conf", "manager.conf");
                 config.AddCommand(UpdateConfigAction.ACTION_NEWCAT, "testadmin");
                 config.AddCommand(UpdateConfigAction.ACTION_APPEND, "testadmin", "secret", "blabla");
                 ManagerResponse response = manager.SendAction(config);
-                Console.WriteLine(response);
+                System.Console.WriteLine(response);
             }
 
             // Originate call example
-            Console.WriteLine("\nPress ENTER key to originate call.\n"
-                + "Start phone (or connect) or make a call to see events.\n"
-                + "After all events press a key to originate call.");
-            Console.ReadLine();
+            System.Console.WriteLine("\nPress ENTER key to originate call.\n"
+                                     + "Start phone (or connect) or make a call to see events.\n"
+                                     + "After all events press a key to originate call.");
+            System.Console.ReadLine();
 
             OriginateAction oc = new OriginateAction();
             oc.Context = ORIGINATE_CONTEXT;
@@ -210,11 +210,11 @@ Ctrl-C to exit");
             // oc.Variable = "VAR1=abc|VAR2=def";
             // oc.SetVariable("VAR3", "ghi");
             ManagerResponse originateResponse = manager.SendAction(oc, oc.Timeout);
-            Console.WriteLine("Response:");
-            Console.WriteLine(originateResponse);
+            System.Console.WriteLine("Response:");
+            System.Console.WriteLine(originateResponse);
 
-            Console.WriteLine("Press ENTER key to next test.");
-            Console.ReadLine();
+            System.Console.WriteLine("Press ENTER key to next test.");
+            System.Console.ReadLine();
 
             //
             // Display result of Show Queues command
@@ -229,16 +229,16 @@ Ctrl-C to exit");
                 try
                 {
                     response = (CommandResponse)manager.SendAction(command);
-                    Console.WriteLine("Result of " + command.Command);
+                    System.Console.WriteLine("Result of " + command.Command);
                     foreach (string str in response.Result)
-                        Console.WriteLine("\t" + str);
+                        System.Console.WriteLine("\t" + str);
                 }
                 catch (Exception err)
                 {
-                    Console.WriteLine("Response error: " + err);
+                    System.Console.WriteLine("Response error: " + err);
                 }
-                Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-                Console.ReadLine();
+                System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
+                System.Console.ReadLine();
             }
             //
             // Display Queues and Members
@@ -259,22 +259,22 @@ Ctrl-C to exit");
                 if (e is QueueParamsEvent)
                 {
                     QueueParamsEvent qe = (QueueParamsEvent)e;
-                    Console.WriteLine("QueueParamsEvent" + "\n\tQueue:\t\t" + qe.Queue + "\n\tServiceLevel:\t" + qe.ServiceLevel);
+                    System.Console.WriteLine("QueueParamsEvent" + "\n\tQueue:\t\t" + qe.Queue + "\n\tServiceLevel:\t" + qe.ServiceLevel);
                 }
                 else if (e is QueueMemberEvent)
                 {
                     QueueMemberEvent qme = (QueueMemberEvent)e;
-                    Console.WriteLine("QueueMemberEvent" + "\n\tQueue:\t\t" + qme.Queue + "\n\tLocation:\t" + qme.Location);
+                    System.Console.WriteLine("QueueMemberEvent" + "\n\tQueue:\t\t" + qme.Queue + "\n\tLocation:\t" + qme.Location);
                 }
                 else if (e is QueueEntryEvent)
                 {
                     QueueEntryEvent qee = (QueueEntryEvent)e;
-                    Console.WriteLine("QueueEntryEvent" + "\n\tQueue:\t\t" + qee.Queue + "\n\tChannel:\t" + qee.Channel + "\n\tPosition:\t" + qee.Position);
+                    System.Console.WriteLine("QueueEntryEvent" + "\n\tQueue:\t\t" + qee.Queue + "\n\tChannel:\t" + qee.Channel + "\n\tPosition:\t" + qee.Position);
                 }
             }
 
-            Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-            Console.ReadLine();
+            System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
+            System.Console.ReadLine();
 
             //
             //	To test create 3 extensions:
@@ -286,14 +286,14 @@ Ctrl-C to exit");
             //	Don't answer on SIP/4012 and call must redirect to SIP/4010 (to voicemail really)
             //	Dial event used to define redirect channel
 
-            Console.WriteLine("Redirect Call from " + ORIGINATE_CHANNEL + " to " + ORIGINATE_EXTRA_CHANNEL + " or press ESC.");
+            System.Console.WriteLine("Redirect Call from " + ORIGINATE_CHANNEL + " to " + ORIGINATE_EXTRA_CHANNEL + " or press ESC.");
             // Wait for Dial Event from ORIGINATE_CHANNEL
             EventHandler<DialEvent> de = new EventHandler<DialEvent>(dam_Dial);
             manager.Dial += de;
             while (transferChannel == null)
             {
                 System.Threading.Thread.Sleep(100);
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                if (System.Console.KeyAvailable && System.Console.ReadKey(true).Key == ConsoleKey.Escape)
                     break;
             }
             manager.Dial -= de;
@@ -308,27 +308,27 @@ Ctrl-C to exit");
             try
             {
                 ManagerResponse mr = manager.SendAction(ra, 10000);
-                Console.WriteLine("Transfer Call"
-                    + "\n\tResponse:" + mr.Response
-                    + "\n\tMessage:" + mr.Message
+                System.Console.WriteLine("Transfer Call"
+                                         + "\n\tResponse:" + mr.Response
+                                         + "\n\tMessage:" + mr.Message
                     );
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                System.Console.WriteLine(ex.Message);
             }
 
             //	Monitor call.
             //	Call from IA2/4008 to SIP/4012
             //	Link event used to define monitor channel
-            Console.WriteLine("Monitor call. Please call " + ORIGINATE_CHANNEL + " and answer or press ESC.");
+            System.Console.WriteLine("Monitor call. Please call " + ORIGINATE_CHANNEL + " and answer or press ESC.");
             // Wait for Link event
             EventHandler<LinkEvent> le = new EventHandler<LinkEvent>(dam_Link);
             manager.Link += le;
             while (monitorChannel == null)
             {
                 System.Threading.Thread.Sleep(100);
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                if (System.Console.KeyAvailable && System.Console.ReadKey(true).Key == ConsoleKey.Escape)
                     break;
             }
             manager.Link -= le;
@@ -341,12 +341,12 @@ Ctrl-C to exit");
             try
             {
                 ManagerResponse mr = manager.SendAction(ma, 10000);
-                Console.WriteLine("Monitor Call"
-                    + "\n\tResponse:" + mr.Response);
+                System.Console.WriteLine("Monitor Call"
+                                         + "\n\tResponse:" + mr.Response);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                System.Console.WriteLine(ex.Message);
             }
 
             manager.Logoff();
@@ -362,19 +362,19 @@ Ctrl-C to exit");
         #region Event handlers
         static void dam_Events(object sender, ManagerEvent e)
         {
-            Console.WriteLine(e);
+            System.Console.WriteLine(e);
         }
 
         static void dam_Reload(object sender, ReloadEvent e)
         {
-            Console.WriteLine(string.Format("\nReload Event: {0}", e.Message));
+            System.Console.WriteLine(string.Format("\nReload Event: {0}", e.Message));
         }
 
         static void dam_Link(object sender, LinkEvent e)
         {
-            Console.WriteLine("Link Event"
-                + "\n\tChannel1:\t" + e.Channel1
-                + "\n\tChannel2:\t" + e.Channel2
+            System.Console.WriteLine("Link Event"
+                                     + "\n\tChannel1:\t" + e.Channel1
+                                     + "\n\tChannel2:\t" + e.Channel2
                 );
             if (e.Channel1.StartsWith(ORIGINATE_CHANNEL) || e.Channel2.StartsWith(ORIGINATE_CHANNEL))
                 monitorChannel = e.Channel1;
@@ -382,16 +382,16 @@ Ctrl-C to exit");
 
         static void dam_ExtensionStatus(object sender, ExtensionStatusEvent e)
         {
-            Console.WriteLine("ExtensionStatus Event"
-                + "\n\tContext\t\t" + e.Context
-                + "\n\tExten\t\t" + e.Exten
-                + "\n\tStatus\t\t" + e.Status
+            System.Console.WriteLine("ExtensionStatus Event"
+                                     + "\n\tContext\t\t" + e.Context
+                                     + "\n\tExten\t\t" + e.Exten
+                                     + "\n\tStatus\t\t" + e.Status
             );
         }
 
         static void dam_Dial(object sender, DialEvent e)
         {
-            Console.WriteLine(
+            System.Console.WriteLine(
                 "Dial Event"
                 + "\n\tCallerId\t" + e.CallerId
                 + "\n\tCallerIdName\t" + e.CallerIdName
@@ -406,15 +406,15 @@ Ctrl-C to exit");
 
         static void dam_Hangup(object sender, HangupEvent e)
         {
-            Console.WriteLine("Hangup Event"
-                + "\n\tChannel\t\t" + e.Channel
-                + "\n\tUniqueId\t" + e.UniqueId
+            System.Console.WriteLine("Hangup Event"
+                                     + "\n\tChannel\t\t" + e.Channel
+                                     + "\n\tUniqueId\t" + e.UniqueId
                 );
         }
 
         static void dam_NewExten(object sender, NewExtenEvent e)
         {
-            Console.WriteLine(
+            System.Console.WriteLine(
                 "New Extension Event"
                 + "\n\tChannel\t\t" + e.Channel
                 + "\n\tExtension\t" + e.Extension
@@ -430,22 +430,22 @@ Ctrl-C to exit");
 
         static void dam_NewChannel(object sender, NewChannelEvent e)
         {
-            Console.WriteLine("New channel Event"
-                + "\n\tChannel\t\t" + e.Channel
-                + "\n\tUniqueId\t" + e.UniqueId
-                + "\n\tCallerId\t" + e.CallerId
-                + "\n\tCallerIdName\t" + e.CallerIdName
-                + "\n\tState\t\t" + e.State
-                + "\n\tDateReceived\t" + e.DateReceived.ToString()
+            System.Console.WriteLine("New channel Event"
+                                     + "\n\tChannel\t\t" + e.Channel
+                                     + "\n\tUniqueId\t" + e.UniqueId
+                                     + "\n\tCallerId\t" + e.CallerId
+                                     + "\n\tCallerIdName\t" + e.CallerIdName
+                                     + "\n\tState\t\t" + e.State
+                                     + "\n\tDateReceived\t" + e.DateReceived.ToString()
                 );
         }
 
         static void dam_PeerStatus(object sender, PeerStatusEvent e)
         {
-            Console.WriteLine("Peer Status Event"
-                + "\n\tPeer\t\t" + e.Peer
-                + "\n\tStatus\t\t" + e.PeerStatus
-                + "\n\tDateReceived\t" + e.DateReceived.ToString()
+            System.Console.WriteLine("Peer Status Event"
+                                     + "\n\tPeer\t\t" + e.Peer
+                                     + "\n\tStatus\t\t" + e.PeerStatus
+                                     + "\n\tDateReceived\t" + e.DateReceived.ToString()
                 );
         }
 
@@ -453,18 +453,18 @@ Ctrl-C to exit");
         {
             if (e is UserAgentLoginEvent)
             {
-                Console.WriteLine("User Event - AgentLogin:"
-                    + "\n\tAgent\t\t" + ((UserAgentLoginEvent)e).Agent
+                System.Console.WriteLine("User Event - AgentLogin:"
+                                         + "\n\tAgent\t\t" + ((UserAgentLoginEvent)e).Agent
                     );
             }
             else
             {
-                Console.WriteLine("User Event:"
-                    + "\n\tUserEventName\t\t" + e.UserEventName
+                System.Console.WriteLine("User Event:"
+                                         + "\n\tUserEventName\t\t" + e.UserEventName
                     );
                 foreach (System.Collections.Generic.KeyValuePair<string, string> pair in e.Attributes)
                 {
-                    Console.WriteLine(String.Format("\t{0}\t{1}", pair.Key, pair.Value));
+                    System.Console.WriteLine(String.Format("\t{0}\t{1}", pair.Key, pair.Value));
                 }
             }
         }
