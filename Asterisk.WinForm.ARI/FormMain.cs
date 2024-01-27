@@ -18,12 +18,12 @@ namespace Asterisk.WinForm.ARI
     {
         public FormMain()
         {
-            InitializeComponent();       
+            InitializeComponent();
             groupBoxAction.Visible = false;
 
 
 
-          
+
 
         }
 
@@ -37,9 +37,7 @@ namespace Asterisk.WinForm.ARI
 
             btnConnect.Enabled = false;
             // Create a new Ari Connection
-            ActionClient = new AriClient(
-                new StasisEndpoint(address, port, user, password),
-                "HelloWorld");
+            ActionClient = new AriClient(new StasisEndpoint(address, port, user, password), tbApplication.Text);
             // Hook into required events
             ActionClient.OnStasisStartEvent += c_OnStasisStartEvent;
             ActionClient.OnChannelDtmfReceivedEvent += ActionClientOnChannelDtmfReceivedEvent;
@@ -47,13 +45,11 @@ namespace Asterisk.WinForm.ARI
             try
             {
                 ActionClient.Connect();
-
-                
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error connect\n" + ex.Message);
-               
+
                 this.Close();
             }
             btnDisconnect.Enabled = true;
@@ -62,7 +58,7 @@ namespace Asterisk.WinForm.ARI
             buttonActionHungup.Enabled = false;
         }
 
-      
+
 
         private void btnDisconnect_Click(object sender, EventArgs e)
         {
@@ -83,10 +79,12 @@ namespace Asterisk.WinForm.ARI
 
         public Bridge simpleBridge;
 
-        private const string AppName = "bridge_test";
+
         private void buttonActionCall_Click(object sender, EventArgs e)
         {
-            if(radioButtonActionMode1.Checked)
+            if (ActionCallStatus)
+                return;
+            if (radioButtonActionMode1.Checked)
             {
                 #region
                 //ActionClient.Asterisk.ca
@@ -94,43 +92,62 @@ namespace Asterisk.WinForm.ARI
                 {
 
                     // Create simple bridge
-                    simpleBridge = ActionClient.Bridges.Create("mixing", Guid.NewGuid().ToString(), AppName);
+                    simpleBridge = ActionClient.Bridges.Create("mixing", Guid.NewGuid().ToString(), tbApplication.Text);
 
                     // subscribe to bridge events
-                    ActionClient.Applications.Subscribe(AppName, "bridge:" + simpleBridge.Id);
+                    ActionClient.Applications.Subscribe(tbApplication.Text, "bridge:" + simpleBridge.Id);
 
                     // start MOH on bridge
                     ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
 
 
-                    var done = false;
-                    while (!done)
+                    ActionCallStatus = true;
+
+                    buttonActionCall.Enabled = !ActionCallStatus;
+                    buttonActionHungup.Enabled = ActionCallStatus;
+
+                    while (ActionCallStatus)
                     {
-                        var lastKey = System.Console.ReadKey();
-                        switch (lastKey.KeyChar.ToString())
-                        {
-                            case "*":
-                                done = true;
-                                break;
-                            case "1":
-                                ActionClient.Bridges.StopMoh(simpleBridge.Id);
-                                break;
-                            case "2":
-                                ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
-                                break;
-                            case "3":
-                                // Mute all channels on bridge
-                                var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
-                                foreach (var chan in bridgeMute.Channels)
-                                    ActionClient.Channels.Mute(chan, "in");
-                                break;
-                            case "4":
-                                // Unmute all channels on bridge
-                                var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
-                                foreach (var chan in bridgeUnmute.Channels)
-                                    ActionClient.Channels.Unmute(chan, "in");
-                                break;
-                        }
+                        //if (ActionClient.Bridges.List().Count>1)
+                        //{
+                        //    // Mute all channels on bridge
+                        //    var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
+                        //    foreach (var chan in bridgeMute.Channels)
+                        //        ActionClient.Channels.Mute(chan, "in");
+                        //}
+                        //else
+                        //{
+                        //    // Unmute all channels on bridge
+                        //                var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
+                        //                foreach (var chan in bridgeUnmute.Channels)
+                        //                    ActionClient.Channels.Unmute(chan, "in");
+                        //}
+
+                        //    var lastKey = System.Console.ReadKey();
+                        //    switch (lastKey.KeyChar.ToString())
+                        //    {
+                        //        case "*":
+                        //            done = true;
+                        //            break;
+                        //        case "1":
+                        //            ActionClient.Bridges.StopMoh(simpleBridge.Id);
+                        //            break;
+                        //        case "2":
+                        //            ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
+                        //            break;
+                        //        case "3":
+                        //            // Mute all channels on bridge
+                        //            var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
+                        //            foreach (var chan in bridgeMute.Channels)
+                        //                ActionClient.Channels.Mute(chan, "in");
+                        //            break;
+                        //        case "4":
+                        //            // Unmute all channels on bridge
+                        //            var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
+                        //            foreach (var chan in bridgeUnmute.Channels)
+                        //                ActionClient.Channels.Unmute(chan, "in");
+                        //            break;
+                        //    }
                     }
 
                     ActionClient.Bridges.Destroy(simpleBridge.Id);
@@ -141,7 +158,7 @@ namespace Asterisk.WinForm.ARI
                     Console.WriteLine(exception);
                     throw;
                 }
-              
+
                 //OriginateAction oc = new OriginateAction();
                 //oc.Timeout = 15000;
                 //oc.Context = "from-internal";
@@ -165,10 +182,12 @@ namespace Asterisk.WinForm.ARI
             }
             else if (radioButtonActionMode2.Checked)
             {
+                #region
 
+                #endregion
             }
 
-            
+
             //if (originateResponse.IsSuccess())
             //{
             //    MessageBox.Show(originateResponse.Message, "تماس موفقیت آمیز");
@@ -190,7 +209,7 @@ namespace Asterisk.WinForm.ARI
         {
             if (!ActionCallStatus)
                 return;
-            
+            ActionCallStatus = false;
             buttonActionCall.Enabled = true;
             buttonActionHungup.Enabled = false;
         }
@@ -202,11 +221,11 @@ namespace Asterisk.WinForm.ARI
             sender.Channels.Answer(e.Channel.Id);
 
             // Play an announcement
-            sender.Channels.Play(e.Channel.Id, "sound:hello-world");
+            //sender.Channels.Play(e.Channel.Id, "sound:hello-world");
         }
         private void ActionClientOnConnectionStateChanged(object sender)
         {
-            System.Console.WriteLine("Connection state is now {0}", ActionClient.Connected);
+            System.Console.WriteLine("Connection state is now {0}", ActionClient?.Connected);
         }
 
         private void ActionClientOnChannelDtmfReceivedEvent(IAriClient sender, ChannelDtmfReceivedEvent e)
@@ -227,5 +246,11 @@ namespace Asterisk.WinForm.ARI
             }
         }
         #endregion
+
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }

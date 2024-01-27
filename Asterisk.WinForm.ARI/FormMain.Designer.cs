@@ -31,6 +31,8 @@
             lable1 = new Label();
             tbAddress = new TextBox();
             groupBox1 = new GroupBox();
+            label8 = new Label();
+            tbApplication = new TextBox();
             btnDisconnect = new Button();
             btnConnect = new Button();
             label4 = new Label();
@@ -40,6 +42,7 @@
             label2 = new Label();
             tbPort = new TextBox();
             groupBoxAction = new GroupBox();
+            radioButtonActionMode2 = new RadioButton();
             radioButtonActionMode1 = new RadioButton();
             label7 = new Label();
             textBoxActionFromChannel = new TextBox();
@@ -51,7 +54,6 @@
             textBoxActionToNumber = new TextBox();
             label1 = new Label();
             textBoxActionFromNumber = new TextBox();
-            radioButtonActionMode2 = new RadioButton();
             groupBox1.SuspendLayout();
             groupBoxAction.SuspendLayout();
             SuspendLayout();
@@ -77,6 +79,8 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(label8);
+            groupBox1.Controls.Add(tbApplication);
             groupBox1.Controls.Add(btnDisconnect);
             groupBox1.Controls.Add(btnConnect);
             groupBox1.Controls.Add(label4);
@@ -91,15 +95,35 @@
             groupBox1.Margin = new Padding(4, 3, 4, 3);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(4, 3, 4, 3);
-            groupBox1.Size = new Size(233, 173);
+            groupBox1.Size = new Size(233, 210);
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
             groupBox1.Text = "Parameters connection";
+            groupBox1.Enter += groupBox1_Enter;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(7, 147);
+            label8.Margin = new Padding(4, 0, 4, 0);
+            label8.Name = "label8";
+            label8.Size = new Size(68, 15);
+            label8.TabIndex = 10;
+            label8.Text = "Application";
+            // 
+            // tbApplication
+            // 
+            tbApplication.Location = new Point(110, 141);
+            tbApplication.Margin = new Padding(4, 3, 4, 3);
+            tbApplication.Name = "tbApplication";
+            tbApplication.Size = new Size(116, 23);
+            tbApplication.TabIndex = 11;
+            tbApplication.Text = "bridge-ntk";
             // 
             // btnDisconnect
             // 
             btnDisconnect.Enabled = false;
-            btnDisconnect.Location = new Point(110, 142);
+            btnDisconnect.Location = new Point(108, 177);
             btnDisconnect.Margin = new Padding(4, 3, 4, 3);
             btnDisconnect.Name = "btnDisconnect";
             btnDisconnect.Size = new Size(117, 27);
@@ -110,7 +134,7 @@
             // 
             // btnConnect
             // 
-            btnConnect.Location = new Point(10, 142);
+            btnConnect.Location = new Point(8, 177);
             btnConnect.Margin = new Padding(4, 3, 4, 3);
             btnConnect.Name = "btnConnect";
             btnConnect.Size = new Size(88, 27);
@@ -146,7 +170,7 @@
             tbUser.Name = "tbUser";
             tbUser.Size = new Size(116, 23);
             tbUser.TabIndex = 5;
-            tbUser.Text = "admin";
+            tbUser.Text = "asterisk";
             // 
             // tbPassword
             // 
@@ -155,7 +179,7 @@
             tbPassword.Name = "tbPassword";
             tbPassword.Size = new Size(116, 23);
             tbPassword.TabIndex = 7;
-            tbPassword.Text = "123Test";
+            tbPassword.Text = "asterisk";
             // 
             // label2
             // 
@@ -190,12 +214,22 @@
             groupBoxAction.Controls.Add(textBoxActionToNumber);
             groupBoxAction.Controls.Add(label1);
             groupBoxAction.Controls.Add(textBoxActionFromNumber);
-            groupBoxAction.Location = new Point(1, 187);
+            groupBoxAction.Location = new Point(1, 236);
             groupBoxAction.Name = "groupBoxAction";
             groupBoxAction.Size = new Size(233, 244);
             groupBoxAction.TabIndex = 3;
             groupBoxAction.TabStop = false;
             groupBoxAction.Text = "Action";
+            // 
+            // radioButtonActionMode2
+            // 
+            radioButtonActionMode2.AutoSize = true;
+            radioButtonActionMode2.Location = new Point(8, 163);
+            radioButtonActionMode2.Name = "radioButtonActionMode2";
+            radioButtonActionMode2.Size = new Size(105, 19);
+            radioButtonActionMode2.TabIndex = 19;
+            radioButtonActionMode2.Text = "After Call From";
+            radioButtonActionMode2.UseVisualStyleBackColor = true;
             // 
             // radioButtonActionMode1
             // 
@@ -306,21 +340,11 @@
             textBoxActionFromNumber.Size = new Size(116, 23);
             textBoxActionFromNumber.TabIndex = 11;
             // 
-            // radioButtonActionMode2
-            // 
-            radioButtonActionMode2.AutoSize = true;
-            radioButtonActionMode2.Location = new Point(8, 163);
-            radioButtonActionMode2.Name = "radioButtonActionMode2";
-            radioButtonActionMode2.Size = new Size(105, 19);
-            radioButtonActionMode2.TabIndex = 19;
-            radioButtonActionMode2.Text = "After Call From";
-            radioButtonActionMode2.UseVisualStyleBackColor = true;
-            // 
             // FormMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(237, 443);
+            ClientSize = new Size(237, 508);
             Controls.Add(groupBoxAction);
             Controls.Add(groupBox1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -364,5 +388,7 @@
         private TextBox textBoxActionFromChannel;
         private RadioButton radioButtonActionMode1;
         private RadioButton radioButtonActionMode2;
+        private Label label8;
+        private TextBox tbApplication;
     }
 }
