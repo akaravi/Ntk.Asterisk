@@ -19,9 +19,7 @@ namespace Asterisk.WinForm.AMI
     {
         public FormMain()
         {
-            InitializeComponent();
-          
-
+            InitializeComponent();       
             groupBoxAction.Visible = false;
             
         }
@@ -84,9 +82,8 @@ namespace Asterisk.WinForm.AMI
 
         private void buttonActionCall_Click(object sender, EventArgs e)
         {
-            switch (radioButtonActionMode.Text)
-            {
-                case "SameTime":
+            if(radioButtonActionMode1.Checked)
+            { 
                     #region
                     OriginateAction oc = new OriginateAction();
                     oc.Timeout = 15000;
@@ -108,9 +105,10 @@ namespace Asterisk.WinForm.AMI
                     oc.Exten = this.textBoxActionToNumber.Text;
                     originateResponse = manager.SendAction(oc, oc.Timeout);
                     #endregion
-                    break;
-                default:
-                    break;
+            }
+            else if (radioButtonActionMode2.Checked)
+            {
+
             }
 
             

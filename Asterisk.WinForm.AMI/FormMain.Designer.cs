@@ -40,6 +40,7 @@
             label2 = new Label();
             tbPort = new TextBox();
             groupBoxAction = new GroupBox();
+            radioButtonActionMode1 = new RadioButton();
             label7 = new Label();
             textBoxActionFromChannel = new TextBox();
             label6 = new Label();
@@ -50,7 +51,7 @@
             textBoxActionToNumber = new TextBox();
             label1 = new Label();
             textBoxActionFromNumber = new TextBox();
-            radioButtonActionMode = new RadioButton();
+            radioButtonActionMode2 = new RadioButton();
             groupBox1.SuspendLayout();
             groupBoxAction.SuspendLayout();
             SuspendLayout();
@@ -177,7 +178,8 @@
             // 
             // groupBoxAction
             // 
-            groupBoxAction.Controls.Add(radioButtonActionMode);
+            groupBoxAction.Controls.Add(radioButtonActionMode2);
+            groupBoxAction.Controls.Add(radioButtonActionMode1);
             groupBoxAction.Controls.Add(label7);
             groupBoxAction.Controls.Add(textBoxActionFromChannel);
             groupBoxAction.Controls.Add(label6);
@@ -194,6 +196,18 @@
             groupBoxAction.TabIndex = 3;
             groupBoxAction.TabStop = false;
             groupBoxAction.Text = "Action";
+            // 
+            // radioButtonActionMode1
+            // 
+            radioButtonActionMode1.AutoSize = true;
+            radioButtonActionMode1.Checked = true;
+            radioButtonActionMode1.Location = new Point(8, 138);
+            radioButtonActionMode1.Name = "radioButtonActionMode1";
+            radioButtonActionMode1.Size = new Size(83, 19);
+            radioButtonActionMode1.TabIndex = 18;
+            radioButtonActionMode1.TabStop = true;
+            radioButtonActionMode1.Text = "Same Time";
+            radioButtonActionMode1.UseVisualStyleBackColor = true;
             // 
             // label7
             // 
@@ -292,16 +306,15 @@
             textBoxActionFromNumber.Size = new Size(116, 23);
             textBoxActionFromNumber.TabIndex = 11;
             // 
-            // radioButtonActionMode
+            // radioButtonActionMode2
             // 
-            radioButtonActionMode.AutoSize = true;
-            radioButtonActionMode.Location = new Point(8, 138);
-            radioButtonActionMode.Name = "radioButtonActionMode";
-            radioButtonActionMode.Size = new Size(94, 19);
-            radioButtonActionMode.TabIndex = 18;
-            radioButtonActionMode.TabStop = true;
-            radioButtonActionMode.Text = "radioButton1";
-            radioButtonActionMode.UseVisualStyleBackColor = true;
+            radioButtonActionMode2.AutoSize = true;
+            radioButtonActionMode2.Location = new Point(8, 163);
+            radioButtonActionMode2.Name = "radioButtonActionMode2";
+            radioButtonActionMode2.Size = new Size(105, 19);
+            radioButtonActionMode2.TabIndex = 19;
+            radioButtonActionMode2.Text = "After Call From";
+            radioButtonActionMode2.UseVisualStyleBackColor = true;
             // 
             // FormMain
             // 
@@ -349,6 +362,7 @@
         private TextBox textBoxActionCallerId;
         private Label label7;
         private TextBox textBoxActionFromChannel;
-        private RadioButton radioButtonActionMode;
+        private RadioButton radioButtonActionMode1;
+        private RadioButton radioButtonActionMode2;
     }
 }
