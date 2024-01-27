@@ -20,8 +20,7 @@ namespace Asterisk.WinForm.AMI
         public FormMain()
         {
             InitializeComponent();
-
-
+          
 
             groupBoxAction.Visible = false;
             
