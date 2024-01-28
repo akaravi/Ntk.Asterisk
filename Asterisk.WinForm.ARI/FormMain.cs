@@ -248,9 +248,6 @@ namespace Asterisk.WinForm.ARI
         #endregion
 
 
-        private void groupBox1_Enter(object sender, EventArgs e)
-        {
-
-        }
+     
     }
 }
