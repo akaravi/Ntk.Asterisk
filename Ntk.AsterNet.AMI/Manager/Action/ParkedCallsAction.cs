@@ -8,8 +8,8 @@ namespace Ntk.AsterNet.AMI.Manager.Action
     ///     For each active channel a ParkedCallEvent is generated. After all parked
     ///     calls have been reported a ParkedCallsCompleteEvent is generated.
     /// </summary>
-    /// <seealso cref="AsterNET.Manager.Event.ParkedCallEvent" />
-    /// <seealso cref="AsterNET.Manager.Event.ParkedCallsCompleteEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.ParkedCallEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.ParkedCallsCompleteEvent" />
     public class ParkedCallsAction : ManagerActionEvent
     {
         /// <summary> Get the name of this action, i.e. "ParkedCalls".</summary>

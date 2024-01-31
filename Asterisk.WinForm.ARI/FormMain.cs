@@ -84,6 +84,11 @@ namespace Asterisk.WinForm.ARI
         {
             if (ActionCallStatus)
                 return;
+
+            ActionCallStatus = true;
+            buttonActionCall.Enabled = !ActionCallStatus;
+            buttonActionHungup.Enabled = ActionCallStatus;
+
             if (radioButtonActionMode1.Checked)
             {
                 #region
@@ -101,56 +106,13 @@ namespace Asterisk.WinForm.ARI
                     ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
 
 
-                    ActionCallStatus = true;
 
-                    buttonActionCall.Enabled = !ActionCallStatus;
-                    buttonActionHungup.Enabled = ActionCallStatus;
 
-                    while (ActionCallStatus)
-                    {
-                        //if (ActionClient.Bridges.List().Count>1)
-                        //{
-                        //    // Mute all channels on bridge
-                        //    var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
-                        //    foreach (var chan in bridgeMute.Channels)
-                        //        ActionClient.Channels.Mute(chan, "in");
-                        //}
-                        //else
-                        //{
-                        //    // Unmute all channels on bridge
-                        //                var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
-                        //                foreach (var chan in bridgeUnmute.Channels)
-                        //                    ActionClient.Channels.Unmute(chan, "in");
-                        //}
+                    var c=ActionClient.Channels.Create("", tbApplication.Text);
+                
 
-                        //    var lastKey = System.Console.ReadKey();
-                        //    switch (lastKey.KeyChar.ToString())
-                        //    {
-                        //        case "*":
-                        //            done = true;
-                        //            break;
-                        //        case "1":
-                        //            ActionClient.Bridges.StopMoh(simpleBridge.Id);
-                        //            break;
-                        //        case "2":
-                        //            ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
-                        //            break;
-                        //        case "3":
-                        //            // Mute all channels on bridge
-                        //            var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
-                        //            foreach (var chan in bridgeMute.Channels)
-                        //                ActionClient.Channels.Mute(chan, "in");
-                        //            break;
-                        //        case "4":
-                        //            // Unmute all channels on bridge
-                        //            var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
-                        //            foreach (var chan in bridgeUnmute.Channels)
-                        //                ActionClient.Channels.Unmute(chan, "in");
-                        //            break;
-                        //    }
-                    }
 
-                    ActionClient.Bridges.Destroy(simpleBridge.Id);
+
 
                 }
                 catch (Exception exception)
@@ -188,20 +150,6 @@ namespace Asterisk.WinForm.ARI
             }
 
 
-            //if (originateResponse.IsSuccess())
-            //{
-            //    MessageBox.Show(originateResponse.Message, "تماس موفقیت آمیز");
-            //    ActionCallStatus = true;
-            //    buttonActionCall.Enabled = !ActionCallStatus;
-            //    buttonActionHungup.Enabled = ActionCallStatus;
-            //}
-            //else
-            //{
-            //    MessageBox.Show(originateResponse.Message, "برروز خطا");
-            //    ActionCallStatus = false;
-            //    buttonActionCall.Enabled = !ActionCallStatus;
-            //    buttonActionHungup.Enabled = ActionCallStatus;
-            //}
 
         }
 
@@ -209,6 +157,8 @@ namespace Asterisk.WinForm.ARI
         {
             if (!ActionCallStatus)
                 return;
+
+            ActionClient.Bridges.Destroy(simpleBridge.Id);
             ActionCallStatus = false;
             buttonActionCall.Enabled = true;
             buttonActionHungup.Enabled = false;

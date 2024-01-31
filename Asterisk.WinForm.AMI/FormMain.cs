@@ -21,10 +21,92 @@ namespace Asterisk.WinForm.AMI
         {
             InitializeComponent();       
             groupBoxAction.Visible = false;
-            
+            this.tbAddress.Text = "192.168.15.10";
+            this.tbUser.Text = "usercti";
+            this.tbPassword.Text = "abc@2390702";
+            this.textBoxActionFromNumber.Text = "09131183892";
+            this.textBoxActionToNumber.Text = "09125210076";
+
         }
 
         private ManagerConnection manager = null;
+
+
+        public void test1()
+        {
+            
+
+            // تماس گرفتن با یک شماره موبایل
+            OriginateAction firstCallAction = new OriginateAction();
+            firstCallAction.Channel = "SIP/1001"; // شماره داخلی مورد نظر
+            firstCallAction.Context = "from-internal"; // Context مورد نظر
+            firstCallAction.Exten = "09123456789"; // شماره موبایل مورد نظر
+            firstCallAction.Priority = "1";
+            firstCallAction.Timeout = 30000;
+
+            ManagerResponse firstCallResponse = manager.SendAction(firstCallAction, firstCallAction.Timeout);
+
+            // بررسی نتیجه تماس
+            if (firstCallResponse.IsSuccess())
+            {
+                Console.WriteLine("تماس با موفقیت برقرار شد.");
+
+                // در صورتی که تماس پاسخ داده شود، تماس دوم را برقرار کنید
+                if (firstCallResponse.UniqueId != null)
+                {
+                    OriginateAction secondCallAction = new OriginateAction();
+                    secondCallAction.Channel = "SIP/1002"; // شماره داخلی مورد نظر برای تماس دوم
+                    secondCallAction.Context = "from-internal"; // Context مورد نظر
+                    secondCallAction.Exten = "09123456788"; // شماره موبایل دیگر مورد نظر
+                    secondCallAction.Priority = "1";
+                    secondCallAction.Timeout = 30000;
+
+                    ManagerResponse secondCallResponse = manager.SendAction(secondCallAction, secondCallAction.Timeout);
+
+                    // بررسی نتیجه تماس دوم
+                    if (secondCallResponse.IsSuccess())
+                    {
+                        Console.WriteLine("تماس دوم با موفقیت برقرار شد.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("خطا در برقراری تماس دوم: " + secondCallResponse.Message);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("خطا در برقراری تماس: " + firstCallResponse.Message);
+            }
+
+            
+        }
+
+        public void test2()
+        {
+       
+            // Make a call to the first mobile number
+            OriginateAction originateAction1 = new OriginateAction();
+            originateAction1.Channel = "SIP/YOUR_SIP_TRUNK/FIRST_MOBILE_NUMBER";
+            originateAction1.Context = "from-internal";
+            originateAction1.Exten = "1000";
+            originateAction1.Priority = "1";
+            ManagerResponse originateResponse1 = manager.SendAction(originateAction1, 30000);
+
+            // Wait for the call to be answered
+            System.Threading.Thread.Sleep(5000); // Wait for 5 seconds
+
+            // Make a call to the second mobile number and connect it to the first call
+            OriginateAction originateAction2 = new OriginateAction();
+            originateAction2.Channel = "SIP/YOUR_SIP_TRUNK/SECOND_MOBILE_NUMBER";
+            originateAction2.Context = "from-internal";
+            originateAction2.Exten = "1000";
+            originateAction2.Priority = "1";
+            originateAction2.Application = "Dial";
+            originateAction2.Data = "SIP/YOUR_SIP_TRUNK/FIRST_MOBILE_NUMBER";
+            ManagerResponse originateResponse2 = manager.SendAction(originateAction2, 30000);
+        }
+
         private void btnConnect_Click(object sender, EventArgs e)
         {
             string address = this.tbAddress.Text;
@@ -108,6 +190,90 @@ namespace Asterisk.WinForm.AMI
             }
             else if (radioButtonActionMode2.Checked)
             {
+                #region
+                if (string.IsNullOrEmpty(this.textBoxActionFromChannel.Text))
+                    this.textBoxActionFromChannel.Text = "DAHDI/g1";
+                if (this.textBoxActionFromChannel.Text.LastIndexOf("/") < this.textBoxActionFromChannel.Text.Length - 1)
+                    this.textBoxActionFromChannel.Text = this.textBoxActionFromChannel.Text + "/";
+
+                // Make a call to the first mobile number
+                OriginateAction originateAction1 = new OriginateAction();
+                originateAction1.Channel = this.textBoxActionFromChannel.Text + this.textBoxActionFromNumber.Text;
+                originateAction1.Context = "from-internal";
+                originateAction1.Exten = "21";
+                originateAction1.Priority = "1";
+                ManagerResponse originateResponse1 = manager.SendAction(originateAction1, 30000);
+
+                // Wait for the call to be answered
+                System.Threading.Thread.Sleep(5000); // Wait for 5 seconds
+
+                // Make a call to the second mobile number and connect it to the first call
+                OriginateAction originateAction2 = new OriginateAction();
+                originateAction2.Channel = this.textBoxActionFromChannel.Text + this.textBoxActionToNumber.Text;
+                originateAction2.Context = "from-internal";
+                originateAction2.Exten = "21";
+                originateAction2.Priority = "1";
+                originateAction2.Application = "Dial";
+                originateAction2.Data = this.textBoxActionFromChannel.Text + this.textBoxActionFromNumber.Text;
+                ManagerResponse originateResponse2 = manager.SendAction(originateAction2, 30000);
+                #endregion
+            }else if (radioButtonActionMode3.Checked)
+            {
+                #region
+                if (string.IsNullOrEmpty(this.textBoxActionFromChannel.Text))
+                    this.textBoxActionFromChannel.Text = "DAHDI/g1";
+                if (this.textBoxActionFromChannel.Text.LastIndexOf("/") < this.textBoxActionFromChannel.Text.Length - 1)
+                    this.textBoxActionFromChannel.Text = this.textBoxActionFromChannel.Text + "/";
+
+                // تماس گرفتن با یک شماره موبایل
+                OriginateAction firstCallAction = new OriginateAction();
+                firstCallAction.Channel =  this.textBoxActionFromChannel.Text + this.textBoxActionFromNumber.Text; // شماره داخلی مورد نظر
+                firstCallAction.Context = "from-internal"; // Context مورد نظر
+                firstCallAction.Exten = "1000";// this.textBoxActionFromNumber.Text;// this.textBoxActionFromNumber.Text; // شماره موبایل مورد نظر
+                firstCallAction.Priority = "1";
+                firstCallAction.Timeout = 30000;
+
+                ManagerResponse firstCallResponse = manager.SendAction(firstCallAction, firstCallAction.Timeout);
+
+                // بررسی نتیجه تماس
+                if (firstCallResponse.IsSuccess())
+                {
+                    Console.WriteLine("تماس با موفقیت برقرار شد.");
+
+                    // در صورتی که تماس پاسخ داده شود، تماس دوم را برقرار کنید
+                    if (firstCallResponse.UniqueId != null)
+                    {
+                        OriginateAction secondCallAction = new OriginateAction();
+                        secondCallAction.Channel =  this.textBoxActionFromChannel.Text + this.textBoxActionToNumber.Text; // شماره داخلی مورد نظر برای تماس دوم
+                        secondCallAction.Context = "from-internal"; // Context مورد نظر
+                        secondCallAction.Exten = "1000";//this.textBoxActionToNumber.Text;//this.textBoxActionToNumber.Text; // شماره موبایل دیگر مورد نظر
+                        secondCallAction.Priority = "1";
+                        secondCallAction.Timeout = 30000;
+
+                        ManagerResponse secondCallResponse = manager.SendAction(secondCallAction, secondCallAction.Timeout);
+
+                        // بررسی نتیجه تماس دوم
+                        if (secondCallResponse.IsSuccess())
+                        {
+                            Console.WriteLine("تماس دوم با موفقیت برقرار شد.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("خطا در برقراری تماس دوم: " + secondCallResponse.Message);
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("خطا در برقراری تماس: " + firstCallResponse.Message);
+                }
+                #endregion
+            }else if (radioButtonActionMode4.Checked)
+            {
+                #region
+              
+                #endregion
+
 
             }
 
@@ -128,7 +294,7 @@ namespace Asterisk.WinForm.AMI
             }
 
         }
-
+      
         private void buttonActionHungup_Click(object sender, EventArgs e)
         {
             if (!ActionCallStatus)

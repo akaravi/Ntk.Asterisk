@@ -8,7 +8,7 @@ namespace Ntk.AsterNet.AMI.Manager.Action
     ///     If an entry is found a DBGetResponseEvent is sent by Asterisk containing the
     ///     value, otherwise a ManagerError indicates that no entry matches.
     /// </summary>
-    /// <seealso cref="AsterNET.Manager.Event.DBGetResponseEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.DBGetResponseEvent" />
     public class DBGetAction : ManagerActionEvent
     {
         /// <summary>

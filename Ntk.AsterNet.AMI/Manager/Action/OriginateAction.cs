@@ -20,8 +20,8 @@ namespace Ntk.AsterNet.AMI.Manager.Action
     ///     and OriginateFailureEvents. The action id of these events equals the action
     ///     id of this OriginateAction.
     /// </summary>
-    /// <seealso cref="AsterNET.Manager.Event.OriginateSuccessEvent" />
-    /// <seealso cref="AsterNET.Manager.Event.OriginateFailureEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.OriginateSuccessEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.OriginateFailureEvent" />
     public class OriginateAction : ManagerActionEvent, IActionVariable
     {
         private Dictionary<string, string> variables;

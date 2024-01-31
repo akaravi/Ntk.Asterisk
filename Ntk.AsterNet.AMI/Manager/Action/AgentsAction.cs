@@ -9,8 +9,8 @@ namespace Ntk.AsterNet.AMI.Manager.Action
     ///     After the state of all agents has been reported an AgentsCompleteEvent is generated.<br />
     ///     Available since Asterisk 1.2
     /// </summary>
-    /// <seealso cref="AsterNET.Manager.Event.AgentsEvent" />
-    /// <seealso cref="AsterNET.Manager.Event.AgentsCompleteEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.AgentsEvent" />
+    /// <seealso cref="Ntk.AsterNet.AMI.Manager.Event.AgentsCompleteEvent" />
     public class AgentsAction : ManagerActionEvent
     {
         #region Action 
