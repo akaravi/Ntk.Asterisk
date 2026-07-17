@@ -1,0 +1,4 @@
+{
+  "pattern": "{ProductId}_{yyyyMMdd}_{HHmmss}.zip",
+  "productId": "ntk-asterisk"
+}

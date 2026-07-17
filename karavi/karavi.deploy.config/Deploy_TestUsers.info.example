@@ -1,0 +1,5 @@
+# Deploy_TestUsers.info — copy locally, gitignore. Never commit or paste in chat.
+
+[Admin]
+Username=admin@example.com
+Password=CHANGE_ME_LOCAL_ONLY

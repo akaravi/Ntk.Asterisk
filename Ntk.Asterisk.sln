@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ntk.AsterNet.AMI", "Ntk.AsterNet.AMI\Ntk.AsterNet.AMI.csproj", "{AE7FDA9C-773D-42F1-93EC-2CFF3EC20848}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ntk.AsterNet.AMI", "src\DotNet\Ntk.AsterNet.AMI\Ntk.AsterNet.AMI.csproj", "{AE7FDA9C-773D-42F1-93EC-2CFF3EC20848}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ntk.AsterNet.ARI", "Ntk.AsterNet.ARI\Ntk.AsterNet.ARI.csproj", "{DED4BC4E-5FAF-44FF-A931-9D77DFAADE1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ntk.AsterNet.ARI", "src\DotNet\Ntk.AsterNet.ARI\Ntk.AsterNet.ARI.csproj", "{DED4BC4E-5FAF-44FF-A931-9D77DFAADE1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.WinForm.AMI", "Asterisk.WinForm.AMI\Asterisk.WinForm.AMI.csproj", "{72207EE4-7D27-4459-B3A1-618EDFDB79E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.WinForm.AMI", "src\DotNet\Asterisk.WinForm.AMI\Asterisk.WinForm.AMI.csproj", "{72207EE4-7D27-4459-B3A1-618EDFDB79E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.Console.AMI", "Asterisk.Console.AMI\Asterisk.Console.AMI.csproj", "{CBE6B690-438B-4180-95E4-2C5B0165C627}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.Console.AMI", "src\DotNet\Asterisk.Console.AMI\Asterisk.Console.AMI.csproj", "{CBE6B690-438B-4180-95E4-2C5B0165C627}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.WinForm.ARI", "Asterisk.WinForm.ARI\Asterisk.WinForm.ARI.csproj", "{F96ED071-4B23-438D-AB18-A5AE62CC8E8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.WinForm.ARI", "src\DotNet\Asterisk.WinForm.ARI\Asterisk.WinForm.ARI.csproj", "{F96ED071-4B23-438D-AB18-A5AE62CC8E8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.Console.ARI", "Asterisk.Console.ARI\Asterisk.Console.ARI.csproj", "{5E184AA7-E494-42F8-BAB2-D4789EA3B071}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asterisk.Console.ARI", "src\DotNet\Asterisk.Console.ARI\Asterisk.Console.ARI.csproj", "{5E184AA7-E494-42F8-BAB2-D4789EA3B071}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

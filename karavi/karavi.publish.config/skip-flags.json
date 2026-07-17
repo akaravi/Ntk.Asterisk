@@ -1,0 +1,8 @@
+{
+  "SkipFlutter": true,
+  "SkipZip": false,
+  "SkipAndroid": true,
+  "SkipExtension": true,
+  "SkipAngular": true,
+  "SkipSpa": true
+}

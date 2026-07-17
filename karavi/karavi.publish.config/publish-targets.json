@@ -1,0 +1,9 @@
+{
+  "targets": [
+    "ami-lib",
+    "ari-lib",
+    "console-ami",
+    "console-ari"
+  ],
+  "stageRoot": "karavi/karavi.publish.files"
+}

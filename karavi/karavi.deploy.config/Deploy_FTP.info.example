@@ -1,0 +1,11 @@
+# Deploy_FTP.info — copy to Deploy_FTP.info (local, gitignore). Do not commit.
+
+[Ftp]
+Host=ftp.example.com
+User=CHANGE_ME
+# Password= set locally only
+
+[Paths]
+httpdocs_api=/httpdocs/api
+httpdocs_web=/httpdocs/www
+httpdocs_panel=/httpdocs/panel

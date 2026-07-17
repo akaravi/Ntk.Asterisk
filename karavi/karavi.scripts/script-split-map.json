@@ -1,0 +1,11 @@
+{
+  "command": [
+    "workspace.clean.ps1",
+    "history.write.ps1"
+  ],
+  "tools": [
+    "workspace.paths.ps1",
+    "workspace.publish-paths.ps1",
+    "verify.karavi-structure.ps1"
+  ]
+}

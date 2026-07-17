@@ -1,0 +1,19 @@
+{
+  "gates": [
+    {
+      "id": "karavi-structure",
+      "script": "karavi.scripts.tools/verify.karavi-structure.ps1",
+      "required": true
+    },
+    {
+      "id": "dotnet-build",
+      "command": "dotnet build Ntk.Asterisk.sln -c Release --nologo",
+      "required": true
+    },
+    {
+      "id": "no-secrets-in-config",
+      "note": "Scan diff for Deploy_FTP.info, passwords, tokens, AMI/ARI credentials",
+      "required": true
+    }
+  ]
+}

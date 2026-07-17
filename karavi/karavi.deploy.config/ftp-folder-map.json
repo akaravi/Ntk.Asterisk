@@ -1,0 +1,15 @@
+{
+  "mappings": {
+    "ami-lib": {
+      "ftpKey": null,
+      "localDir": "karavi/karavi.deploy.files/ami-lib",
+      "delivery": "nuget"
+    },
+    "ari-lib": {
+      "ftpKey": null,
+      "localDir": "karavi/karavi.deploy.files/ari-lib",
+      "delivery": "nuget"
+    }
+  },
+  "notes": "Ntk.Asterisk ships as NuGet — FTP httpdocs mappings intentionally empty."
+}

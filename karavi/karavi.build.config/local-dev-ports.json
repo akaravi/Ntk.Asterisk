@@ -1,0 +1,35 @@
+{
+  "productId": "ntk-asterisk",
+  "hosts": {
+    "ami-lib": {
+      "port": null,
+      "healthPath": null,
+      "note": "NuGet library — no HTTP host"
+    },
+    "ari-lib": {
+      "port": null,
+      "healthPath": null,
+      "note": "NuGet library — no HTTP host"
+    },
+    "console-ami": {
+      "port": null,
+      "healthPath": null,
+      "note": "Sample console — connects to Asterisk AMI"
+    },
+    "console-ari": {
+      "port": null,
+      "healthPath": null,
+      "note": "Sample console — connects to Asterisk ARI"
+    },
+    "asterisk-ami": {
+      "port": 5038,
+      "healthPath": null,
+      "note": "External Asterisk Manager Interface (default)"
+    },
+    "asterisk-ari": {
+      "port": 8088,
+      "healthPath": "/ari/api-docs/resources.json",
+      "note": "External Asterisk REST Interface (default HTTP)"
+    }
+  }
+}

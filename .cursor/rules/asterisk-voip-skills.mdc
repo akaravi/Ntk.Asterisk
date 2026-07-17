@@ -1,0 +1,19 @@
+---
+description: Mandatory Asterisk/VoIP skills for all Dialplan/AGI/AMI/CallFile/ARI work in Ntk.Asterisk
+alwaysApply: true
+---
+
+# Asterisk VoIP skills — always on
+
+Before any Asterisk / VoIP / PBX / IVR / dialplan / AGI / AMI / Call File / ARI / channel / Originate work in this repository:
+
+1. Read and follow `.cursor/skills/asterisk-voip-stack/SKILL.md`
+2. Read the matching domain skill before coding:
+   - Dialplan / extensions.conf → `asterisk-dialplan`
+   - AGI / FastAGI → `asterisk-agi`
+   - AMI / Manager / Originate events → `asterisk-ami`
+   - Call File / spool / outgoing → `asterisk-callfile`
+3. Map implementations to `Ntk.AsterNet.AMI` (AMI + FastAGI) or `Ntk.AsterNet.ARI` as appropriate.
+4. Canonical tutorials: `karavi/karavi.doc/Learn/voiping_*.pdf`
+
+Do not implement VoIP behavior from memory alone when these skills apply.

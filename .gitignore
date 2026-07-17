@@ -338,3 +338,15 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+# --- karavi (starter-kit) ---
+karavi/karavi.logs/
+karavi/karavi.deploy.files/
+karavi/karavi.build.files/
+karavi/karavi.publish.files/
+karavi/karavi.status/*.html
+!karavi/karavi.status/*.example.html
+karavi/karavi.deploy.config/Deploy_FTP.info
+karavi/karavi.deploy.config/Deploy_TestUsers.info
+karavi/karavi.deploy.config/deploy.secrets.json
+karavi/karavi.logs/.check-logs-state.json
+

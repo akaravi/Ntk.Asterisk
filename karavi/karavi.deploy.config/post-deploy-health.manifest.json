@@ -1,0 +1,24 @@
+{
+  "smokeUrls": [],
+  "smokeChecks": [
+    {
+      "id": "ami-nupkg-exists",
+      "type": "file",
+      "path": "karavi/karavi.deploy.files/ami-lib/*.nupkg",
+      "environment": "local-release"
+    },
+    {
+      "id": "ari-nupkg-exists",
+      "type": "file",
+      "path": "karavi/karavi.deploy.files/ari-lib/*.nupkg",
+      "environment": "local-release"
+    },
+    {
+      "id": "solution-build",
+      "type": "command",
+      "command": "dotnet build Ntk.Asterisk.sln -c Release --nologo",
+      "environment": "local-release"
+    }
+  ],
+  "notes": "No HTTP /health hosts — smoke is build + nupkg presence; live Asterisk AMI/ARI is external."
+}

@@ -1,0 +1,33 @@
+{
+  "profiles": {
+    "Release": {
+      "dotnet": {
+        "configuration": "Release",
+        "rid": "win-x64",
+        "solution": "Ntk.Asterisk.sln"
+      }
+    },
+    "Debug": {
+      "dotnet": {
+        "configuration": "Debug",
+        "solution": "Ntk.Asterisk.sln"
+      }
+    }
+  },
+  "enabledStacks": [
+    "ami-lib",
+    "ari-lib",
+    "console-ami",
+    "console-ari",
+    "winform-ami",
+    "winform-ari"
+  ],
+  "projects": {
+    "ami-lib": "src/DotNet/Ntk.AsterNet.AMI/Ntk.AsterNet.AMI.csproj",
+    "ari-lib": "src/DotNet/Ntk.AsterNet.ARI/Ntk.AsterNet.ARI.csproj",
+    "console-ami": "src/DotNet/Asterisk.Console.AMI/Asterisk.Console.AMI.csproj",
+    "console-ari": "src/DotNet/Asterisk.Console.ARI/Asterisk.Console.ARI.csproj",
+    "winform-ami": "src/DotNet/Asterisk.WinForm.AMI/Asterisk.WinForm.AMI.csproj",
+    "winform-ari": "src/DotNet/Asterisk.WinForm.ARI/Asterisk.WinForm.ARI.csproj"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "productId": "ntk-asterisk",
+  "versionPattern": "A.B.C.D",
+  "hosts": {
+    "ami-lib": {
+      "path": "src/DotNet/Ntk.AsterNet.AMI/Ntk.AsterNet.AMI.csproj",
+      "key": "AssemblyVersion",
+      "packageVersionKey": "Version"
+    },
+    "ari-lib": {
+      "path": "src/DotNet/Ntk.AsterNet.ARI/Ntk.AsterNet.ARI.csproj",
+      "key": "AssemblyVersion",
+      "packageVersionKey": "Version"
+    }
+  },
+  "current": {
+    "assembly": "1.1.3.0",
+    "package": "1.1.2"
+  },
+  "notes": "update ver bumps AssemblyVersion/FileVersion (A.B.C.D) and Package Version on both library csproj files."
+}

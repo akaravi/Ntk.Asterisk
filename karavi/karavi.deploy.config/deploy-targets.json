@@ -1,0 +1,34 @@
+{
+  "targets": [
+    {
+      "id": "ami-lib",
+      "role": "Library",
+      "outputDir": "karavi/karavi.deploy.files/ami-lib",
+      "stack": "dotnet",
+      "project": "src/DotNet/Ntk.AsterNet.AMI/Ntk.AsterNet.AMI.csproj",
+      "artifact": "nupkg"
+    },
+    {
+      "id": "ari-lib",
+      "role": "Library",
+      "outputDir": "karavi/karavi.deploy.files/ari-lib",
+      "stack": "dotnet",
+      "project": "src/DotNet/Ntk.AsterNet.ARI/Ntk.AsterNet.ARI.csproj",
+      "artifact": "nupkg"
+    },
+    {
+      "id": "console-ami",
+      "role": "Sample",
+      "outputDir": "karavi/karavi.deploy.files/console-ami",
+      "stack": "dotnet",
+      "project": "src/DotNet/Asterisk.Console.AMI/Asterisk.Console.AMI.csproj"
+    },
+    {
+      "id": "console-ari",
+      "role": "Sample",
+      "outputDir": "karavi/karavi.deploy.files/console-ari",
+      "stack": "dotnet",
+      "project": "src/DotNet/Asterisk.Console.ARI/Asterisk.Console.ARI.csproj"
+    }
+  ]
+}

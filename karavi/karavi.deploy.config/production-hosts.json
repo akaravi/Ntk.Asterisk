@@ -1,0 +1,22 @@
+{
+  "productId": "ntk-asterisk",
+  "environments": {
+    "development": {
+      "asteriskAmi": "tcp://localhost:5038",
+      "asteriskAri": "http://localhost:8088/ari"
+    },
+    "staging": {
+      "asteriskAmi": "",
+      "asteriskAri": "",
+      "note": "Fill with staging Asterisk endpoints in overlays — never commit secrets"
+    },
+    "production": {
+      "nugetFeed": "https://api.nuget.org/v3/index.json",
+      "packages": [
+        "Ntk.AsterNet.AMI",
+        "Ntk.AsterNet.ARI"
+      ],
+      "note": "Primary delivery is NuGet packages; FTP web hosts not applicable"
+    }
+  }
+}
