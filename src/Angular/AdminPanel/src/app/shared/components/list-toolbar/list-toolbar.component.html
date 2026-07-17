@@ -27,6 +27,14 @@
       <button type="button" class="btn" (click)="refresh.emit()" [disabled]="busy">
         {{ busy ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
       </button>
+      @if (showExport) {
+        <button type="button" class="btn btn--ghost" (click)="exportPdf.emit()">
+          {{ 'LIST.EXPORT_PDF' | translate }}
+        </button>
+        <button type="button" class="btn btn--ghost" (click)="exportExcel.emit()">
+          {{ 'LIST.EXPORT_EXCEL' | translate }}
+        </button>
+      }
       @if (showPrint) {
         <button type="button" class="btn btn--ghost" (click)="print.emit()">
           {{ 'LIST.PRINT' | translate }}

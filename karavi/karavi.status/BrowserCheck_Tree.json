@@ -1,0 +1,254 @@
+{
+  "sessionId": "bc-ntk-asterisk-20260717-201559",
+  "productId": "ntk-asterisk",
+  "createdAt": "2026-07-17T16:45:59.2203777Z",
+  "completedAt": "2026-07-17T16:55:00.0000000Z",
+  "skillsInvoked": [
+    { "skillId": "browser-check", "phase": "sessionStart", "note": "orchestrate visible IDE Browser QA" },
+    { "skillId": "qa-browser-automation", "phase": "sessionStart", "note": "page cycle + health methodology" },
+    { "skillId": "design-auditor", "phase": "everyPageViewport", "note": "design/aiSlop/a11y grades + layout gate" },
+    { "skillId": "a11y-audit", "phase": "everyPageViewport", "note": "WCAG AA labels placeholders focus" },
+    { "skillId": "design-review", "phase": "everyPageViewport", "note": "RTL shell + toolbar density" },
+    { "skillId": "debug", "phase": "onBlocker", "note": "STATUS.undefined + missing export + GetList totals" },
+    { "skillId": "focused-fix", "phase": "onBlocker", "note": "list export + CallJobDto Status alias" },
+    { "skillId": "code-reviewer", "phase": "onBlocker", "note": "API additive totalCount/filter + status alias" }
+  ],
+  "hosts": [
+    {
+      "id": "admin-panel",
+      "baseUrl": "http://localhost:5314",
+      "nodes": [
+        {
+          "id": "admin-connection-desktop",
+          "parentId": null,
+          "url": "http://localhost:5314/connection",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": {
+            "template": "pass",
+            "api": "pass",
+            "content": "pass",
+            "links": true,
+            "buttons": true,
+            "crud": { "add": "n/a", "edit": "n/a", "delete": "n/a" }
+          },
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [
+            {
+              "severity": "should",
+              "category": "ops",
+              "message": "AMI disconnected without local Asterisk — expected; banner shows lastError"
+            }
+          ],
+          "fixes": []
+        },
+        {
+          "id": "admin-connection-mobile",
+          "parentId": "admin-connection-desktop",
+          "url": "http://localhost:5314/connection",
+          "viewport": "mobile",
+          "status": "pass",
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [],
+          "fixes": []
+        },
+        {
+          "id": "admin-monitor-desktop",
+          "parentId": null,
+          "url": "http://localhost:5314/monitor",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": {
+            "links": true,
+            "buttons": true,
+            "listToolbar": true,
+            "crud": { "add": "n/a", "edit": "n/a", "delete": "skipped-hangup-requires-live-channel" }
+          },
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [
+            {
+              "severity": "must",
+              "category": "list-export",
+              "message": "PDF/Excel missing on list toolbar"
+            },
+            {
+              "severity": "should",
+              "category": "ops",
+              "message": "Peers GetList errors when AMI unreachable (Timeout waiting for protocol identifier)"
+            }
+          ],
+          "fixes": [
+            {
+              "id": "fix-admin-list-export",
+              "summary": "Added LIST.EXPORT_PDF/EXCEL + list-export.util + wired monitor/jobs"
+            }
+          ]
+        },
+        {
+          "id": "admin-jobs-desktop",
+          "parentId": null,
+          "url": "http://localhost:5314/jobs",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": {
+            "links": true,
+            "buttons": true,
+            "listToolbar": true,
+            "crud": { "add": "n/a-admin", "edit": "n/a", "delete": "cancel-when-non-terminal" }
+          },
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [],
+          "fixes": [{ "id": "fix-admin-list-export", "summary": "PDF/Excel/print on jobs toolbar" }]
+        },
+        {
+          "id": "admin-settings-desktop",
+          "parentId": null,
+          "url": "http://localhost:5314/settings",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": { "links": true, "buttons": true, "crud": { "add": "n/a", "edit": "n/a", "delete": "n/a" } },
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "A" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [],
+          "fixes": []
+        }
+      ]
+    },
+    {
+      "id": "user-panel",
+      "baseUrl": "http://localhost:5312",
+      "nodes": [
+        {
+          "id": "user-calls-desktop",
+          "parentId": null,
+          "url": "http://localhost:5312/calls",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": {
+            "links": true,
+            "buttons": true,
+            "placeholders": true,
+            "crud": { "add": 2, "edit": "n/a-no-edit-ui", "delete": "via-cancel-api" }
+          },
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [],
+          "fixes": []
+        },
+        {
+          "id": "user-jobs-desktop",
+          "parentId": null,
+          "url": "http://localhost:5312/jobs",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": {
+            "links": true,
+            "buttons": true,
+            "listToolbar": true,
+            "crud": { "add": "via-calls", "edit": "n/a", "delete": "ActionCancel-API-verified" }
+          },
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [
+            {
+              "severity": "must",
+              "category": "contract",
+              "message": "UI used status; API sent state → STATUS.undefined"
+            },
+            {
+              "severity": "must",
+              "category": "list-features",
+              "message": "Missing advanced search + PDF/Excel/print; GetList lacked totalCount"
+            }
+          ],
+          "fixes": [
+            {
+              "id": "fix-calljob-status-alias",
+              "summary": "CallJobDto.Status => State + UserPanel normalize(status|state)"
+            },
+            {
+              "id": "fix-user-jobs-list-features",
+              "summary": "Advanced filters + PDF/Excel/print; API totalCount + filter.*"
+            }
+          ]
+        },
+        {
+          "id": "user-jobs-mobile",
+          "parentId": "user-jobs-desktop",
+          "url": "http://localhost:5312/jobs",
+          "viewport": "mobile",
+          "status": "pass",
+          "designAuditor": {
+            "grades": { "design": "B", "aiSlop": "A", "accessibility": "B" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [
+            {
+              "severity": "may",
+              "category": "layout",
+              "message": "Wide table uses overflow-x scroll inside .table-wrap — acceptable on mobile"
+            }
+          ],
+          "fixes": []
+        }
+      ]
+    },
+    {
+      "id": "webapi",
+      "baseUrl": "http://localhost:5310",
+      "nodes": [
+        {
+          "id": "webapi-health",
+          "parentId": null,
+          "url": "http://localhost:5310/health",
+          "viewport": "desktop",
+          "status": "pass",
+          "steps": { "content": "Healthy JSON", "crud": { "add": "n/a", "edit": "n/a", "delete": "n/a" } },
+          "designAuditor": {
+            "grades": { "design": "A", "aiSlop": "A", "accessibility": "A" },
+            "layoutGate": { "status": "pass", "failedChecks": [] }
+          },
+          "findings": [],
+          "fixes": []
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "pass": 9,
+    "fail": 0,
+    "pending": 0,
+    "skipped": 0,
+    "fixesApplied": 3
+  },
+  "projectWideFix": [
+    {
+      "id": "list-export-pdf-excel",
+      "layer": "AdminPanel list-toolbar + UserPanel jobs",
+      "summary": "Mandatory list export PDF/Excel/print"
+    },
+    {
+      "id": "calljob-status-alias",
+      "layer": "WebApi CallJobDto + UserPanel CallJobsApi",
+      "summary": "status/state dual field for panel compat"
+    }
+  ]
+}

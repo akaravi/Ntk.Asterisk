@@ -71,6 +71,8 @@ public sealed class CallJobDto
     public string Id { get; init; } = string.Empty;
     public string Type { get; init; } = string.Empty;
     public string State { get; init; } = string.Empty;
+    /// <summary>Legacy alias for UserPanel clients expecting status.</summary>
+    public string Status => State;
     public string? From { get; init; }
     public string? To { get; init; }
     public string? Mobile1 { get; init; }

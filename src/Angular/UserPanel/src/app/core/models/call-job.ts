@@ -13,7 +13,9 @@ export type CallJobStatus =
 export interface CallJob {
   id: string;
   type: CallJobType;
+  /** Canonical from API (`state`); some payloads also send `status`. */
   status: CallJobStatus;
+  state?: CallJobStatus;
   from?: string | null;
   to?: string | null;
   mobile1?: string | null;
@@ -22,6 +24,10 @@ export interface CallJob {
   errorMessage?: string | null;
   createdAtUtc?: string | null;
   updatedAtUtc?: string | null;
+}
+
+export function resolveJobStatus(job: Pick<CallJob, 'status' | 'state'>): CallJobStatus | undefined {
+  return job.status ?? job.state;
 }
 
 export interface CallJobAddRequest {

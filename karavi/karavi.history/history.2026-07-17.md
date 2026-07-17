@@ -1,5 +1,14 @@
 # history.2026-07-17
 
+## 2026-07-17 (Asia/Tehran) — browser check v1.2
+- **درخواست:** browser check
+- **تغییرات:**
+  - bootstrap: `karavi/karavi.build.config/browser-check.*` · `karavi.plans.prompt/browser.check.md` · `Initialize-BrowserCheckSession.ps1`
+  - visible IDE Browser: AdminPanel (5314) · UserPanel (5312) · WebApi `/health` (5310) · viewports desktop/mobile
+  - fix: list PDF/Excel export (Admin toolbar + User jobs) · `CallJobDto.Status` alias · GetList `totalCount` + `filter.*` · UserPanel status normalize
+- **تأیید:** tree 9 pass / 0 fail · [BrowserCheck.html](../karavi.status/BrowserCheck.html) · AMI زنده خارج از scope (timeout پروتکل بدون Asterisk)
+- **skills:** browser-check · design-auditor · qa-browser-automation · a11y-audit · design-review · debug
+
 ## 2026-07-17 (Asia/Tehran) — SHIP-READY Karavi.002 Wave-1 complete (D01–D14)
 - **درخواست:** execute Wave-1 plan to completion (autonomous)
 - **تغییرات:**

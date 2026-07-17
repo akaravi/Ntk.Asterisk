@@ -18,6 +18,8 @@
     "PAGE_SIZE": "تعداد در صفحه",
     "ADVANCED": "جستجوی پیشرفته",
     "PRINT": "چاپ",
+    "EXPORT_PDF": "PDF",
+    "EXPORT_EXCEL": "Excel",
     "PREV": "قبلی",
     "NEXT": "بعدی",
     "EMPTY": "موردی یافت نشد"

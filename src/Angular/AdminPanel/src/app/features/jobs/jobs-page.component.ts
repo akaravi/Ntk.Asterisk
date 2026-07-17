@@ -1,10 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { CallJob, ListQuery } from '../../core/models/asterisk.models';
 import { AsteriskApiService } from '../../core/services/asterisk-api.service';
 import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
+import { downloadListAsExcel, downloadListAsPdf } from '../../core/utils/list-export.util';
 import { applyClientList, defaultListQuery } from '../../core/utils/list-query.util';
 import {
   AdvancedFilterField,
@@ -21,6 +22,7 @@ import {
 export class JobsPageComponent implements OnInit, OnDestroy {
   private readonly api = inject(AsteriskApiService);
   private readonly hub = inject(AsteriskHubService);
+  private readonly i18n = inject(TranslateService);
   private sub?: Subscription;
 
   readonly loading = signal(false);
@@ -129,6 +131,40 @@ export class JobsPageComponent implements OnInit, OnDestroy {
 
   printTable(): void {
     window.print();
+  }
+
+  exportExcel(): void {
+    const t = (key: string) => this.i18n.instant(key);
+    downloadListAsExcel(
+      'call-jobs',
+      [
+        { key: 'id', header: t('JOBS.COL_ID') },
+        { key: 'type', header: t('JOBS.COL_TYPE') },
+        { key: 'state', header: t('JOBS.COL_STATE') },
+        { key: 'from', header: t('JOBS.COL_FROM') },
+        { key: 'to', header: t('JOBS.COL_TO') },
+        { key: 'updatedAtUtc', header: t('JOBS.COL_UPDATED') },
+        { key: 'errorMessage', header: t('JOBS.COL_ERROR') },
+      ],
+      this.jobsRows() as unknown as Record<string, unknown>[]
+    );
+  }
+
+  exportPdf(): void {
+    const t = (key: string) => this.i18n.instant(key);
+    downloadListAsPdf(
+      t('NAV.JOBS'),
+      [
+        { key: 'id', header: t('JOBS.COL_ID') },
+        { key: 'type', header: t('JOBS.COL_TYPE') },
+        { key: 'state', header: t('JOBS.COL_STATE') },
+        { key: 'from', header: t('JOBS.COL_FROM') },
+        { key: 'to', header: t('JOBS.COL_TO') },
+        { key: 'updatedAtUtc', header: t('JOBS.COL_UPDATED') },
+        { key: 'errorMessage', header: t('JOBS.COL_ERROR') },
+      ],
+      this.jobsRows() as unknown as Record<string, unknown>[]
+    );
   }
 
   private repage(): void {

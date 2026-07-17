@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { ChannelItem, ListQuery, PeerItem, TrunkItem } from '../../core/models/asterisk.models';
 import { AsteriskApiService } from '../../core/services/asterisk-api.service';
 import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
+import { downloadListAsExcel, downloadListAsPdf } from '../../core/utils/list-export.util';
 import { applyClientList, defaultListQuery } from '../../core/utils/list-query.util';
 import {
   AdvancedFilterField,
@@ -23,6 +24,7 @@ type MonitorTab = 'extensions' | 'trunks' | 'channels';
 export class MonitorPageComponent implements OnInit, OnDestroy {
   private readonly api = inject(AsteriskApiService);
   private readonly hub = inject(AsteriskHubService);
+  private readonly i18n = inject(TranslateService);
   private sub?: Subscription;
 
   readonly tab = signal<MonitorTab>('extensions');
@@ -172,6 +174,61 @@ export class MonitorPageComponent implements OnInit, OnDestroy {
 
   printTable(): void {
     window.print();
+  }
+
+  exportExcel(): void {
+    const { columns, rows, fileBase } = this.exportPayload();
+    downloadListAsExcel(fileBase, columns, rows);
+  }
+
+  exportPdf(): void {
+    const { columns, rows, fileBase } = this.exportPayload();
+    downloadListAsPdf(fileBase, columns, rows);
+  }
+
+  private exportPayload(): {
+    columns: { key: string; header: string }[];
+    rows: Record<string, unknown>[];
+    fileBase: string;
+  } {
+    const t = (key: string) => this.i18n.instant(key);
+    const tab = this.tab();
+    if (tab === 'extensions') {
+      return {
+        fileBase: 'monitor-extensions',
+        columns: [
+          { key: 'id', header: t('MONITOR.COL_ID') },
+          { key: 'tech', header: t('MONITOR.COL_TECH') },
+          { key: 'status', header: t('MONITOR.COL_STATUS') },
+          { key: 'ip', header: t('MONITOR.COL_IP') },
+          { key: 'channel', header: t('MONITOR.COL_CHANNEL') },
+        ],
+        rows: this.peersRows() as unknown as Record<string, unknown>[],
+      };
+    }
+    if (tab === 'trunks') {
+      return {
+        fileBase: 'monitor-trunks',
+        columns: [
+          { key: 'id', header: t('MONITOR.COL_ID') },
+          { key: 'tech', header: t('MONITOR.COL_TECH') },
+          { key: 'status', header: t('MONITOR.COL_STATUS') },
+          { key: 'ip', header: t('MONITOR.COL_IP') },
+        ],
+        rows: this.trunksRows() as unknown as Record<string, unknown>[],
+      };
+    }
+    return {
+      fileBase: 'monitor-channels',
+      columns: [
+        { key: 'channel', header: t('MONITOR.COL_CHANNEL') },
+        { key: 'uniqueId', header: t('MONITOR.COL_UNIQUE') },
+        { key: 'callerId', header: t('MONITOR.COL_CALLER') },
+        { key: 'state', header: t('MONITOR.COL_STATE') },
+        { key: 'application', header: t('MONITOR.COL_APP') },
+      ],
+      rows: this.channelsRows() as unknown as Record<string, unknown>[],
+    };
   }
 
   private repage(): void {

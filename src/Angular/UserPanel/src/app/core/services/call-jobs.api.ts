@@ -22,6 +22,7 @@ export class CallJobsApi {
     sortBy?: string;
     sortDir?: 'asc' | 'desc';
     quickSearch?: string;
+    filter?: Record<string, string | undefined>;
   }): Observable<{ items: CallJob[]; totalCount?: number }> {
     let params = new HttpParams();
     if (options?.pageIndex != null) {
@@ -39,6 +40,13 @@ export class CallJobsApi {
     if (options?.quickSearch) {
       params = params.set('quickSearch', options.quickSearch);
     }
+    if (options?.filter) {
+      for (const [key, value] of Object.entries(options.filter)) {
+        if (value) {
+          params = params.set(`filter.${key}`, value);
+        }
+      }
+    }
 
     return this.http
       .get<ApiResult<CallJob> & { totalCount?: number; pageIndex?: number; pageSize?: number }>(
@@ -49,7 +57,7 @@ export class CallJobsApi {
         map((r) => {
           this.ensureSuccess(r, 'GetList');
           return {
-            items: r.data ?? [],
+            items: (r.data ?? []).map((j) => this.normalize(j)),
             totalCount: r.totalCount,
           };
         })
@@ -74,7 +82,12 @@ export class CallJobsApi {
     if (!item) {
       throw new Error(`${action}: empty data`);
     }
-    return item;
+    return this.normalize(item);
+  }
+
+  private normalize(job: CallJob): CallJob {
+    const status = job.status ?? job.state;
+    return status ? { ...job, status, state: job.state ?? status } : job;
   }
 
   private ensureSuccess(result: ApiResult<unknown>, action: string): void {

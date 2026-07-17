@@ -24,10 +24,13 @@ export class ListToolbarComponent {
   @Input() advancedFields: AdvancedFilterField[] = [];
   @Input() busy = false;
   @Input() showPrint = true;
+  @Input() showExport = true;
 
   @Output() queryChange = new EventEmitter<ListQuery>();
   @Output() refresh = new EventEmitter<void>();
   @Output() print = new EventEmitter<void>();
+  @Output() exportPdf = new EventEmitter<void>();
+  @Output() exportExcel = new EventEmitter<void>();
 
   advancedOpen = false;
   readonly pageSizes = pageSizeOptions();

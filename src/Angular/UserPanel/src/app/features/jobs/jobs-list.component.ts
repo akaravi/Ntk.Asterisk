@@ -2,10 +2,12 @@ import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { CallJob, CallJobStatus } from '../../core/models/call-job';
+import { CallJob, CallJobStatus, resolveJobStatus } from '../../core/models/call-job';
 import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
 import { CallJobsApi } from '../../core/services/call-jobs.api';
+import { downloadListAsExcel, downloadListAsPdf } from '../../core/utils/list-export.util';
 
 const TERMINAL: CallJobStatus[] = ['completed', 'failed', 'cancelled'];
 
@@ -19,6 +21,7 @@ const TERMINAL: CallJobStatus[] = ['completed', 'failed', 'cancelled'];
 export class JobsListComponent implements OnInit, OnDestroy {
   private readonly api = inject(CallJobsApi);
   private readonly hub = inject(AsteriskHubService);
+  private readonly i18n = inject(I18nService);
   private readonly subs = new Subscription();
 
   readonly pageSizeOptions = [10, 25, 50, 100];
@@ -33,6 +36,11 @@ export class JobsListComponent implements OnInit, OnDestroy {
   sortBy: 'updatedAtUtc' | 'createdAtUtc' | 'status' | 'type' = 'updatedAtUtc';
   sortDir: 'asc' | 'desc' = 'desc';
   quickSearch = '';
+  advancedOpen = false;
+  filterStatus = '';
+  filterType = '';
+  filterFrom = '';
+  filterTo = '';
 
   ngOnInit(): void {
     this.reload();
@@ -57,6 +65,12 @@ export class JobsListComponent implements OnInit, OnDestroy {
         sortBy: this.sortBy,
         sortDir: this.sortDir,
         quickSearch: this.quickSearch.trim() || undefined,
+        filter: {
+          state: this.filterStatus.trim() || undefined,
+          type: this.filterType.trim() || undefined,
+          from: this.filterFrom.trim() || undefined,
+          to: this.filterTo.trim() || undefined,
+        },
       })
       .subscribe({
         next: (result) => {
@@ -79,6 +93,10 @@ export class JobsListComponent implements OnInit, OnDestroy {
   onPageSizeChange(): void {
     this.pageIndex = 0;
     this.reload();
+  }
+
+  toggleAdvanced(): void {
+    this.advancedOpen = !this.advancedOpen;
   }
 
   toggleSort(column: typeof this.sortBy): void {
@@ -109,7 +127,8 @@ export class JobsListComponent implements OnInit, OnDestroy {
   }
 
   canCancel(job: CallJob): boolean {
-    return !TERMINAL.includes(job.status);
+    const status = resolveJobStatus(job);
+    return !!status && !TERMINAL.includes(status);
   }
 
   cancel(job: CallJob): void {
@@ -129,8 +148,21 @@ export class JobsListComponent implements OnInit, OnDestroy {
     });
   }
 
-  statusKey(status: CallJobStatus): string {
-    return `STATUS.${status}`;
+  printTable(): void {
+    window.print();
+  }
+
+  exportExcel(): void {
+    downloadListAsExcel('user-call-jobs', this.exportColumns(), this.exportRows());
+  }
+
+  exportPdf(): void {
+    downloadListAsPdf(this.i18n.t('JOBS.TITLE'), this.exportColumns(), this.exportRows());
+  }
+
+  statusKey(job: CallJob): string {
+    const status = resolveJobStatus(job);
+    return status ? `STATUS.${status}` : 'STATUS.queued';
   }
 
   typeKey(type: CallJob['type']): string {
@@ -143,6 +175,30 @@ export class JobsListComponent implements OnInit, OnDestroy {
 
   displayTo(job: CallJob): string {
     return job.to || job.mobile2 || '—';
+  }
+
+  resolveJobStatus = resolveJobStatus;
+
+  private exportColumns(): { key: string; header: string }[] {
+    return [
+      { key: 'id', header: this.i18n.t('JOBS.COL_ID') },
+      { key: 'type', header: this.i18n.t('JOBS.COL_TYPE') },
+      { key: 'status', header: this.i18n.t('JOBS.COL_STATUS') },
+      { key: 'from', header: this.i18n.t('JOBS.COL_FROM') },
+      { key: 'to', header: this.i18n.t('JOBS.COL_TO') },
+      { key: 'updatedAtUtc', header: this.i18n.t('JOBS.COL_UPDATED') },
+    ];
+  }
+
+  private exportRows(): Record<string, unknown>[] {
+    return this.jobs().map((job) => ({
+      id: job.id,
+      type: job.type,
+      status: resolveJobStatus(job) ?? '',
+      from: this.displayFrom(job),
+      to: this.displayTo(job),
+      updatedAtUtc: job.updatedAtUtc || job.createdAtUtc,
+    }));
   }
 
   private mergeJob(job: CallJob): void {

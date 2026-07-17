@@ -21,9 +21,62 @@
           }
         </select>
       </label>
+      <button type="button" (click)="toggleAdvanced()">{{ 'JOBS.ADVANCED' | t }}</button>
       <button type="button" (click)="onSearch()">{{ 'JOBS.REFRESH' | t }}</button>
+      <button type="button" (click)="exportPdf()">{{ 'JOBS.EXPORT_PDF' | t }}</button>
+      <button type="button" (click)="exportExcel()">{{ 'JOBS.EXPORT_EXCEL' | t }}</button>
+      <button type="button" (click)="printTable()">{{ 'JOBS.PRINT' | t }}</button>
     </div>
   </header>
+
+  @if (advancedOpen) {
+    <div class="advanced" role="region" [attr.aria-label]="'JOBS.ADVANCED' | t">
+      <label>
+        <span>{{ 'JOBS.FILTER_STATUS' | t }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          [(ngModel)]="filterStatus"
+          [attr.placeholder]="'JOBS.FILTER_STATUS_PH' | t"
+          (keyup.enter)="onSearch()"
+        />
+      </label>
+      <label>
+        <span>{{ 'JOBS.FILTER_TYPE' | t }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          [(ngModel)]="filterType"
+          [attr.placeholder]="'JOBS.FILTER_TYPE_PH' | t"
+          (keyup.enter)="onSearch()"
+        />
+      </label>
+      <label>
+        <span>{{ 'JOBS.FILTER_FROM' | t }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          [(ngModel)]="filterFrom"
+          [attr.placeholder]="'JOBS.FILTER_FROM_PH' | t"
+          (keyup.enter)="onSearch()"
+        />
+      </label>
+      <label>
+        <span>{{ 'JOBS.FILTER_TO' | t }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          [(ngModel)]="filterTo"
+          [attr.placeholder]="'JOBS.FILTER_TO_PH' | t"
+          (keyup.enter)="onSearch()"
+        />
+      </label>
+    </div>
+  }
 
   @if (errorMessage()) {
     <p class="banner error" role="alert">{{ errorMessage() }}</p>
@@ -78,7 +131,7 @@
               <td>{{ typeKey(job.type) | t }}</td>
               <td class="ltr" dir="ltr">{{ job.id }}</td>
               <td>
-                <span class="status" [attr.data-status]="job.status">{{ statusKey(job.status) | t }}</span>
+                <span class="status" [attr.data-status]="resolveJobStatus(job)">{{ statusKey(job) | t }}</span>
               </td>
               <td class="ltr" dir="ltr">{{ displayFrom(job) }}</td>
               <td class="ltr" dir="ltr">{{ displayTo(job) }}</td>

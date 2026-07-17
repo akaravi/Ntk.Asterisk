@@ -18,6 +18,8 @@
     "PAGE_SIZE": "Page size",
     "ADVANCED": "Advanced search",
     "PRINT": "Print",
+    "EXPORT_PDF": "PDF",
+    "EXPORT_EXCEL": "Excel",
     "PREV": "Prev",
     "NEXT": "Next",
     "EMPTY": "No rows"

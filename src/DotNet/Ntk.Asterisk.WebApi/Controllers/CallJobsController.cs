@@ -40,12 +40,16 @@ public sealed class CallJobsController : ControllerBase
     }
 
     [HttpGet("GetList")]
-    public ActionResult<ApiResult<CallJobDto>> GetList(
+    public ActionResult<object> GetList(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 50,
         [FromQuery] string? quickSearch = null,
         [FromQuery] string? sortBy = null,
-        [FromQuery] string? sortDir = null)
+        [FromQuery] string? sortDir = null,
+        [FromQuery(Name = "filter.state")] string? filterState = null,
+        [FromQuery(Name = "filter.type")] string? filterType = null,
+        [FromQuery(Name = "filter.from")] string? filterFrom = null,
+        [FromQuery(Name = "filter.to")] string? filterTo = null)
     {
         var items = _store.GetAll().Select(_store.ToDto).AsEnumerable();
 
@@ -63,20 +67,41 @@ public sealed class CallJobsController : ControllerBase
                 || Contains(j.Channel, q));
         }
 
+        if (!string.IsNullOrWhiteSpace(filterState))
+            items = items.Where(j => Contains(j.State, filterState));
+        if (!string.IsNullOrWhiteSpace(filterType))
+            items = items.Where(j => Contains(j.Type, filterType));
+        if (!string.IsNullOrWhiteSpace(filterFrom))
+            items = items.Where(j => Contains(j.From, filterFrom) || Contains(j.Mobile1, filterFrom));
+        if (!string.IsNullOrWhiteSpace(filterTo))
+            items = items.Where(j => Contains(j.To, filterTo) || Contains(j.Mobile2, filterTo));
+
         items = (sortBy?.ToLowerInvariant(), sortDir?.ToLowerInvariant()) switch
         {
-            ("state", "asc") => items.OrderBy(j => j.State),
-            ("state", _) => items.OrderByDescending(j => j.State),
+            ("state", "asc") or ("status", "asc") => items.OrderBy(j => j.State),
+            ("state", _) or ("status", _) => items.OrderByDescending(j => j.State),
             ("type", "asc") => items.OrderBy(j => j.Type),
             ("type", _) => items.OrderByDescending(j => j.Type),
             ("updatedatutc", "asc") => items.OrderBy(j => j.UpdatedAtUtc),
+            ("updatedatutc", _) => items.OrderByDescending(j => j.UpdatedAtUtc),
+            ("createdatutc", "asc") => items.OrderBy(j => j.CreatedAtUtc),
             _ => items.OrderByDescending(j => j.CreatedAtUtc)
         };
 
         if (pageSize <= 0) pageSize = 50;
         if (pageIndex < 0) pageIndex = 0;
-        var page = items.Skip(pageIndex * pageSize).Take(pageSize).ToList();
-        return Ok(ApiResult<CallJobDto>.Ok(page));
+        var materialized = items.ToList();
+        var totalCount = materialized.Count;
+        var page = materialized.Skip(pageIndex * pageSize).Take(pageSize).ToList();
+        return Ok(new
+        {
+            isSuccess = true,
+            data = page,
+            errorMessage = (string?)null,
+            totalCount,
+            pageIndex,
+            pageSize
+        });
     }
 
     [HttpGet("GetOne/{id}")]
