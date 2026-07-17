@@ -18,11 +18,37 @@ public sealed class AsteriskOptions
     public string OriginateVia { get; set; } = "LocalContext";
     /// <summary>Dialplan context for Local channels (FreePBX: from-internal).</summary>
     public string OriginateContext { get; set; } = "from-internal";
+    /// <summary>Asterisk MOH class played to leg1 until leg2 answers (FreePBX: default).</summary>
+    public string MusicOnHoldClass { get; set; } = "default";
     public int DefaultTimeoutMs { get; set; } = 30000;
     public string? DefaultCallerId { get; set; }
     public bool KeepAlive { get; set; } = true;
     public int PingIntervalMs { get; set; } = 10000;
     public bool AutoConnectOnStartup { get; set; } = true;
+
+    /// <summary>Start AMI MixMonitor when a call is bridged.</summary>
+    public bool RecordingEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Directory on the WebApi host where Asterisk monitor files are visible
+    /// (UNC mount of /var/spool/asterisk/monitor, rsync target, etc.).
+    /// </summary>
+    public string? RecordingLocalDirectory { get; set; }
+
+    /// <summary>
+    /// Optional HTTP base that serves monitor files (e.g. https://pbx/monitor/).
+    /// Used to pull into App_Data/recordings for download.
+    /// </summary>
+    public string? RecordingHttpBaseUrl { get; set; }
+
+    /// <summary>
+    /// Absolute directory on the Asterisk host for MixMonitor File= path.
+    /// Empty → basename only (Asterisk default monitor spool).
+    /// FreePBX typical: /var/spool/asterisk/monitor
+    /// </summary>
+    public string? RecordingAsteriskDirectory { get; set; }
+
+    public string RecordingFormat { get; set; } = "wav";
 
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(Host)

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Ntk.Asterisk.WebApi.Contracts;
 using Ntk.Asterisk.WebApi.Jobs;
+using Ntk.Asterisk.WebApi.Services;
 
 namespace Ntk.Asterisk.WebApi.Controllers;
 
@@ -10,15 +11,18 @@ public sealed class CallJobsController : ControllerBase
 {
     private readonly ICallJobEngine _engine;
     private readonly ICallJobStore _store;
+    private readonly ICallRecordingService _recording;
     private readonly ILogger<CallJobsController> _logger;
 
     public CallJobsController(
         ICallJobEngine engine,
         ICallJobStore store,
+        ICallRecordingService recording,
         ILogger<CallJobsController> logger)
     {
         _engine = engine;
         _store = store;
+        _recording = recording;
         _logger = logger;
     }
 
@@ -126,6 +130,37 @@ public sealed class CallJobsController : ControllerBase
         {
             _logger.LogWarning(ex, "CallJobs ActionCancel failed for {Id}", id);
             return Ok(ApiResult<CallJobDto>.Fail(ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Download MixMonitor audio for a call job (wav/mp3). Refreshes from local mount or HTTP pull first.
+    /// </summary>
+    [HttpGet("ActionDownloadRecording/{id}")]
+    [HttpPost("ActionDownloadRecording/{id}")]
+    public async Task<IActionResult> ActionDownloadRecording(string id, CancellationToken cancellationToken)
+    {
+        if (!_store.TryGet(id, out var job) || job is null)
+            return NotFound(ApiResult<object>.Fail($"Job '{id}' not found."));
+
+        if (!job.RecordingStarted && string.IsNullOrWhiteSpace(job.RecordingFileName))
+            return Ok(ApiResult<object>.Fail("No recording was started for this job."));
+
+        try
+        {
+            var open = await _recording.OpenForDownloadAsync(job, cancellationToken).ConfigureAwait(false);
+            if (open is null)
+            {
+                return Ok(ApiResult<object>.Fail(
+                    "Recording file is not available yet. WebApi tried local mount, HTTP pull, and AMI base64 fetch. Ensure MixMonitor finished, manager has 'command' permission, and the file exists under RecordingAsteriskDirectory (default /var/spool/asterisk/monitor)."));
+            }
+
+            return File(open.Value.Stream, open.Value.ContentType, open.Value.DownloadName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CallJobs ActionDownloadRecording failed for {Id}", id);
+            return Ok(ApiResult<object>.Fail(ex.Message));
         }
     }
 

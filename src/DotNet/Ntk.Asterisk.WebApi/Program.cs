@@ -39,6 +39,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IAsteriskSettingsService, AsteriskSettingsService>();
+builder.Services.AddHttpClient("recording-fetch", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(45);
+});
+builder.Services.AddSingleton<ICallRecordingService, CallRecordingService>();
 
 builder.Services.AddSingleton<AmiSession>();
 builder.Services.AddSingleton<IAmiSession>(sp => sp.GetRequiredService<AmiSession>());
@@ -52,6 +57,12 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<CallJobEngine>());
 builder.Services.AddSingleton<MonitorService>();
 builder.Services.AddSingleton<IMonitorService>(sp => sp.GetRequiredService<MonitorService>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<MonitorService>());
+
+builder.Services.AddSingleton<LiveEventSinkHolder>();
+builder.Services.AddSingleton<AmiLiveEventFeed>();
+builder.Services.AddSingleton<ILiveEventFeed>(sp => sp.GetRequiredService<AmiLiveEventFeed>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<AmiLiveEventFeed>());
+builder.Services.AddSingleton<ILoggerProvider, LiveEventLoggerProvider>();
 
 var app = builder.Build();
 

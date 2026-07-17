@@ -51,22 +51,34 @@ Configured via `Asterisk:ChannelTech` in environment overlays (not base `appsett
 
 ## CallJob Originate shapes
 
-### LocalContext (default — FreePBX)
+### LocalContext (default — Application Dial / B2BUA)
 
-| Type | Channel (leg1) | Application Data (Dial) |
-|------|----------------|-------------------------|
-| ExtToExt | `Local/{from}@from-internal/n` | `Local/{to}@from-internal/n,{timeoutSec}` |
-| MobileToExt | `Local/{mobile}@from-internal/n` | `{tech}/{ext},{timeoutSec}` |
-| MobileToMobile | `Local/{mobile1}@from-internal/n` | `Local/{mobile2}@from-internal/n,{timeoutSec}` |
+Mobile↔mobile silence root cause: `Context/Exten` click-to-call reports success when **leg1** answers; FreePBX dialplan + trunk `directmedia` often leaves no usable RTP between two trunk channels. ConfBridge/Bridge on `Local/;1` never touches phone RTP (`SIP/fanava-…`).
 
+**Wave-1 default (two-way audio):**
+
+1. Originate `Local/{leg1}@from-internal/n`
+2. `Application=Dial` · `Data=Local/{leg2}@from-internal/n,{timeout},m({MusicOnHoldClass})tT`
+3. Leg1 hears MOH until leg2 answers; wait AMI `DialEnd` DialStatus=`ANSWER` on Application channel (`Local/…;1`)
+4. **Promote:** resolve `BRIDGEPEER` → `SIP/…` / `PJSIP/…` for both legs · AMI `Bridge` those trunk channels (native two-way RTP). Do **not** hang Local stubs after promote.
+
+**Fallback / experimental:** `ExecuteLocalClickToCallAsync` · `ExecuteLocalTwoLegSipBridgeAsync` (MOH + AMI Bridge SIP peers — do not hang Local after Bridge).
+
+| Type | Leg1 number | Leg2 number |
+|------|-------------|-------------|
+| ExtToExt | From | To |
+| MobileToExt | Mobile1 | To ext |
+| MobileToMobile | Mobile1 | Mobile2 |
+
+**MOH:** FreePBX Music on Hold class (`MusicOnHoldClass`, default `default`).
 ### DirectTech
 
 | Type | Channel (leg1) | Application Data (Dial) |
 |------|----------------|-------------------------|
-| ExtToExt | `{tech}/{fromExt}` | `{tech}/{toExt},{timeoutSec}` |
-| MobileToExt (PJSIP) | `{tech}/{mobile}@{trunk}` | `{tech}/{ext},{timeoutSec}` |
-| MobileToMobile (PJSIP) | `{tech}/{mobile1}@{trunk}` | `{tech}/{mobile2}@{trunk},{timeoutSec}` |
-| MobileTo* (SIP) | `{tech}/{trunk}/{mobile}` | same pattern for Dial data |
+| ExtToExt | `{tech}/{fromExt}` | `{tech}/{toExt},{timeoutSec},m(default)` |
+| MobileToExt (PJSIP) | `{tech}/{mobile}@{trunk}` | `{tech}/{ext},{timeoutSec},m(default)` |
+| MobileToMobile (PJSIP) | `{tech}/{mobile1}@{trunk}` | `{tech}/{mobile2}@{trunk},{timeoutSec},m(default)` |
+| MobileTo* (SIP) | `{tech}/{trunk}/{mobile}` | same pattern + `,m(class)` |
 
 Cancel: `Hangup` on tracked channel name when known.
 
@@ -97,7 +109,7 @@ exten => _X.,1,NoOp(Ntk AMI dial ${EXTEN})
  same => n,Hangup()
 ```
 
-Wave 1 WebApi uses Application=Dial directly and does not require this context unless you switch to Context/Exten/Priority Originate mode later.
+Wave 1 WebApi **LocalContext** originates two Local legs (MOH + Wait), resolves trunk `SIP`/`PJSIP` via `BRIDGEPEER`, then AMI-bridges those media channels. Fallback: click-to-call `Context/Exten`. DirectTech uses `Application=Dial` with `,m(class)`.
 
 ## Risks
 

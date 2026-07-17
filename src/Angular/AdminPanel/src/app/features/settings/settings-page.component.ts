@@ -36,6 +36,7 @@ export class SettingsPageComponent implements OnInit {
     channelTech: ['PJSIP', Validators.required],
     originateVia: ['LocalContext', Validators.required],
     originateContext: ['from-internal', Validators.required],
+    musicOnHoldClass: ['default', Validators.required],
     defaultTrunk: [''],
     trunkPeerFilter: [''],
     defaultTimeoutMs: [30000, [Validators.required, Validators.min(1000)]],
@@ -43,6 +44,11 @@ export class SettingsPageComponent implements OnInit {
     keepAlive: [true],
     pingIntervalMs: [10000, [Validators.required, Validators.min(1000)]],
     autoConnectOnStartup: [true],
+    recordingEnabled: [true],
+    recordingLocalDirectory: [''],
+    recordingHttpBaseUrl: [''],
+    recordingAsteriskDirectory: ['/var/spool/asterisk/monitor'],
+    recordingFormat: ['wav'],
     reconnectAfterSave: [true],
   });
 
@@ -68,6 +74,7 @@ export class SettingsPageComponent implements OnInit {
             channelTech: s.channelTech || 'PJSIP',
             originateVia: s.originateVia || 'LocalContext',
             originateContext: s.originateContext || 'from-internal',
+            musicOnHoldClass: s.musicOnHoldClass || 'default',
             defaultTrunk: s.defaultTrunk ?? '',
             trunkPeerFilter: s.trunkPeerFilter ?? '',
             defaultTimeoutMs: s.defaultTimeoutMs || 30000,
@@ -75,6 +82,11 @@ export class SettingsPageComponent implements OnInit {
             keepAlive: s.keepAlive,
             pingIntervalMs: s.pingIntervalMs || 10000,
             autoConnectOnStartup: s.autoConnectOnStartup,
+            recordingEnabled: s.recordingEnabled ?? true,
+            recordingLocalDirectory: s.recordingLocalDirectory ?? '',
+            recordingHttpBaseUrl: s.recordingHttpBaseUrl ?? '',
+            recordingAsteriskDirectory: s.recordingAsteriskDirectory ?? '/var/spool/asterisk/monitor',
+            recordingFormat: s.recordingFormat || 'wav',
             reconnectAfterSave: true,
           });
         }
@@ -107,6 +119,7 @@ export class SettingsPageComponent implements OnInit {
         channelTech: v.channelTech.trim(),
         originateVia: v.originateVia.trim(),
         originateContext: v.originateContext.trim(),
+        musicOnHoldClass: v.musicOnHoldClass.trim() || 'default',
         defaultTrunk: v.defaultTrunk.trim() || null,
         trunkPeerFilter: v.trunkPeerFilter.trim() || null,
         defaultTimeoutMs: Number(v.defaultTimeoutMs),
@@ -114,6 +127,11 @@ export class SettingsPageComponent implements OnInit {
         keepAlive: v.keepAlive,
         pingIntervalMs: Number(v.pingIntervalMs),
         autoConnectOnStartup: v.autoConnectOnStartup,
+        recordingEnabled: v.recordingEnabled,
+        recordingLocalDirectory: v.recordingLocalDirectory.trim() || null,
+        recordingHttpBaseUrl: v.recordingHttpBaseUrl.trim() || null,
+        recordingAsteriskDirectory: v.recordingAsteriskDirectory.trim() || null,
+        recordingFormat: v.recordingFormat.trim() || 'wav',
         reconnectAfterSave: v.reconnectAfterSave,
       })
       .subscribe({

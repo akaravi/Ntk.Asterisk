@@ -1,5 +1,78 @@
 # history.2026-07-17
 
+## 2026-07-17 (Asia/Tehran) — Live call test + log review (recording path)
+- **اقدام:** restart WebApi با باینری جدید · Originate `MobileToMobile` `09125210076`→`09131183892`
+- **Job:** `62e4fdc85a8d4fdba103e99d5ccc782d` · ~۳۷ث · `completed`
+- **مسیر:** dialing_leg1 → waiting_answer → Dial ANSWER → **SIP promote skipped** → MixMonitor شروع شد (`hasRecording=true`, file `ntk-62e4fdc8….wav`) → Hangup cause=44
+- **لاگ AMI:** BridgeLeave `SIP/fanava-0000001e` + Local halves · BridgeDestroy
+- **دانلود:** `recordingAvailable=false` · API پیام «configure RecordingLocalDirectory / RecordingHttpBaseUrl» (فایل روی PBX است، mount/HTTP نیست)
+- **ریسک باقی:** SIP promote skip → احتمال silence + فایل ضبط روی کانال Local ممکن است خالی/ناقص باشد · نیاز `directmedia=no` یا fix resolve SIP peers
+- **لاگ فایل:** `karavi/karavi.logs/webapi-call-test-2026-07-17.log`
+
+## 2026-07-17 (Asia/Tehran) — Call recording download in reports
+- **درخواست:** در بخش گزارشات فایل صدای تماس را دانلود بده
+- **پیاده‌سازی:**
+  - AMI `MixMonitor` پس از SIP Bridge (گزینه `b`) روی `MediaChannel1`
+  - `CallRecordingService`: کش `App_Data/recordings` · خواندن از `RecordingLocalDirectory` (UNC/mount) یا pull از `RecordingHttpBaseUrl`
+  - API: `GET/POST /api/v1/CallJobs/ActionDownloadRecording/{id}`
+  - Admin/User Jobs UI: دکمه «دانلود صدا» · Settings: بخش ضبط
+  - تنظیمات env: `RecordingEnabled` · `RecordingAsteriskDirectory` · `RecordingLocalDirectory` · `RecordingHttpBaseUrl` · `RecordingFormat`
+- **پیش‌نیاز عملیاتی:** مسیر monitor Asterisk برای WebApi قابل‌دسترسی باشد (mount/rsync/HTTP)
+- **تأیید:** `dotnet build` Release → خروجی موقت `karavi.build.files/webapi-recording-verify` سبز · `ng build` AdminPanel + UserPanel سبز
+- **نکته:** پروسه WebApi در حال اجرا قفل `bin` داشت؛ برای فعال‌سازی MixMonitor باید API با باینری جدید بالا بیاید
+
+## 2026-07-17 (Asia/Tehran) — Settings UI redesign (design-auditor)
+- **درخواست:** `/design-auditor` — طراحی از صفر صفحه Settings
+- **Audit قبل:** Design C · AI Slop B · Accessibility B — فرم تخت auto-fit، اکشن تکراری، وضعیت LTR dump
+- **طراحی جدید:** masthead + یک خوشه اکشن · status rail (pills + endpoints) · ۴ fieldset معنایی · نتیجه تست به‌صورت entity-card · guide حفظ شد
+- **فایل‌ها:** `settings-page.component.{html,scss}` · i18n fa/en (SECTION_*) · `admin-panel.md`
+- **تأیید:** `ng build` development سبز
+- **نمرات هدف پس از redesign:** Design A− · AI Slop A · Accessibility A (WCAG AA floor)
+
+## 2026-07-17 (Asia/Tehran) — Fix silent mobile↔mobile (Dial + SIP promote)
+- **مشکل:** صدا جابجا نمی‌شد با وجود Bridged
+- **ریشه:** مسیر Local (click-to-call / Dial فقط روی Local) + trunk `directmedia` → RTP بین دو SIP fanava از Local عبور می‌کند و اغلب silent
+- **رفع:** LocalContext = `Application=Dial Local/leg2` (MOH تا پاسخ leg2) → سپس AMI `Bridge` روی `SIP/fanava-…` ↔ `SIP/fanava-…` (PromoteSipMediaBridge) · بدون hang Local
+- **شواهد live job c55288e7…:** `Two-way SIP bridge SIP/fanava-0000001b <-> SIP/fanava-0000001c` · hold ~۴۵ث
+- **تأیید:** `dotnet build` Release · API :5310 Healthy
+
+## 2026-07-17 (Asia/Tehran) — Live test 09125210076→09131183892 + SIP Bridge hangup fix
+- **درخواست:** تماس MobileToMobile و تشخیص چرا صدا جابجا نمی‌شود
+- **شواهد live (job bf04f242… / 1b95d9eb… / 62fb1e13…):**
+  - Originate Local + MOH/Wait OK
+  - `BRIDGEPEER` → `SIP/fanava-…` جفت‌ها resolve شد · AMI Bridge SIP↔SIP
+  - Hangup روی Local بعد از Bridge → cascade cause=16/44 · تماس ~۱۱–۱۴ث می‌میرد · RTP تلفن قطع
+- **ریشه ConfBridge/Local Bridge:** اپ روی Local`;1`؛ RTP واقعی روی SIP trunk — ConfBridge/Bridge روی Local رسانه را جابجا نمی‌کند
+- **رفع نهایی (audio-first):** LocalContext پیش‌فرض → **click-to-call** (`Context/Exten/Priority`) تا FreePBX Dial مالک RTP باشد
+- **حفظ کد:** `ExecuteLocalTwoLegSipBridgeAsync` (MOH+SIP Bridge) · بدون hang Local بعد از Bridge · GetVar timeout کوتاه · Hangup Local بعد از resolve SIP نادیده
+- **تأیید live click-to-call job e4504583…:** bridged در ~۳ث · hold ۳۵ث · `dotnet build` Release · API :5310
+- **تماس ناموفق میانی:** leg1 قطع قبل از leg2 · AMI Originate timeout (timeout Originate ۱۰ث)
+
+## 2026-07-17 (Asia/Tehran) — WebApi crash on AMI socket null
+- **ریشه:** `ManagerReader.Run` با `SystemException: socket is null` کل پروسه را می‌کشت (.NET Core)
+- **رفع:** خروج graceful از reader + catch بیرونی؛ MOH ConfBridge با timeout کوتاه (best-effort)
+- **تأیید:** rebuild · restart :5310 · Health Healthy
+
+## 2026-07-17 (Asia/Tehran) — ConfBridge for two-way audio + MOH
+- **درخواست:** موزیک انتظار پخش شد ولی صدا بین دو گوشی رد نشد
+- **ریشه:** AMI `Bridge` روی Localهای `MusicOnHold`/`Wait` مسیر RTP تلفن↔تلفن نمی‌سازد (FreePBX)
+- **رفع LocalContext:** Leg1+Leg2 → `Application=ConfBridge` (یک room) · `ConfbridgeStartMoh` تا پاسخ leg2 · سپس `ConfbridgeStopMoh`
+- **تأیید:** `dotnet build` WebApi Release · restart :5310 · health OK
+- **اقدام:** تماس Mobile↔Mobile مجدد از UserPanel
+
+## 2026-07-17 (Asia/Tehran) — Two-leg MOH + Bridge (audio + waiting music)
+- **درخواست:** صدا رد نمی‌شود · موزیک انتظار تا پاسخ موبایل دوم
+- **رفع LocalContext:** Leg1→MusicOnHold · Leg2→Wait · AMI Bridge · تنظیم `MusicOnHoldClass`
+- **DirectTech:** Dial با `,m(class)`
+- **تأیید:** dotnet build · WebApi restart
+- **نتیجه بعدی:** MOH OK بود ولی Bridge هنوز audio نداد → جایگزین ConfBridge
+
+## 2026-07-17 (Asia/Tehran) — Mobile↔Mobile ring but no audio
+- **درخواست:** هر دو موبایل زنگ خوردند ولی صدا رد نمی‌شد
+- **ریشه:** LocalContext با `Application=Dial` روی FreePBX معمولاً Local را early-Answer می‌کند → زنگ دوطرفه بدون RTP bridge
+- **رفع:** LocalContext → `Channel=Local/…` + `Context/Exten/Priority=1` (click-to-call استاندارد)
+- **تأیید:** dotnet build · WebApi restart
+
 ## 2026-07-17 (Asia/Tehran) — Shared card-list UI for Admin lists
 - **درخواست:** فرم زیبای فهرست کارهای تماس برای لیست‌های دیگر پروژه
 - **تغییرات:**
@@ -146,7 +219,7 @@
 - **نمرات:** Design B+ · AI Slop A · Accessibility A-
 - **تأیید:** `ng build` UserPanel + AdminPanel سبز
 
-## 2026-07-17 (Asia/Tehran) — rebrand dashboards to مدیریت تماس
-- **درخواست:** حذف عبارت آستریسک از داشبوردها؛ برند «مدیریت تماس»
-- **تغییرات:** User/Admin titles · brand mark NTK · CALLS · index.html · i18n fa/en (عنوان، نسخه سرور، راهنما)
-- **تأیید:** `ng build` UserPanel + AdminPanel سبز
+## 2026-07-17 (Asia/Tehran) — fix Events GetList 404 in Admin
+- **ریشه:** WebApi قدیمی روی :5310 بدون `EventsController` → 404
+- **رفع:** API با بیلد دارای Events در حال اجرا · صفحه live-events retry یک‌بار روی 404 · پاک کردن banner با ورود ایونت زنده
+- **تأیید:** browser `/events` — LIVE + ردیف‌های AMI/app بدون خطای 404

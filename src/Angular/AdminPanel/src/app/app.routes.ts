@@ -25,6 +25,13 @@ export const routes: Routes = [
           import('./features/jobs/jobs-page.component').then((m) => m.JobsPageComponent),
       },
       {
+        path: 'events',
+        loadComponent: () =>
+          import('./features/live-events/live-events-page.component').then(
+            (m) => m.LiveEventsPageComponent
+          ),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings-page.component').then((m) => m.SettingsPageComponent),

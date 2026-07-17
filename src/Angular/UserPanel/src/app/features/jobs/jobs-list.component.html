@@ -108,16 +108,30 @@
               <span class="job-card__arrow" aria-hidden="true">→</span>
               <span>{{ displayTo(job) }}</span>
             </div>
-            @if (canCancel(job)) {
-              <button
-                type="button"
-                class="btn btn--danger"
-                [disabled]="cancellingId() === job.id"
-                (click)="cancel(job)"
-              >
-                {{ (cancellingId() === job.id ? 'JOBS.CANCELLING' : 'JOBS.CANCEL') | t }}
-              </button>
-            }
+            <div class="job-card__actions">
+              @if (canDownloadRecording(job)) {
+                <button
+                  type="button"
+                  class="btn btn--ghost"
+                  [disabled]="downloadingId() === job.id"
+                  (click)="downloadRecording(job)"
+                >
+                  {{
+                    (downloadingId() === job.id ? 'JOBS.DOWNLOADING' : 'JOBS.DOWNLOAD_AUDIO') | t
+                  }}
+                </button>
+              }
+              @if (canCancel(job)) {
+                <button
+                  type="button"
+                  class="btn btn--danger"
+                  [disabled]="cancellingId() === job.id"
+                  (click)="cancel(job)"
+                >
+                  {{ (cancellingId() === job.id ? 'JOBS.CANCELLING' : 'JOBS.CANCEL') | t }}
+                </button>
+              }
+            </div>
           </header>
 
           <p class="job-card__reason" [attr.data-tone]="reasonTone(job)">

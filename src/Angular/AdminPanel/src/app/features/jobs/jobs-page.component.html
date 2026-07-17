@@ -45,20 +45,36 @@
               <span class="entity-card__arrow" aria-hidden="true">→</span>
               <span>{{ displayTo(job) }}</span>
             </div>
-            @if (canCancel(job)) {
-              <button
-                type="button"
-                class="btn btn--danger"
-                [disabled]="actionBusyId() === job.id"
-                (click)="cancel(job)"
-              >
-                {{
-                  actionBusyId() === job.id
-                    ? ('ACTION.LOADING' | translate)
-                    : ('JOBS.CANCEL' | translate)
-                }}
-              </button>
-            }
+            <div class="entity-card__actions">
+              @if (canDownloadRecording(job)) {
+                <button
+                  type="button"
+                  class="btn btn--ghost"
+                  [disabled]="actionBusyId() === job.id"
+                  (click)="downloadRecording(job)"
+                >
+                  {{
+                    actionBusyId() === job.id
+                      ? ('ACTION.LOADING' | translate)
+                      : ('JOBS.DOWNLOAD_AUDIO' | translate)
+                  }}
+                </button>
+              }
+              @if (canCancel(job)) {
+                <button
+                  type="button"
+                  class="btn btn--danger"
+                  [disabled]="actionBusyId() === job.id"
+                  (click)="cancel(job)"
+                >
+                  {{
+                    actionBusyId() === job.id
+                      ? ('ACTION.LOADING' | translate)
+                      : ('JOBS.CANCEL' | translate)
+                  }}
+                </button>
+              }
+            </div>
           </header>
 
           <p class="entity-card__reason" [attr.data-tone]="reasonTone(job)">

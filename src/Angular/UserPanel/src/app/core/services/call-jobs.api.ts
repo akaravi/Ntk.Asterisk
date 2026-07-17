@@ -76,6 +76,12 @@ export class CallJobsApi {
       .pipe(map((r) => this.requireOne(r, 'ActionCancel')));
   }
 
+  downloadRecording(id: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/ActionDownloadRecording/${encodeURIComponent(id)}`, {
+      responseType: 'blob',
+    });
+  }
+
   private requireOne(result: ApiResult<CallJob>, action: string): CallJob {
     this.ensureSuccess(result, action);
     const item = result.data?.[0];

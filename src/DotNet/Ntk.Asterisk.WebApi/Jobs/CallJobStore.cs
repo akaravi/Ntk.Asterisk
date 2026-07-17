@@ -61,7 +61,10 @@ public sealed class CallJobStore : ICallJobStore
             StartedAtUtc = started,
             EndedAtUtc = ended,
             DurationSeconds = duration,
-            IsCommandJob = job.IsCommandJob
+            IsCommandJob = job.IsCommandJob,
+            HasRecording = job.RecordingStarted || !string.IsNullOrWhiteSpace(job.RecordingFileName),
+            RecordingFileName = job.RecordingFileName,
+            RecordingAvailable = job.RecordingAvailable
         };
     }
 

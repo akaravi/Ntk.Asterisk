@@ -1,0 +1,123 @@
+<section class="page live-events">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'NAV.EVENTS' | translate }}</h1>
+      <p class="page__header-sub">{{ 'EVENTS.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="live-events__actions">
+      <span
+        class="live-pill"
+        [class.live-pill--ok]="liveOk() && !paused()"
+        [class.live-pill--paused]="paused()"
+        dir="ltr"
+      >
+        {{
+          paused()
+            ? ('EVENTS.PAUSED' | translate)
+            : liveOk()
+              ? ('EVENTS.LIVE' | translate)
+              : ('EVENTS.OFFLINE' | translate)
+        }}
+      </span>
+      <button type="button" class="btn" (click)="togglePause()" [disabled]="actionBusy()">
+        {{ (paused() ? 'EVENTS.RESUME' : 'EVENTS.PAUSE') | translate }}
+      </button>
+      <button type="button" class="btn" (click)="toggleAutoScroll()">
+        {{ (autoScroll() ? 'EVENTS.AUTO_SCROLL_ON' : 'EVENTS.AUTO_SCROLL_OFF') | translate }}
+      </button>
+      <button
+        type="button"
+        class="btn btn--danger"
+        (click)="clearBuffer()"
+        [disabled]="actionBusy() || loading()"
+      >
+        {{ actionBusy() ? ('ACTION.LOADING' | translate) : ('EVENTS.CLEAR' | translate) }}
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+    (print)="printTable()"
+    (exportPdf)="exportPdf()"
+    (exportExcel)="exportExcel()"
+  />
+
+  <div class="live-events__layout">
+    <div
+      #feedEl
+      class="live-feed"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+      [attr.aria-busy]="loading()"
+    >
+      @if (loading()) {
+        <p class="entity-empty muted">…</p>
+      } @else if (visible().length === 0) {
+        <p class="entity-empty">{{ 'EVENTS.EMPTY' | translate }}</p>
+      } @else {
+        @for (row of visible(); track row.id) {
+          <button
+            type="button"
+            class="live-row"
+            [ngClass]="[levelClass(row.level), selected()?.id === row.id ? 'live-row--active' : '']"
+            (click)="select(row)"
+          >
+            <span class="live-row__time ltr" dir="ltr">{{ formatTime(row.atUtc) }}</span>
+            <span class="live-row__source" [ngClass]="sourceClass(row.source)" dir="ltr">{{
+              row.source
+            }}</span>
+            <span class="live-row__level" dir="ltr">{{ row.level }}</span>
+            <span class="live-row__cat ltr" dir="ltr">{{ row.category }}</span>
+            <span class="live-row__msg ltr" dir="ltr">{{ row.message }}</span>
+          </button>
+        }
+      }
+    </div>
+
+    <aside class="live-detail" aria-label="event detail">
+      @if (selected(); as sel) {
+        <h2>{{ 'EVENTS.DETAIL' | translate }}</h2>
+        <dl class="live-detail__grid">
+          <dt>{{ 'EVENTS.COL_TIME' | translate }}</dt>
+          <dd class="ltr" dir="ltr">{{ formatTime(sel.atUtc) }}</dd>
+          <dt>{{ 'EVENTS.COL_SOURCE' | translate }}</dt>
+          <dd class="ltr" dir="ltr">{{ sel.source }}</dd>
+          <dt>{{ 'EVENTS.COL_LEVEL' | translate }}</dt>
+          <dd class="ltr" dir="ltr">{{ sel.level }}</dd>
+          <dt>{{ 'EVENTS.COL_CATEGORY' | translate }}</dt>
+          <dd class="ltr" dir="ltr">{{ sel.category }}</dd>
+          <dt>{{ 'EVENTS.COL_CHANNEL' | translate }}</dt>
+          <dd class="ltr" dir="ltr">{{ sel.channel || '—' }}</dd>
+          <dt>{{ 'EVENTS.COL_UNIQUE' | translate }}</dt>
+          <dd class="ltr" dir="ltr">{{ sel.uniqueId || '—' }}</dd>
+          <dt>{{ 'EVENTS.COL_MESSAGE' | translate }}</dt>
+          <dd class="ltr live-detail__msg" dir="ltr">{{ sel.message }}</dd>
+        </dl>
+        @if (attrEntries(sel).length) {
+          <h3>{{ 'EVENTS.ATTRIBUTES' | translate }}</h3>
+          <ul class="live-detail__attrs">
+            @for (a of attrEntries(sel); track a.key) {
+              <li>
+                <span class="ltr" dir="ltr">{{ a.key }}</span>
+                <span class="ltr" dir="ltr">{{ a.value }}</span>
+              </li>
+            }
+          </ul>
+        }
+      } @else {
+        <p class="muted">{{ 'EVENTS.DETAIL_HINT' | translate }}</p>
+      }
+    </aside>
+  </div>
+</section>

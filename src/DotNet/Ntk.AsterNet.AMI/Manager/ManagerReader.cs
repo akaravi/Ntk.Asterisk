@@ -194,10 +194,18 @@ namespace Ntk.AsterNet.AMI.Manager
 		internal void Run()
 		{
 			if (mrSocket == null)
-				throw new SystemException("Unable to run: socket is null.");
+			{
+#if LOGGER
+				logger.Error("Unable to run: socket is null — exiting reader without crashing host.");
+#endif
+				try { mrConnector.DispatchEvent(new DisconnectEvent(mrConnector)); } catch { /* ignore */ }
+				return;
+			}
 
 			string line;
 
+			try
+			{
 			while (true)
 			{
 				try
@@ -355,6 +363,14 @@ namespace Ntk.AsterNet.AMI.Manager
 				logger.Info("No die, any error - send disconnect.");
 #endif
 				mrConnector.DispatchEvent(new DisconnectEvent(mrConnector));
+			}
+			}
+			catch (Exception)
+			{
+#if LOGGER
+				logger.Error("ManagerReader.Run fatal — exiting reader without crashing host.");
+#endif
+				try { mrConnector.DispatchEvent(new DisconnectEvent(mrConnector)); } catch { /* ignore */ }
 			}
 		}
 

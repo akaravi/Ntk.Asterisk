@@ -43,6 +43,20 @@ export interface HangupRequest {
   channel: string;
 }
 
+/** Live AMI / app / system event for Admin console. */
+export interface LiveEventItem {
+  id: string;
+  atUtc: string;
+  source: 'ami' | 'app' | 'system' | string;
+  category: string;
+  level: string;
+  message: string;
+  channel?: string | null;
+  uniqueId?: string | null;
+  privilege?: string | null;
+  attributes?: Record<string, string> | null;
+}
+
 export type CallJobType = 'ExtToExt' | 'MobileToExt' | 'MobileToMobile' | 'CommandHangup';
 
 export type CallJobState =
@@ -72,6 +86,9 @@ export interface CallJob {
   startedAtUtc?: string | null;
   endedAtUtc?: string | null;
   durationSeconds?: number | null;
+  hasRecording?: boolean;
+  recordingFileName?: string | null;
+  recordingAvailable?: boolean;
 }
 
 export interface ListQuery {
@@ -94,6 +111,7 @@ export interface SiteSettings {
   channelTech: string;
   originateVia: string;
   originateContext: string;
+  musicOnHoldClass: string;
   defaultTrunk: string | null;
   trunkPeerFilter: string | null;
   defaultTimeoutMs: number;
@@ -101,6 +119,11 @@ export interface SiteSettings {
   keepAlive: boolean;
   pingIntervalMs: number;
   autoConnectOnStartup: boolean;
+  recordingEnabled?: boolean;
+  recordingLocalDirectory?: string | null;
+  recordingHttpBaseUrl?: string | null;
+  recordingAsteriskDirectory?: string | null;
+  recordingFormat?: string;
   persisted: boolean;
   note: string | null;
 }
@@ -114,6 +137,7 @@ export interface SiteSettingsUpdateRequest {
   channelTech?: string | null;
   originateVia?: string | null;
   originateContext?: string | null;
+  musicOnHoldClass?: string | null;
   defaultTrunk?: string | null;
   trunkPeerFilter?: string | null;
   defaultTimeoutMs?: number | null;
@@ -121,5 +145,10 @@ export interface SiteSettingsUpdateRequest {
   keepAlive?: boolean | null;
   pingIntervalMs?: number | null;
   autoConnectOnStartup?: boolean | null;
+  recordingEnabled?: boolean | null;
+  recordingLocalDirectory?: string | null;
+  recordingHttpBaseUrl?: string | null;
+  recordingAsteriskDirectory?: string | null;
+  recordingFormat?: string | null;
   reconnectAfterSave?: boolean;
 }

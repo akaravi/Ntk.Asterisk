@@ -55,6 +55,13 @@ export class ApiClientService {
       .pipe(catchError((err) => this.handleError(err)));
   }
 
+  getBlob(path: string): Observable<Blob> {
+    const headers = this.correlationHeaders();
+    return this.http
+      .get(`${this.baseUrl}${path}`, { headers, responseType: 'blob' })
+      .pipe(catchError((err) => this.handleBlobError(err)));
+  }
+
   private correlationHeaders(): HttpHeaders {
     const id =
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -73,5 +80,24 @@ export class ApiClientService {
       return throwError(() => new Error(message));
     }
     return throwError(() => (err instanceof Error ? err : new Error(String(err))));
+  }
+
+  private handleBlobError(err: unknown): Observable<never> {
+    if (err instanceof HttpErrorResponse && err.error instanceof Blob) {
+      return new Observable((subscriber) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result)) as ApiResult<unknown>;
+            subscriber.error(new Error(parsed.errorMessage || `HTTP ${err.status}`));
+          } catch {
+            subscriber.error(new Error(err.message || `HTTP ${err.status}`));
+          }
+        };
+        reader.onerror = () => subscriber.error(new Error(err.message || `HTTP ${err.status}`));
+        reader.readAsText(err.error);
+      });
+    }
+    return this.handleError(err);
   }
 }

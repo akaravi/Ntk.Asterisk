@@ -93,6 +93,10 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 next.OriginateContext = string.IsNullOrWhiteSpace(request.OriginateContext)
                     ? "from-internal"
                     : request.OriginateContext.Trim();
+            if (request.MusicOnHoldClass != null)
+                next.MusicOnHoldClass = string.IsNullOrWhiteSpace(request.MusicOnHoldClass)
+                    ? "default"
+                    : request.MusicOnHoldClass.Trim();
             if (request.DefaultTimeoutMs.HasValue && request.DefaultTimeoutMs.Value > 0)
                 next.DefaultTimeoutMs = request.DefaultTimeoutMs.Value;
             if (request.DefaultCallerId != null)
@@ -103,6 +107,18 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 next.PingIntervalMs = request.PingIntervalMs.Value;
             if (request.AutoConnectOnStartup.HasValue)
                 next.AutoConnectOnStartup = request.AutoConnectOnStartup.Value;
+            if (request.RecordingEnabled.HasValue)
+                next.RecordingEnabled = request.RecordingEnabled.Value;
+            if (request.RecordingLocalDirectory != null)
+                next.RecordingLocalDirectory = NullIfWhiteSpace(request.RecordingLocalDirectory);
+            if (request.RecordingHttpBaseUrl != null)
+                next.RecordingHttpBaseUrl = NullIfWhiteSpace(request.RecordingHttpBaseUrl);
+            if (request.RecordingAsteriskDirectory != null)
+                next.RecordingAsteriskDirectory = NullIfWhiteSpace(request.RecordingAsteriskDirectory);
+            if (request.RecordingFormat != null)
+                next.RecordingFormat = string.IsNullOrWhiteSpace(request.RecordingFormat)
+                    ? "wav"
+                    : request.RecordingFormat.Trim().Trim('.');
 
             PersistUnlocked(next);
             _current = next;
@@ -166,11 +182,17 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         TrunkPeerFilter = opt.TrunkPeerFilter,
         OriginateVia = opt.OriginateVia,
         OriginateContext = opt.OriginateContext,
+        MusicOnHoldClass = opt.MusicOnHoldClass,
         DefaultTimeoutMs = opt.DefaultTimeoutMs,
         DefaultCallerId = opt.DefaultCallerId,
         KeepAlive = opt.KeepAlive,
         PingIntervalMs = opt.PingIntervalMs,
         AutoConnectOnStartup = opt.AutoConnectOnStartup,
+        RecordingEnabled = opt.RecordingEnabled,
+        RecordingLocalDirectory = opt.RecordingLocalDirectory,
+        RecordingHttpBaseUrl = opt.RecordingHttpBaseUrl,
+        RecordingAsteriskDirectory = opt.RecordingAsteriskDirectory,
+        RecordingFormat = opt.RecordingFormat,
         Persisted = persisted,
         Note = "Managed via Admin Settings. Secret is never returned; leave blank to keep existing."
     };
@@ -186,11 +208,17 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         TrunkPeerFilter = src.TrunkPeerFilter,
         OriginateVia = src.OriginateVia,
         OriginateContext = src.OriginateContext,
+        MusicOnHoldClass = src.MusicOnHoldClass,
         DefaultTimeoutMs = src.DefaultTimeoutMs,
         DefaultCallerId = src.DefaultCallerId,
         KeepAlive = src.KeepAlive,
         PingIntervalMs = src.PingIntervalMs,
-        AutoConnectOnStartup = src.AutoConnectOnStartup
+        AutoConnectOnStartup = src.AutoConnectOnStartup,
+        RecordingEnabled = src.RecordingEnabled,
+        RecordingLocalDirectory = src.RecordingLocalDirectory,
+        RecordingHttpBaseUrl = src.RecordingHttpBaseUrl,
+        RecordingAsteriskDirectory = src.RecordingAsteriskDirectory,
+        RecordingFormat = src.RecordingFormat
     };
 
     private static AsteriskOptions Normalize(AsteriskOptions opt)
@@ -202,6 +230,14 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         opt.OriginateContext = string.IsNullOrWhiteSpace(opt.OriginateContext)
             ? "from-internal"
             : opt.OriginateContext.Trim();
+        opt.MusicOnHoldClass = string.IsNullOrWhiteSpace(opt.MusicOnHoldClass)
+            ? "default"
+            : opt.MusicOnHoldClass.Trim();
+        opt.RecordingFormat = string.IsNullOrWhiteSpace(opt.RecordingFormat)
+            ? "wav"
+            : opt.RecordingFormat.Trim().Trim('.');
+        if (string.IsNullOrWhiteSpace(opt.RecordingAsteriskDirectory))
+            opt.RecordingAsteriskDirectory = "/var/spool/asterisk/monitor";
         return opt;
     }
 

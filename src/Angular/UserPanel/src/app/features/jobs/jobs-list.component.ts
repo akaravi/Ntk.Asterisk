@@ -29,6 +29,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly cancellingId = signal<string | null>(null);
+  readonly downloadingId = signal<string | null>(null);
 
   pageIndex = 0;
   pageSize = 25;
@@ -128,6 +129,46 @@ export class JobsListComponent implements OnInit, OnDestroy {
   canCancel(job: CallJob): boolean {
     const status = resolveJobStatus(job);
     return !!status && !TERMINAL.includes(status);
+  }
+
+  canDownloadRecording(job: CallJob): boolean {
+    return !!(job.hasRecording || job.recordingFileName || job.recordingAvailable);
+  }
+
+  downloadRecording(job: CallJob): void {
+    if (!this.canDownloadRecording(job) || this.downloadingId()) {
+      return;
+    }
+    this.downloadingId.set(job.id);
+    this.errorMessage.set(null);
+    this.api.downloadRecording(job.id).subscribe({
+      next: (blob) => {
+        this.downloadingId.set(null);
+        if (blob.type && blob.type.includes('json')) {
+          void blob.text().then((text) => {
+            try {
+              const parsed = JSON.parse(text) as { errorMessage?: string };
+              this.errorMessage.set(parsed.errorMessage || this.i18n.t('JOBS.DOWNLOAD_FAIL'));
+            } catch {
+              this.errorMessage.set(this.i18n.t('JOBS.DOWNLOAD_FAIL'));
+            }
+          });
+          return;
+        }
+        const name = job.recordingFileName || `ntk-${job.id}.wav`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        a.rel = 'noopener';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: (err: unknown) => {
+        this.downloadingId.set(null);
+        this.errorMessage.set(err instanceof Error ? err.message : String(err));
+      },
+    });
   }
 
   cancel(job: CallJob): void {

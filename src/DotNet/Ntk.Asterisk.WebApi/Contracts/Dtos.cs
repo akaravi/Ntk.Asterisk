@@ -91,6 +91,12 @@ public sealed class CallJobDto
     public DateTimeOffset? EndedAtUtc { get; init; }
     public int? DurationSeconds { get; init; }
     public bool IsCommandJob { get; init; }
+    /// <summary>MixMonitor was started for this job.</summary>
+    public bool HasRecording { get; init; }
+    /// <summary>Basename e.g. ntk-{id}.wav — download when RecordingAvailable.</summary>
+    public string? RecordingFileName { get; init; }
+    /// <summary>True when WebApi can serve the audio file now.</summary>
+    public bool RecordingAvailable { get; init; }
 }
 
 public sealed class ConfigVisibilityDto
@@ -108,13 +114,36 @@ public sealed class ConfigVisibilityDto
     public string? TrunkPeerFilter { get; init; }
     public string OriginateVia { get; init; } = "LocalContext";
     public string OriginateContext { get; init; } = "from-internal";
+    public string MusicOnHoldClass { get; init; } = "default";
     public int DefaultTimeoutMs { get; init; }
     public string? DefaultCallerId { get; init; }
     public bool KeepAlive { get; init; } = true;
     public int PingIntervalMs { get; init; } = 10000;
     public bool AutoConnectOnStartup { get; init; } = true;
+    public bool RecordingEnabled { get; init; } = true;
+    public string? RecordingLocalDirectory { get; init; }
+    public string? RecordingHttpBaseUrl { get; init; }
+    public string? RecordingAsteriskDirectory { get; init; }
+    public string RecordingFormat { get; init; } = "wav";
     public bool Persisted { get; init; }
     public string Note { get; init; } = "Managed via Admin Settings. Secrets never returned.";
+}
+
+public sealed class LiveEventDto
+{
+    public string Id { get; init; } = string.Empty;
+    public DateTimeOffset AtUtc { get; init; }
+    /// <summary>ami | app | system</summary>
+    public string Source { get; init; } = "ami";
+    /// <summary>AMI event type, logger category, or system topic.</summary>
+    public string Category { get; init; } = string.Empty;
+    /// <summary>Event | Trace | Debug | Information | Warning | Error | Critical</summary>
+    public string Level { get; init; } = "Event";
+    public string Message { get; init; } = string.Empty;
+    public string? Channel { get; init; }
+    public string? UniqueId { get; init; }
+    public string? Privilege { get; init; }
+    public IReadOnlyDictionary<string, string>? Attributes { get; init; }
 }
 
 public sealed class AsteriskSiteSettingsUpdateRequest
@@ -130,10 +159,16 @@ public sealed class AsteriskSiteSettingsUpdateRequest
     public string? TrunkPeerFilter { get; set; }
     public string? OriginateVia { get; set; }
     public string? OriginateContext { get; set; }
+    public string? MusicOnHoldClass { get; set; }
     public int? DefaultTimeoutMs { get; set; }
     public string? DefaultCallerId { get; set; }
     public bool? KeepAlive { get; set; }
     public int? PingIntervalMs { get; set; }
     public bool? AutoConnectOnStartup { get; set; }
+    public bool? RecordingEnabled { get; set; }
+    public string? RecordingLocalDirectory { get; set; }
+    public string? RecordingHttpBaseUrl { get; set; }
+    public string? RecordingAsteriskDirectory { get; set; }
+    public string? RecordingFormat { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }

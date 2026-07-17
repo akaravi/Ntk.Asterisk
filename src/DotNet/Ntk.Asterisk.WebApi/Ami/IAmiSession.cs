@@ -16,7 +16,10 @@ public interface IAmiSession
     /// <summary>Disconnect then reconnect using persisted Admin Settings; returns final status.</summary>
     Task<ConnectionStatusDto> TestConnectionAsync(CancellationToken cancellationToken = default);
     Task DisconnectAsync();
-    Task<ManagerResponse> SendActionAsync(ManagerAction action, CancellationToken cancellationToken = default);
+    Task<ManagerResponse> SendActionAsync(
+        ManagerAction action,
+        CancellationToken cancellationToken = default,
+        int? timeoutMs = null);
     Task<ResponseEvents> SendEventGeneratingActionAsync(
         ManagerActionEvent action,
         int? timeoutMs = null,

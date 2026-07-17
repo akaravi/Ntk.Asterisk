@@ -34,10 +34,26 @@ public sealed class CallJob
     public string? CallerId { get; set; }
     public int TimeoutMs { get; set; } = 30000;
     public string? ActionId { get; set; }
+    public string? ActionIdLeg2 { get; set; }
     public string? Channel { get; set; }
+    public string? Channel2 { get; set; }
+    /// <summary>Resolved SIP/PJSIP media channels bridged for two-way audio (Local context).</summary>
+    public string? MediaChannel1 { get; set; }
+    public string? MediaChannel2 { get; set; }
+    /// <summary>SIP/PJSIP channels observed via BridgeEnter/Newchannel for this call tree.</summary>
+    public HashSet<string> ObservedSipChannels { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>CHANNEL(linkedid) / Originate UniqueId for correlating trunk channels.</summary>
+    public string? LinkedId { get; set; }
+    /// <summary>Channel MixMonitor was started on.</summary>
+    public string? RecordingChannel { get; set; }
+    /// <summary>Basename without path, e.g. ntk-{jobId}.wav</summary>
+    public string? RecordingFileName { get; set; }
+    public bool RecordingStarted { get; set; }
+    public bool RecordingAvailable { get; set; }
     /// <summary>Application Data string used for Originate Dial (for diagnostics).</summary>
     public string? OriginateDialData { get; set; }
     public string? UniqueId { get; set; }
+    public string? UniqueId2 { get; set; }
     public string? ErrorMessage { get; set; }
     /// <summary>Human-readable outcome for success or failure (shown in job lists).</summary>
     public string? ResultReason { get; set; }

@@ -139,6 +139,13 @@
   justify-content: space-between;
 }
 
+.job-card__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
 .job-card__identity {
   display: flex;
   flex-wrap: wrap;

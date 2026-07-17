@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Ntk.Asterisk.WebApi.Services;
 
 namespace Ntk.Asterisk.WebApi.Hubs;
 
@@ -17,4 +18,10 @@ public sealed class AsteriskHub : Hub
 
     public Task UnsubscribeJobs() =>
         Groups.RemoveFromGroupAsync(Context.ConnectionId, "jobs");
+
+    public Task SubscribeEvents() =>
+        Groups.AddToGroupAsync(Context.ConnectionId, AmiLiveEventFeed.HubGroup);
+
+    public Task UnsubscribeEvents() =>
+        Groups.RemoveFromGroupAsync(Context.ConnectionId, AmiLiveEventFeed.HubGroup);
 }

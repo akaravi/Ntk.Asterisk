@@ -31,6 +31,9 @@ export interface CallJob {
   startedAtUtc?: string | null;
   endedAtUtc?: string | null;
   durationSeconds?: number | null;
+  hasRecording?: boolean;
+  recordingFileName?: string | null;
+  recordingAvailable?: boolean;
 }
 
 export function resolveJobStatus(job: Pick<CallJob, 'status' | 'state'>): CallJobStatus | undefined {

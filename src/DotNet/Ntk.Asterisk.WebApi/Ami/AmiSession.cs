@@ -208,11 +208,18 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
-    public async Task<ManagerResponse> SendActionAsync(ManagerAction action, CancellationToken cancellationToken = default)
+    public async Task<ManagerResponse> SendActionAsync(
+        ManagerAction action,
+        CancellationToken cancellationToken = default,
+        int? timeoutMs = null)
     {
         await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
         var conn = Connection ?? throw new InvalidOperationException(_lastError ?? "AMI not connected.");
-        return await Task.Run(() => conn.SendAction(action), cancellationToken).ConfigureAwait(false);
+        return await Task.Run(
+            () => timeoutMs is > 0
+                ? conn.SendAction(action, timeoutMs.Value)
+                : conn.SendAction(action),
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ResponseEvents> SendEventGeneratingActionAsync(

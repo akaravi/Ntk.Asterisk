@@ -102,6 +102,46 @@ export class JobsPageComponent implements OnInit, OnDestroy {
     return !terminal.includes(String(job.state).toLowerCase());
   }
 
+  canDownloadRecording(job: CallJob): boolean {
+    return !!(job.hasRecording || job.recordingFileName || job.recordingAvailable);
+  }
+
+  downloadRecording(job: CallJob): void {
+    if (!this.canDownloadRecording(job) || this.actionBusyId()) return;
+    this.actionBusyId.set(job.id);
+    this.error.set(null);
+    this.success.set(null);
+    this.api.downloadJobRecording(job.id).subscribe({
+      next: (blob) => {
+        this.actionBusyId.set(null);
+        if (blob.type && blob.type.includes('json')) {
+          blob.text().then((text) => {
+            try {
+              const parsed = JSON.parse(text) as { errorMessage?: string };
+              this.error.set(parsed.errorMessage || 'JOBS.DOWNLOAD_FAIL');
+            } catch {
+              this.error.set('JOBS.DOWNLOAD_FAIL');
+            }
+          });
+          return;
+        }
+        const name = job.recordingFileName || `ntk-${job.id}.wav`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        a.rel = 'noopener';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.success.set('JOBS.DOWNLOAD_OK');
+      },
+      error: (err: Error) => {
+        this.actionBusyId.set(null);
+        this.error.set(err.message || 'JOBS.DOWNLOAD_FAIL');
+      },
+    });
+  }
+
   normalizeState(state: string | null | undefined): string {
     return String(state || '').trim().toLowerCase();
   }

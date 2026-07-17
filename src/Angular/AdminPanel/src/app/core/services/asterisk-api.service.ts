@@ -6,6 +6,7 @@ import {
   ConnectionStatus,
   HangupRequest,
   ListQuery,
+  LiveEventItem,
   PeerItem,
   SiteSettings,
   SiteSettingsUpdateRequest,
@@ -63,9 +64,21 @@ export class AsteriskApiService {
     return this.api.postAction<CallJob>(`/api/v1/CallJobs/ActionCancel/${encodeURIComponent(id)}`, {});
   }
 
+  downloadJobRecording(id: string): Observable<Blob> {
+    return this.api.getBlob(`/api/v1/CallJobs/ActionDownloadRecording/${encodeURIComponent(id)}`);
+  }
+
   healthOk(): Observable<boolean> {
     return this.api.getList<unknown>('/api/v1/Health').pipe(
       map((r) => r.isSuccess),
     );
+  }
+
+  getEvents(query?: Partial<ListQuery>): Observable<ApiResult<LiveEventItem>> {
+    return this.api.getList<LiveEventItem>('/api/v1/Events/GetList', query);
+  }
+
+  clearEvents(): Observable<ApiResult<unknown>> {
+    return this.api.postAction<unknown>('/api/v1/Events/ActionClear', {});
   }
 }
