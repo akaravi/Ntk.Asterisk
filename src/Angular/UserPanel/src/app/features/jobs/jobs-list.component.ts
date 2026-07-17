@@ -29,7 +29,9 @@ export class JobsListComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly cancellingId = signal<string | null>(null);
+  readonly redialingId = signal<string | null>(null);
   readonly downloadingId = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
 
   pageIndex = 0;
   pageSize = 25;
@@ -131,6 +133,25 @@ export class JobsListComponent implements OnInit, OnDestroy {
     return !!status && !TERMINAL.includes(status);
   }
 
+  canRedial(job: CallJob): boolean {
+    const from = this.displayFrom(job);
+    const to = this.displayTo(job);
+    if (from === '—' || to === '—') {
+      return false;
+    }
+    switch (job.type) {
+      case 'ExtToExt':
+      case 'MobileToExt':
+      case 'MobileToMobile':
+        return true;
+      default: {
+        const _exhaustive: never = job.type;
+        void _exhaustive;
+        return false;
+      }
+    }
+  }
+
   canDownloadRecording(job: CallJob): boolean {
     return !!(job.hasRecording || job.recordingFileName || job.recordingAvailable);
   }
@@ -176,6 +197,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
       return;
     }
     this.cancellingId.set(job.id);
+    this.successMessage.set(null);
     this.api.actionCancel(job.id).subscribe({
       next: (updated) => {
         this.mergeJob(updated);
@@ -183,6 +205,27 @@ export class JobsListComponent implements OnInit, OnDestroy {
       },
       error: (err: unknown) => {
         this.cancellingId.set(null);
+        this.errorMessage.set(err instanceof Error ? err.message : String(err));
+      },
+    });
+  }
+
+  redial(job: CallJob): void {
+    if (!this.canRedial(job) || this.redialingId()) {
+      return;
+    }
+    this.redialingId.set(job.id);
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+    this.api.actionRedial(job.id).subscribe({
+      next: () => {
+        this.redialingId.set(null);
+        this.successMessage.set(this.i18n.t('JOBS.REDIAL_OK'));
+        this.pageIndex = 0;
+        this.reload();
+      },
+      error: (err: unknown) => {
+        this.redialingId.set(null);
         this.errorMessage.set(err instanceof Error ? err.message : String(err));
       },
     });

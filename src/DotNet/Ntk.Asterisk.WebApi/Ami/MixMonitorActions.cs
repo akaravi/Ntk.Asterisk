@@ -14,6 +14,12 @@ public sealed class MixMonitorAction : ManagerAction
 
     /// <summary>MixMonitor options, e.g. empty or "b" (only audio while bridged).</summary>
     public string? Options { get; set; }
+
+    /// <summary>
+    /// Shell command run on the Asterisk host after MixMonitor stops (AMI header Command).
+    /// Used to push recording bytes into AstDB for remote download without mount/SSH.
+    /// </summary>
+    public string? Command { get; set; }
 }
 
 /// <summary>AMI StopMixMonitor.</summary>

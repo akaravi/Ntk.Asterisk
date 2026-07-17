@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using Ntk.AsterNet.AMI.Manager.Action;
 using Ntk.AsterNet.AMI.Manager.Event;
+using Ntk.AsterNet.AMI.Manager.Response;
 using Ntk.Asterisk.WebApi.Ami;
 using Ntk.Asterisk.WebApi.Configuration;
 using Ntk.Asterisk.WebApi.Contracts;
@@ -14,6 +15,8 @@ public interface ICallJobEngine
 {
     Task<CallJobDto> AddAsync(CallJobAddRequest request, CancellationToken cancellationToken = default);
     Task<CallJobDto?> CancelAsync(string id, CancellationToken cancellationToken = default);
+    /// <summary>Clone dial parameters from an existing job and enqueue a fresh Originate.</summary>
+    Task<CallJobDto?> RedialAsync(string id, CancellationToken cancellationToken = default);
     Task<CallJobDto> EnqueueHangupAsync(string channel, CancellationToken cancellationToken = default);
     Task<CallJobDto> EnqueueBridgeAsync(string channel1, string channel2, string tone, CancellationToken cancellationToken = default);
 }
@@ -144,6 +147,37 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         await PublishJobAsync(job).ConfigureAwait(false);
         await _queue.Writer.WriteAsync(job.Id, cancellationToken).ConfigureAwait(false);
         return _store.ToDto(job);
+    }
+
+    public async Task<CallJobDto?> RedialAsync(string id, CancellationToken cancellationToken = default)
+    {
+        if (!_store.TryGet(id, out var source) || source is null)
+            return null;
+
+        if (source.IsCommandJob
+            || source.Type is CallJobType.CommandHangup or CallJobType.CommandBridge)
+        {
+            throw new ArgumentException("Command jobs cannot be redialed. Use ExtToExt, MobileToExt, or MobileToMobile.");
+        }
+
+        var request = new CallJobAddRequest
+        {
+            Type = source.Type.ToString(),
+            From = source.From,
+            To = source.To,
+            Mobile1 = source.Mobile1,
+            Mobile2 = source.Mobile2,
+            Trunk = source.Trunk,
+            CallerId = source.CallerId,
+            TimeoutSec = source.TimeoutMs > 0 ? Math.Max(1, source.TimeoutMs / 1000) : null
+        };
+
+        _logger.LogInformation(
+            "Redial from job {SourceJobId} type {Type} as new Originate",
+            source.Id,
+            source.Type);
+
+        return await AddAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<CallJobDto?> CancelAsync(string id, CancellationToken cancellationToken = default)
@@ -439,30 +473,214 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         job.MediaChannel1 = sip1;
         job.MediaChannel2 = sip2;
 
-        var bridge = await _ami.SendActionAsync(
-            new BridgeAction(sip1, sip2, "no"), ct, timeoutMs: 10_000).ConfigureAwait(false);
-        _logger.LogInformation(
-            "CallJob {JobId} Promote SIP Bridge {Sip1} <-> {Sip2} success={Ok} msg={Msg}",
-            job.Id, sip1, sip2, bridge.IsSuccess(), bridge.Message);
-
-        if (!bridge.IsSuccess())
+        // ConfBridge first — AMI Bridge often returns Success without RTP (empty MixMonitor / silent mobiles).
+        var confOk = await TryConfBridgePeersAsync(job, sip1, sip2, ct).ConfigureAwait(false);
+        if (!confOk)
         {
-            SetState(job, CallJobState.Bridged, null, $"Dial connected; SIP Bridge failed: {bridge.Message}");
-            await TryStartRecordingAsync(job, ct).ConfigureAwait(false);
-            await PublishJobAsync(job).ConfigureAwait(false);
-            return;
+            var bridge = await _ami.SendActionAsync(
+                new BridgeAction(sip1, sip2, "no"), ct, timeoutMs: 10_000).ConfigureAwait(false);
+            _logger.LogInformation(
+                "CallJob {JobId} Promote SIP Bridge {Sip1} <-> {Sip2} success={Ok} msg={Msg}",
+                job.Id, sip1, sip2, bridge.IsSuccess(), bridge.Message);
+
+            if (!bridge.IsSuccess())
+            {
+                SetState(job, CallJobState.Bridged, null, $"Dial connected; SIP Bridge failed: {bridge.Message}");
+                await TryStartRecordingAsync(job, ct).ConfigureAwait(false);
+                await PublishJobAsync(job).ConfigureAwait(false);
+                return;
+            }
+
+            var linked = await WaitSipPeersLinkedAsync(sip1, sip2, 2_500, ct).ConfigureAwait(false);
+            SetState(
+                job,
+                CallJobState.Bridged,
+                null,
+                linked
+                    ? $"Two-way SIP bridge {sip1} <-> {sip2}"
+                    : $"SIP Bridge accepted {sip1} <-> {sip2} (BRIDGEPEER pending)");
         }
 
-        var linked = await WaitSipPeersLinkedAsync(sip1, sip2, 2_500, ct).ConfigureAwait(false);
-        SetState(
-            job,
-            CallJobState.Bridged,
-            null,
-            linked
-                ? $"Two-way SIP bridge {sip1} <-> {sip2}"
-                : $"SIP Bridge accepted {sip1} <-> {sip2} (BRIDGEPEER pending)");
         await TryStartRecordingAsync(job, ct).ConfigureAwait(false);
         await PublishJobAsync(job).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Inject a temporary dialplan context and Redirect both SIP peers into ConfBridge
+    /// so media is mixed on the PBX (not phone↔phone directmedia).
+    /// </summary>
+    private async Task<bool> TryConfBridgePeersAsync(
+        CallJob job,
+        string sip1,
+        string sip2,
+        CancellationToken ct)
+    {
+        var token = job.Id.Replace("-", "", StringComparison.Ordinal);
+        if (token.Length < 8)
+            return false;
+
+        var ctx = $"ntkj{token[..Math.Min(12, token.Length)]}";
+        var conf = $"ntkc{token[..Math.Min(16, token.Length)]}";
+
+        try
+        {
+            await SendCliQuietAsync($"dialplan remove context {ctx}", ct).ConfigureAwait(false);
+            // Keep dialplan minimal — CONFBRIDGE(user,*) Sets broke join on this Issabel (parties=0).
+            // Answer + short Wait forces re-INVITE away from trunk directmedia before softmix.
+            var steps = new[]
+            {
+                $"dialplan add extension s,1,Answer() into {ctx}",
+                $"dialplan add extension s,2,Wait(0.5) into {ctx}",
+                $"dialplan add extension s,3,ConfBridge({conf}) into {ctx}"
+            };
+            foreach (var cli in steps)
+            {
+                if (!await SendCliAsync(cli, ct).ConfigureAwait(false))
+                {
+                    _logger.LogWarning(
+                        "CallJob {JobId} ConfBridge dialplan inject failed (ctx={Ctx} cli={Cli})",
+                        job.Id, ctx, cli);
+                    return false;
+                }
+            }
+
+            // Dual Redirect (ExtraChannel) — sequential Redirect kills the peer still in the Local bridge.
+            var redir = await _ami.SendActionAsync(
+                new RedirectAction(sip1, sip2, ctx, "s", 1),
+                ct,
+                timeoutMs: 10_000).ConfigureAwait(false);
+
+            _logger.LogInformation(
+                "CallJob {JobId} ConfBridge Redirect {Sip1}+{Sip2} → {Ctx}/s conf={Conf} ok={Ok} msg={Msg}",
+                job.Id, sip1, sip2, ctx, conf, redir.IsSuccess(), redir.Message);
+
+            if (!redir.IsSuccess())
+                return false;
+
+            var parties = 0;
+            for (var poll = 0; poll < 5 && parties < 2; poll++)
+            {
+                await Task.Delay(400, ct).ConfigureAwait(false);
+                parties = await CountConfBridgePartiesAsync(conf, ct).ConfigureAwait(false);
+            }
+
+            _logger.LogInformation(
+                "CallJob {JobId} ConfBridge {Conf} partyCount={Count}",
+                job.Id, conf, parties);
+            if (parties < 2)
+            {
+                _logger.LogWarning(
+                    "CallJob {JobId} ConfBridge has {Count} parties — falling back to AMI Bridge",
+                    job.Id, parties);
+                return false;
+            }
+
+            try
+            {
+                await _ami.SendActionAsync(new ConfbridgeUnmuteAction(conf, sip1), ct, 5_000)
+                    .ConfigureAwait(false);
+                await _ami.SendActionAsync(new ConfbridgeUnmuteAction(conf, sip2), ct, 5_000)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "CallJob {JobId} ConfbridgeUnmute ignored", job.Id);
+            }
+
+            SetState(
+                job,
+                CallJobState.Bridged,
+                null,
+                $"Two-way ConfBridge {sip1} <-> {sip2} ({conf}, parties={parties})");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CallJob {JobId} ConfBridge promote exception", job.Id);
+            return false;
+        }
+    }
+
+    private async Task<bool> SendCliAsync(string cli, CancellationToken ct)
+    {
+        var resp = await _ami.SendActionAsync(new CommandAction(cli), ct, timeoutMs: 8_000)
+            .ConfigureAwait(false);
+        return resp.IsSuccess();
+    }
+
+    private async Task SendCliQuietAsync(string cli, CancellationToken ct)
+    {
+        try
+        {
+            await _ami.SendActionAsync(new CommandAction(cli), ct, timeoutMs: 5_000)
+                .ConfigureAwait(false);
+        }
+        catch
+        {
+            // ignore missing context on first remove
+        }
+    }
+
+    private async Task<int> CountConfBridgePartiesAsync(string conf, CancellationToken ct)
+    {
+        try
+        {
+            var resp = await _ami.SendActionAsync(
+                new CommandAction($"confbridge list {conf}"),
+                ct,
+                timeoutMs: 8_000).ConfigureAwait(false);
+            var lines = new List<string>();
+            if (resp is CommandResponse cr && cr.Result is { Count: > 0 })
+                lines.AddRange(cr.Result);
+            else
+            {
+                var output = resp.GetAttribute("Output");
+                if (!string.IsNullOrWhiteSpace(output))
+                    lines.AddRange(output.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries));
+            }
+
+            var count = 0;
+            foreach (var raw in lines)
+            {
+                var t = raw.Trim();
+                if (t.StartsWith("Output:", StringComparison.OrdinalIgnoreCase))
+                    t = t["Output:".Length..].Trim();
+                if (t.Length == 0
+                    || t.StartsWith("Party", StringComparison.OrdinalIgnoreCase)
+                    || t.StartsWith("=======", StringComparison.OrdinalIgnoreCase)
+                    || t.StartsWith("Channel", StringComparison.OrdinalIgnoreCase)
+                    || t.Contains("No active conferences", StringComparison.OrdinalIgnoreCase)
+                    || t.Contains("No participants", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // Party rows typically start with Channel name (SIP/... or PJSIP/...)
+                if (t.StartsWith("SIP/", StringComparison.OrdinalIgnoreCase)
+                    || t.StartsWith("PJSIP/", StringComparison.OrdinalIgnoreCase)
+                    || t.Contains("SIP/", StringComparison.OrdinalIgnoreCase)
+                    || t.Contains("PJSIP/", StringComparison.OrdinalIgnoreCase)
+                    || t.StartsWith("Local/", StringComparison.OrdinalIgnoreCase))
+                {
+                    count++;
+                }
+            }
+
+            if (count == 0 && lines.Count > 0)
+            {
+                _logger.LogDebug(
+                    "confbridge list {Conf} raw: {Raw}",
+                    conf,
+                    string.Join(" || ", lines.Take(12)));
+            }
+
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "confbridge list failed for {Conf}", conf);
+            return 0;
+        }
     }
 
     /// <summary>
@@ -1077,7 +1295,13 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
                 }
                 else
                 {
-                    SetState(job, CallJobState.Completed, null, hangupReason);
+                    // Keep ConfBridge/SIP-bridge success text; Local stub cause=44 must not overwrite it.
+                    var successReason = job.ResultReason is { Length: > 0 } rr
+                        && (rr.Contains("ConfBridge", StringComparison.OrdinalIgnoreCase)
+                            || rr.Contains("Two-way SIP", StringComparison.OrdinalIgnoreCase))
+                        ? $"{rr} · ended ({hangupReason})"
+                        : hangupReason;
+                    SetState(job, CallJobState.Completed, null, successReason);
                 }
 
                 _ = PublishJobAsync(job);
@@ -1333,12 +1557,15 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
 
         try
         {
+            // Never set MixMonitor Command= to asterisk -rx / ntk-enc.sh — that deadlocks AstDB encode.
+            // Encode is triggered after hangup via Originate System in CallRecordingService.
             var resp = await _ami.SendActionAsync(
                 new MixMonitorAction
                 {
                     Channel = channel,
                     File = amiFile,
-                    Options = "b"
+                    Options = null,
+                    Command = null
                 },
                 ct,
                 timeoutMs: 8_000).ConfigureAwait(false);
@@ -1388,8 +1615,16 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         try
         {
             await TryStopRecordingAsync(job, CancellationToken.None).ConfigureAwait(false);
-            await Task.Delay(800).ConfigureAwait(false);
-            await _recording.TryRefreshAvailabilityAsync(job).ConfigureAwait(false);
+            // Allow MixMonitor to flush wav before HTTP publish / AstDB encode.
+            await Task.Delay(2_000).ConfigureAwait(false);
+            await _recording.TriggerRemoteEncodeAsync(job).ConfigureAwait(false);
+            for (var i = 0; i < 300; i++)
+            {
+                await Task.Delay(1_000).ConfigureAwait(false);
+                if (await _recording.TryRefreshAvailabilityAsync(job).ConfigureAwait(false))
+                    break;
+            }
+
             _store.Update(job);
             await PublishJobAsync(job).ConfigureAwait(false);
         }

@@ -89,6 +89,9 @@
   @if (errorMessage()) {
     <p class="banner error" role="alert">{{ errorMessage() }}</p>
   }
+  @if (successMessage()) {
+    <p class="banner ok" role="status">{{ successMessage() }}</p>
+  }
 
   <div class="job-board" [attr.aria-busy]="loading()">
     @if (loading()) {
@@ -109,6 +112,16 @@
               <span>{{ displayTo(job) }}</span>
             </div>
             <div class="job-card__actions">
+              @if (canRedial(job)) {
+                <button
+                  type="button"
+                  class="btn"
+                  [disabled]="redialingId() === job.id || !!redialingId()"
+                  (click)="redial(job)"
+                >
+                  {{ (redialingId() === job.id ? 'JOBS.REDIALING' : 'JOBS.REDIAL') | t }}
+                </button>
+              }
               @if (canDownloadRecording(job)) {
                 <button
                   type="button"

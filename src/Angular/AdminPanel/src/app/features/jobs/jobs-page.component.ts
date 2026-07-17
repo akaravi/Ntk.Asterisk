@@ -102,6 +102,23 @@ export class JobsPageComponent implements OnInit, OnDestroy {
     return !terminal.includes(String(job.state).toLowerCase());
   }
 
+  canRedial(job: CallJob): boolean {
+    const type = String(job.type || '');
+    if (type === 'CommandHangup' || type === 'CommandBridge') {
+      return false;
+    }
+    if (type === 'ExtToExt') {
+      return !!(job.from && job.to);
+    }
+    if (type === 'MobileToExt') {
+      return !!(job.mobile1 || job.from) && !!job.to;
+    }
+    if (type === 'MobileToMobile') {
+      return !!(job.mobile1 || job.from) && !!(job.mobile2 || job.to);
+    }
+    return !!(this.displayFrom(job) !== '—' && this.displayTo(job) !== '—');
+  }
+
   canDownloadRecording(job: CallJob): boolean {
     return !!(job.hasRecording || job.recordingFileName || job.recordingAvailable);
   }
@@ -197,6 +214,34 @@ export class JobsPageComponent implements OnInit, OnDestroy {
         if (r.data?.[0]) {
           const next = this.jobsAll().map((j) => (j.id === r.data[0].id ? r.data[0] : j));
           this.jobsAll.set(next);
+          this.repage();
+        } else {
+          this.reload();
+        }
+      },
+      error: (err: Error) => {
+        this.actionBusyId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  redial(job: CallJob): void {
+    if (!this.canRedial(job) || this.actionBusyId()) return;
+    this.actionBusyId.set(job.id);
+    this.error.set(null);
+    this.success.set(null);
+    this.api.redialJob(job.id).subscribe({
+      next: (r) => {
+        this.actionBusyId.set(null);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Redial failed');
+          return;
+        }
+        this.success.set('JOBS.REDIAL_OK');
+        if (r.data?.[0]) {
+          this.jobsAll.set([r.data[0], ...this.jobsAll()]);
+          this.query = { ...this.query, pageIndex: 0 };
           this.repage();
         } else {
           this.reload();

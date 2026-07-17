@@ -134,6 +134,26 @@ public sealed class CallJobsController : ControllerBase
     }
 
     /// <summary>
+    /// Re-originate the same dial job (ExtToExt / MobileToExt / MobileToMobile) with a new job id.
+    /// </summary>
+    [HttpPost("ActionRedial/{id}")]
+    public async Task<ActionResult<ApiResult<CallJobDto>>> ActionRedial(string id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var job = await _engine.RedialAsync(id, cancellationToken);
+            if (job is null)
+                return Ok(ApiResult<CallJobDto>.Fail($"Job '{id}' not found."));
+            return Ok(ApiResult<CallJobDto>.Ok(job));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "CallJobs ActionRedial failed for {Id}", id);
+            return Ok(ApiResult<CallJobDto>.Fail(ex.Message));
+        }
+    }
+
+    /// <summary>
     /// Download MixMonitor audio for a call job (wav/mp3). Refreshes from local mount or HTTP pull first.
     /// </summary>
     [HttpGet("ActionDownloadRecording/{id}")]
@@ -152,7 +172,7 @@ public sealed class CallJobsController : ControllerBase
             if (open is null)
             {
                 return Ok(ApiResult<object>.Fail(
-                    "Recording file is not available yet. WebApi tried local mount, HTTP pull, and AMI base64 fetch. Ensure MixMonitor finished, manager has 'command' permission, and the file exists under RecordingAsteriskDirectory (default /var/spool/asterisk/monitor)."));
+                    "Recording file is not available yet. Wait a few seconds after the call ends (HTTP publish), then retry. Or set RecordingLocalDirectory (UNC/mount of /var/spool/asterisk/monitor)."));
             }
 
             return File(open.Value.Stream, open.Value.ContentType, open.Value.DownloadName);

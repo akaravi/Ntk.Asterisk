@@ -41,7 +41,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IAsteriskSettingsService, AsteriskSettingsService>();
 builder.Services.AddHttpClient("recording-fetch", client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(45);
+    client.Timeout = TimeSpan.FromSeconds(90);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    // Issabel often serves recordings over HTTPS with a self-signed / mismatched cert.
+    ServerCertificateCustomValidationCallback =
+        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
 });
 builder.Services.AddSingleton<ICallRecordingService, CallRecordingService>();
 

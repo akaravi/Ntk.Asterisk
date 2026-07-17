@@ -1,5 +1,13 @@
 # history.2026-07-17
 
+## 2026-07-17 (Asia/Tehran) — UserPanel redial (تماس مجدد)
+- **درخواست:** دکمه تماس مجدد روی فهرست کارهای تماس کاربر — تکرار همان Originate
+- **API:** `POST /api/v1/CallJobs/ActionRedial/{id}` → `CallJobEngine.RedialAsync` کلون Type/From/To/Mobile1/Mobile2/Trunk/CallerId/Timeout و `AddAsync` (AMI Originate جدید)
+- **UI:** UserPanel `jobs-list` دکمه «تماس مجدد» · AdminPanel jobs همان Action · i18n fa/en
+- **تأیید:** `dotnet build` Release → `karavi.build.files/webapi-redial-verify` سبز · `ng build` UserPanel + AdminPanel سبز
+- **ریسک:** WebApi در حال اجرا قفل bin داشت — برای فعال‌سازی endpoint باید API با باینری جدید restart شود
+- **مهارت:** asterisk-voip-stack + asterisk-ami (Originate via existing job engine)
+
 ## 2026-07-17 (Asia/Tehran) — Live call test + log review (recording path)
 - **اقدام:** restart WebApi با باینری جدید · Originate `MobileToMobile` `09125210076`→`09131183892`
 - **Job:** `62e4fdc85a8d4fdba103e99d5ccc782d` · ~۳۷ث · `completed`
@@ -223,3 +231,15 @@
 - **ریشه:** WebApi قدیمی روی :5310 بدون `EventsController` → 404
 - **رفع:** API با بیلد دارای Events در حال اجرا · صفحه live-events retry یک‌بار روی 404 · پاک کردن banner با ورود ایونت زنده
 - **تأیید:** browser `/events` — LIVE + ردیف‌های AMI/app بدون خطای 404
+
+## 2026-07-17 (Asia/Tehran) — ConfBridge audio + AstDB recording download harden
+- **شکایت:** دانلود صدا خطا · رد نشدن صدا
+- **صدا:** پس از Dial ANSWER → Redirect دو SIP به ConfBridge موقت + Wait(0.5) + mixing_interval · تأیید `confbridge list` parties=2 · fallback AMI Bridge · حفظ ResultReason ConfBridge (cause=44 دیگر آن را پاک نمی‌کند)
+- **ضبط:** MixMonitor بدون option `b` (ConfBridge را bridge کلاسیک نمی‌داند → سکوت) · encode پس از تماس با Originate `System` روی `Local/s@default/n` · AstDB bulk `database show family` (نه DBGet پر از race) · chunk 1024 · enc flag · AMI send lock
+- **شواهد live:** job `ce5e9431…` ConfBridge parties=2 · wav روی PBX `FOUND` (۷ فایل ntk-*.wav در monitor)
+- **باقی:** دانلود کامل وابسته به اتمام encode AstDB (کند؛ یک `asterisk -rx` per chunk) · در صورت نیاز `RecordingLocalDirectory` UNC سریع‌تر است
+
+## 2026-07-17 (Asia/Tehran) — Fix recording download + ConfBridge audio path
+- **Root causes:** (1) MixMonitor `Command=` + `asterisk -rx` deadlocked AstDB encode; AstDB value max ~256B so 1024 chunks never stored; (2) ConfBridge dialplan with `CONFBRIDGE(user,*)` Sets yielded parties=0; AMI Bridge Success without RTP → empty 44-byte wav.
+- **Fix:** HTTP publish to `/var/www/html/ntk-recordings` + HTTPS pull (self-signed OK); no MixMonitor Command encode; minimal ConfBridge Answer/Wait/ConfBridge; reject recordings < 2KB.
+- **Verify:** job `dd5df820…` ConfBridge parties=2 · download `audio/wav` **380524** bytes · WebApi fix11.

@@ -99,6 +99,11 @@
   color: var(--danger);
 }
 
+.banner.ok {
+  background: var(--ok-soft, color-mix(in srgb, var(--signal) 18%, transparent));
+  color: var(--ok, var(--signal));
+}
+
 .job-board {
   display: grid;
   gap: var(--space-3);

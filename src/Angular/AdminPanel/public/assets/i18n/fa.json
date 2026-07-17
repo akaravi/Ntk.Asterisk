@@ -179,6 +179,8 @@
     "COL_DURATION": "طول تماس",
     "CANCEL": "لغو",
     "CANCEL_OK": "جاب لغو شد",
+    "REDIAL": "تماس مجدد",
+    "REDIAL_OK": "تماس مجدد در صف قرار گرفت",
     "DOWNLOAD_AUDIO": "دانلود صدا",
     "DOWNLOAD_OK": "فایل صدا دانلود شد",
     "DOWNLOAD_FAIL": "دانلود فایل صدا ناموفق بود",

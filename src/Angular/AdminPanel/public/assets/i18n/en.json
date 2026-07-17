@@ -179,6 +179,8 @@
     "COL_DURATION": "Duration",
     "CANCEL": "Cancel",
     "CANCEL_OK": "Job cancelled",
+    "REDIAL": "Redial",
+    "REDIAL_OK": "Redial queued",
     "DOWNLOAD_AUDIO": "Download audio",
     "DOWNLOAD_OK": "Recording downloaded",
     "DOWNLOAD_FAIL": "Recording download failed",

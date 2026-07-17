@@ -76,6 +76,12 @@ export class CallJobsApi {
       .pipe(map((r) => this.requireOne(r, 'ActionCancel')));
   }
 
+  actionRedial(id: string): Observable<CallJob> {
+    return this.http
+      .post<ApiResult<CallJob>>(`${this.baseUrl}/ActionRedial/${encodeURIComponent(id)}`, {})
+      .pipe(map((r) => this.requireOne(r, 'ActionRedial')));
+  }
+
   downloadRecording(id: string): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/ActionDownloadRecording/${encodeURIComponent(id)}`, {
       responseType: 'blob',

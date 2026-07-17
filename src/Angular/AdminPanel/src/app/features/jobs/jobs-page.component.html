@@ -46,6 +46,20 @@
               <span>{{ displayTo(job) }}</span>
             </div>
             <div class="entity-card__actions">
+              @if (canRedial(job)) {
+                <button
+                  type="button"
+                  class="btn"
+                  [disabled]="actionBusyId() === job.id"
+                  (click)="redial(job)"
+                >
+                  {{
+                    actionBusyId() === job.id
+                      ? ('ACTION.LOADING' | translate)
+                      : ('JOBS.REDIAL' | translate)
+                  }}
+                </button>
+              }
               @if (canDownloadRecording(job)) {
                 <button
                   type="button"

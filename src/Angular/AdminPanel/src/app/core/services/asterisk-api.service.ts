@@ -64,6 +64,10 @@ export class AsteriskApiService {
     return this.api.postAction<CallJob>(`/api/v1/CallJobs/ActionCancel/${encodeURIComponent(id)}`, {});
   }
 
+  redialJob(id: string): Observable<ApiResult<CallJob>> {
+    return this.api.postAction<CallJob>(`/api/v1/CallJobs/ActionRedial/${encodeURIComponent(id)}`, {});
+  }
+
   downloadJobRecording(id: string): Observable<Blob> {
     return this.api.getBlob(`/api/v1/CallJobs/ActionDownloadRecording/${encodeURIComponent(id)}`);
   }

@@ -13,6 +13,7 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
     private readonly IAsteriskSettingsService _settings;
     private readonly ILogger<AmiSession> _logger;
     private readonly object _gate = new();
+    private readonly SemaphoreSlim _sendLock = new(1, 1);
     private ManagerConnection? _connection;
     private DateTimeOffset? _connectedAtUtc;
     private string? _lastError;
@@ -215,11 +216,19 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
     {
         await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
         var conn = Connection ?? throw new InvalidOperationException(_lastError ?? "AMI not connected.");
-        return await Task.Run(
-            () => timeoutMs is > 0
-                ? conn.SendAction(action, timeoutMs.Value)
-                : conn.SendAction(action),
-            cancellationToken).ConfigureAwait(false);
+        await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await Task.Run(
+                () => timeoutMs is > 0
+                    ? conn.SendAction(action, timeoutMs.Value)
+                    : conn.SendAction(action),
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
     }
 
     public async Task<ResponseEvents> SendEventGeneratingActionAsync(
@@ -229,11 +238,19 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
     {
         await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
         var conn = Connection ?? throw new InvalidOperationException(_lastError ?? "AMI not connected.");
-        return await Task.Run(
-            () => timeoutMs is > 0
-                ? conn.SendEventGeneratingAction(action, timeoutMs.Value)
-                : conn.SendEventGeneratingAction(action),
-            cancellationToken).ConfigureAwait(false);
+        await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await Task.Run(
+                () => timeoutMs is > 0
+                    ? conn.SendEventGeneratingAction(action, timeoutMs.Value)
+                    : conn.SendEventGeneratingAction(action),
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _sendLock.Release();
+        }
     }
 
     public void Dispose()
