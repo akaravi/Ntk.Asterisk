@@ -22,8 +22,15 @@ export interface CallJob {
   mobile2?: string | null;
   timeoutSec?: number | null;
   errorMessage?: string | null;
+  /** Success or failure reason from API. */
+  resultReason?: string | null;
   createdAtUtc?: string | null;
+  /** Alias when API sends callTimeUtc. */
+  callTimeUtc?: string | null;
   updatedAtUtc?: string | null;
+  startedAtUtc?: string | null;
+  endedAtUtc?: string | null;
+  durationSeconds?: number | null;
 }
 
 export function resolveJobStatus(job: Pick<CallJob, 'status' | 'state'>): CallJobStatus | undefined {

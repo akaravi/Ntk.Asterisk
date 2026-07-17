@@ -1,4 +1,9 @@
 <section class="call-forms">
+  <header class="panel-head">
+    <h2>{{ 'NAV.CALLS' | t }}</h2>
+    <p>{{ 'FORM.PANEL_SUBTITLE' | t }}</p>
+  </header>
+
   <nav class="tabs" role="tablist" aria-label="call job types">
     @for (tab of tabs; track tab) {
       <button
@@ -15,7 +20,9 @@
   </nav>
 
   @if (successMessage()) {
-    <p class="banner success" role="status">{{ 'FORM.SUCCESS' | t }} — <span class="ltr" dir="ltr">{{ successMessage() }}</span></p>
+    <p class="banner success" role="status">
+      {{ 'FORM.SUCCESS' | t }} — <span class="ltr" dir="ltr">{{ successMessage() }}</span>
+    </p>
   }
   @if (errorMessage()) {
     <p class="banner error" role="alert">{{ errorMessage() }}</p>
@@ -25,15 +32,36 @@
     <form class="form" [formGroup]="extToExtForm" (ngSubmit)="submit()">
       <label>
         <span>{{ 'FORM.FROM_EXT' | t }}</span>
-        <input class="ltr" dir="ltr" type="text" formControlName="from" [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t" autocomplete="off" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          formControlName="from"
+          [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t"
+          autocomplete="off"
+        />
       </label>
       <label>
         <span>{{ 'FORM.TO_EXT' | t }}</span>
-        <input class="ltr" dir="ltr" type="text" formControlName="to" [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t" autocomplete="off" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          formControlName="to"
+          [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t"
+          autocomplete="off"
+        />
       </label>
       <label>
         <span>{{ 'FORM.TIMEOUT' | t }}</span>
-        <input class="ltr" dir="ltr" type="number" formControlName="timeoutSec" [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t" min="5" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="number"
+          formControlName="timeoutSec"
+          [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
+          min="5"
+        />
       </label>
       <button type="submit" class="primary" [disabled]="submitting()">
         {{ (submitting() ? 'FORM.SUBMITTING' : 'FORM.SUBMIT') | t }}
@@ -45,15 +73,36 @@
     <form class="form" [formGroup]="mobileToExtForm" (ngSubmit)="submit()">
       <label>
         <span>{{ 'FORM.MOBILE' | t }}</span>
-        <input class="ltr" dir="ltr" type="text" formControlName="mobile1" [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t" autocomplete="off" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          formControlName="mobile1"
+          [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
+          autocomplete="off"
+        />
       </label>
       <label>
         <span>{{ 'FORM.TO_EXT' | t }}</span>
-        <input class="ltr" dir="ltr" type="text" formControlName="to" [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t" autocomplete="off" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          formControlName="to"
+          [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t"
+          autocomplete="off"
+        />
       </label>
       <label>
         <span>{{ 'FORM.TIMEOUT' | t }}</span>
-        <input class="ltr" dir="ltr" type="number" formControlName="timeoutSec" [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t" min="5" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="number"
+          formControlName="timeoutSec"
+          [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
+          min="5"
+        />
       </label>
       <button type="submit" class="primary" [disabled]="submitting()">
         {{ (submitting() ? 'FORM.SUBMITTING' : 'FORM.SUBMIT') | t }}
@@ -65,15 +114,36 @@
     <form class="form" [formGroup]="mobileToMobileForm" (ngSubmit)="submit()">
       <label>
         <span>{{ 'FORM.MOBILE1' | t }}</span>
-        <input class="ltr" dir="ltr" type="text" formControlName="mobile1" [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t" autocomplete="off" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          formControlName="mobile1"
+          [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
+          autocomplete="off"
+        />
       </label>
       <label>
         <span>{{ 'FORM.MOBILE2' | t }}</span>
-        <input class="ltr" dir="ltr" type="text" formControlName="mobile2" [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t" autocomplete="off" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="text"
+          formControlName="mobile2"
+          [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
+          autocomplete="off"
+        />
       </label>
       <label>
         <span>{{ 'FORM.TIMEOUT' | t }}</span>
-        <input class="ltr" dir="ltr" type="number" formControlName="timeoutSec" [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t" min="5" />
+        <input
+          class="ltr"
+          dir="ltr"
+          type="number"
+          formControlName="timeoutSec"
+          [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
+          min="5"
+        />
       </label>
       <button type="submit" class="primary" [disabled]="submitting()">
         {{ (submitting() ? 'FORM.SUBMITTING' : 'FORM.SUBMIT') | t }}

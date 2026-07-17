@@ -123,7 +123,7 @@ Example Originate fields: `Channel`, `Context`/`Exten`/`Priority` **or** `Applic
 
 ```text
 Action: Originate
-Channel: PJSIP/trunk/09…
+Channel: PJSIP/09…@trunk
 Context: ivr
 Exten: s
 Priority: 1

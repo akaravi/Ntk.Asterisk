@@ -101,6 +101,10 @@ export class JobsPageComponent implements OnInit, OnDestroy {
     return !terminal.includes(String(job.state).toLowerCase());
   }
 
+  reason(job: CallJob): string {
+    return job.resultReason || job.errorMessage || '—';
+  }
+
   cancel(job: CallJob): void {
     if (!this.canCancel(job) || this.actionBusyId()) return;
     this.actionBusyId.set(job.id);
@@ -141,12 +145,22 @@ export class JobsPageComponent implements OnInit, OnDestroy {
         { key: 'id', header: t('JOBS.COL_ID') },
         { key: 'type', header: t('JOBS.COL_TYPE') },
         { key: 'state', header: t('JOBS.COL_STATE') },
+        { key: 'resultReason', header: t('JOBS.COL_REASON') },
         { key: 'from', header: t('JOBS.COL_FROM') },
         { key: 'to', header: t('JOBS.COL_TO') },
+        { key: 'callTimeUtc', header: t('JOBS.COL_CALL_TIME') },
+        { key: 'startedAtUtc', header: t('JOBS.COL_STARTED') },
+        { key: 'endedAtUtc', header: t('JOBS.COL_ENDED') },
+        { key: 'durationSeconds', header: t('JOBS.COL_DURATION') },
         { key: 'updatedAtUtc', header: t('JOBS.COL_UPDATED') },
-        { key: 'errorMessage', header: t('JOBS.COL_ERROR') },
       ],
-      this.jobsRows() as unknown as Record<string, unknown>[]
+      this.jobsRows().map((job) => ({
+        ...job,
+        resultReason: this.reason(job),
+        callTimeUtc: job.callTimeUtc || job.createdAtUtc,
+        from: job.from || job.mobile1 || '',
+        to: job.to || job.mobile2 || '',
+      })) as unknown as Record<string, unknown>[]
     );
   }
 
@@ -158,12 +172,22 @@ export class JobsPageComponent implements OnInit, OnDestroy {
         { key: 'id', header: t('JOBS.COL_ID') },
         { key: 'type', header: t('JOBS.COL_TYPE') },
         { key: 'state', header: t('JOBS.COL_STATE') },
+        { key: 'resultReason', header: t('JOBS.COL_REASON') },
         { key: 'from', header: t('JOBS.COL_FROM') },
         { key: 'to', header: t('JOBS.COL_TO') },
+        { key: 'callTimeUtc', header: t('JOBS.COL_CALL_TIME') },
+        { key: 'startedAtUtc', header: t('JOBS.COL_STARTED') },
+        { key: 'endedAtUtc', header: t('JOBS.COL_ENDED') },
+        { key: 'durationSeconds', header: t('JOBS.COL_DURATION') },
         { key: 'updatedAtUtc', header: t('JOBS.COL_UPDATED') },
-        { key: 'errorMessage', header: t('JOBS.COL_ERROR') },
       ],
-      this.jobsRows() as unknown as Record<string, unknown>[]
+      this.jobsRows().map((job) => ({
+        ...job,
+        resultReason: this.reason(job),
+        callTimeUtc: job.callTimeUtc || job.createdAtUtc,
+        from: job.from || job.mobile1 || '',
+        to: job.to || job.mobile2 || '',
+      })) as unknown as Record<string, unknown>[]
     );
   }
 
@@ -171,7 +195,17 @@ export class JobsPageComponent implements OnInit, OnDestroy {
     const { rows, totalCount } = applyClientList(
       this.jobsAll() as unknown as Record<string, unknown>[],
       this.query,
-      ['id', 'type', 'state', 'from', 'to', 'mobile1', 'mobile2', 'errorMessage']
+      [
+        'id',
+        'type',
+        'state',
+        'from',
+        'to',
+        'mobile1',
+        'mobile2',
+        'errorMessage',
+        'resultReason',
+      ]
     );
     this.jobsRows.set(rows as unknown as CallJob[]);
     this.totalCount.set(totalCount);

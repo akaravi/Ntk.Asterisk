@@ -29,10 +29,14 @@
           <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'JOBS.COL_ID' | translate }}</button></th>
           <th><button type="button" class="th-btn" (click)="sort('type')">{{ 'JOBS.COL_TYPE' | translate }}</button></th>
           <th><button type="button" class="th-btn" (click)="sort('state')">{{ 'JOBS.COL_STATE' | translate }}</button></th>
+          <th>{{ 'JOBS.COL_REASON' | translate }}</th>
           <th>{{ 'JOBS.COL_FROM' | translate }}</th>
           <th>{{ 'JOBS.COL_TO' | translate }}</th>
+          <th>{{ 'JOBS.COL_CALL_TIME' | translate }}</th>
+          <th>{{ 'JOBS.COL_STARTED' | translate }}</th>
+          <th>{{ 'JOBS.COL_ENDED' | translate }}</th>
+          <th>{{ 'JOBS.COL_DURATION' | translate }}</th>
           <th><button type="button" class="th-btn" (click)="sort('updatedAtUtc')">{{ 'JOBS.COL_UPDATED' | translate }}</button></th>
-          <th>{{ 'JOBS.COL_ERROR' | translate }}</th>
           <th>{{ 'MONITOR.COL_ACTIONS' | translate }}</th>
         </tr>
       </thead>
@@ -42,10 +46,14 @@
             <td dir="ltr">{{ job.id }}</td>
             <td dir="ltr">{{ job.type }}</td>
             <td>{{ job.state }}</td>
+            <td class="reason-cell" [title]="reason(job)">{{ reason(job) }}</td>
             <td dir="ltr">{{ job.from || job.mobile1 || '—' }}</td>
             <td dir="ltr">{{ job.to || job.mobile2 || '—' }}</td>
-            <td dir="ltr">{{ job.updatedAtUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-            <td>{{ job.errorMessage || '—' }}</td>
+            <td class="timing" dir="ltr">{{ (job.callTimeUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td class="timing" dir="ltr">{{ job.startedAtUtc ? (job.startedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}</td>
+            <td class="timing" dir="ltr">{{ job.endedAtUtc ? (job.endedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}</td>
+            <td class="timing" dir="ltr">{{ job.durationSeconds != null ? job.durationSeconds + ' s' : '—' }}</td>
+            <td class="timing" dir="ltr">{{ job.updatedAtUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
             <td>
               <button
                 type="button"
@@ -63,7 +71,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="8" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
+            <td colspan="12" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
           </tr>
         }
       </tbody>

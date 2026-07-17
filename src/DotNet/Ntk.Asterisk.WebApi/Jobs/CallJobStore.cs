@@ -33,23 +33,37 @@ public sealed class CallJobStore : ICallJobStore
         _jobs[job.Id] = job;
     }
 
-    public CallJobDto ToDto(CallJob job) => new()
+    public CallJobDto ToDto(CallJob job)
     {
-        Id = job.Id,
-        Type = job.Type.ToString(),
-        State = ToApiState(job.State),
-        From = job.From,
-        To = job.To,
-        Mobile1 = job.Mobile1,
-        Mobile2 = job.Mobile2,
-        ActionId = job.ActionId,
-        Channel = job.Channel,
-        UniqueId = job.UniqueId,
-        ErrorMessage = job.ErrorMessage,
-        CreatedAtUtc = job.CreatedAtUtc,
-        UpdatedAtUtc = job.UpdatedAtUtc,
-        IsCommandJob = job.IsCommandJob
-    };
+        var terminal = job.State is CallJobState.Completed or CallJobState.Failed or CallJobState.Cancelled;
+        var started = job.StartedAtUtc ?? (terminal ? job.CreatedAtUtc : null);
+        var ended = job.EndedAtUtc ?? (terminal ? job.UpdatedAtUtc : null);
+        int? duration = job.DurationSeconds;
+        if (duration is null && started is not null && ended is not null)
+            duration = (int)Math.Max(0, (ended.Value - started.Value).TotalSeconds);
+
+        return new()
+        {
+            Id = job.Id,
+            Type = job.Type.ToString(),
+            State = ToApiState(job.State),
+            From = job.From,
+            To = job.To,
+            Mobile1 = job.Mobile1,
+            Mobile2 = job.Mobile2,
+            ActionId = job.ActionId,
+            Channel = job.Channel,
+            UniqueId = job.UniqueId,
+            ErrorMessage = job.ErrorMessage,
+            ResultReason = job.ResultReason ?? job.ErrorMessage,
+            CreatedAtUtc = job.CreatedAtUtc,
+            UpdatedAtUtc = job.UpdatedAtUtc,
+            StartedAtUtc = started,
+            EndedAtUtc = ended,
+            DurationSeconds = duration,
+            IsCommandJob = job.IsCommandJob
+        };
+    }
 
     private static string ToApiState(CallJobState state) => state switch
     {

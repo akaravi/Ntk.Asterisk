@@ -37,8 +37,16 @@ public sealed class CallJob
     public string? Channel { get; set; }
     public string? UniqueId { get; set; }
     public string? ErrorMessage { get; set; }
+    /// <summary>Human-readable outcome for success or failure (shown in job lists).</summary>
+    public string? ResultReason { get; set; }
     public bool IsCommandJob { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+    /// <summary>When dialing / command execution actually started.</summary>
+    public DateTimeOffset? StartedAtUtc { get; set; }
+    /// <summary>When job reached a terminal state.</summary>
+    public DateTimeOffset? EndedAtUtc { get; set; }
+    /// <summary>Wall-clock seconds from start to end when both are known.</summary>
+    public int? DurationSeconds { get; set; }
     public CancellationTokenSource? Cts { get; set; }
 }

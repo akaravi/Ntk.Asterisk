@@ -1,5 +1,27 @@
 # history.2026-07-17
 
+## 2026-07-17 (Asia/Tehran) — AMI guide expanded (≥100 words/section)
+- **درخواست:** آموزش‌ها کامل شوند؛ هر بخش به همه موارد ارجاع دهد و هر توضیح ≥۱۰۰ کلمه
+- **تغییرات:**
+  - بازنویسی کامل `karavi/karavi.doc/ami-connection-setup-guide.md` (بخش‌های ۰–۱۰ + EN)
+  - Settings UI: ۸ مرحله راهنما + intro؛ fa/en هر BODY ≥۱۰۰ کلمه با ارجاع متقابل
+- **تأیید:** word-count script · `ng build` AdminPanel سبز
+
+## 2026-07-17 (Asia/Tehran) — Settings: Test Connection button
+- **درخواست:** دکمه تست اتصال روی تنظیمات ذخیره‌شده AMI
+- **تغییرات:**
+  - WebApi: `IAmiSession.TestConnectionAsync` · `POST /api/v1/Config/ActionTestConnection`
+  - Admin Settings: دکمه «تست اتصال» (header + form) · نتیجه host/port/version/error · i18n fa/en
+- **تأیید:** dotnet build WebApi · ng build AdminPanel
+
+## 2026-07-17 (Asia/Tehran) — AMI connection setup guide (server + panel)
+- **درخواست:** راهنمای مرحله‌به‌مرحله کامل پیاده‌سازی تنظیمات اتصال روی سرور/پنل Asterisk
+- **تغییرات:**
+  - `karavi/karavi.doc/ami-connection-setup-guide.md` — manager.conf · FreePBX/Issabel · trunk/ChannelTech · Admin Settings · فایروال · عیب‌یابی · امنیت
+  - Admin Settings: بلوک راهنما (۶ مرحله) + i18n fa/en
+  - لینک از `admin-panel.md` · `onboarding.md` · `asterisk-dialplan-contract.md`
+- **تأیید:** فایل راهنما + build AdminPanel
+
 ## 2026-07-17 (Asia/Tehran) — browser check v1.2
 - **درخواست:** browser check
 - **تغییرات:**
@@ -29,6 +51,17 @@
   - doc: `karavi/karavi.doc/admin-panel.md`
 - **تأیید:** `npm run build` در AdminPanel — سبز
 - **خارج از scope:** WebApi / UserPanel / sln / build-profiles (موازی backend)
+
+## 2026-07-17 (Asia/Tehran) — Admin: load/save AMI connection settings
+- **درخواست:** تنظیمات اتصال AMI از مدیریت سیستم دریافت و ذخیره شود
+- **تغییرات:**
+  - WebApi: `IAsteriskSettingsService` / `AsteriskSettingsService` — seed از appsettings · persist در `App_Data/asterisk-settings.json` · secret هرگز در GET برنمی‌گردد
+  - `ConfigController`: `GET GetSiteSettings` · `POST UpdateSiteSettings` (+ reconnect اختیاری)
+  - `AmiSession` / `MonitorService` / `CallJobEngine` از effective settings
+  - Admin Settings: فرم reactive load/save + i18n fa/en
+  - `.gitignore`: `App_Data/asterisk-settings.json`
+  - doc: `karavi.doc/admin-panel.md`
+- **تأیید:** `dotnet build` WebApi سبز · `ng build` AdminPanel سبز · smoke GET/POST SiteSettings (`isSuccess=true`, secretReturned=false, file persisted)
 
 ## 2026-07-17 (Asia/Tehran) — Karavi.001 bootstrap
 - **درخواست:** پیاده‌سازی `karavi` از `Prompts.Project.CMS/karavi` در مخزن Ntk.Asterisk
@@ -64,3 +97,33 @@
   - solution: WebApi added to Ntk.Asterisk.sln
 - **تأیید:** dotnet build src/DotNet/Ntk.Asterisk.WebApi -c Release OK · skills: asterisk-voip-stack + asterisk-ami
 - **خارج از scope این agent:** D11/D12 Angular apps (فقط ثبت port/host)
+
+## 2026-07-17 (Asia/Tehran) — guide paths per lesson
+- **درخواست:** آدرس فایل‌ها و URLها (کپی‌پذیر) هر آموزش باید مابین همان آموزش باشد
+- **تغییرات:**
+  - Admin Settings: بلوک paths داخل هر درس S1–S8 (نه یک بلوک سراسری) · i18n `GUIDE_Sn_PATHS` fa/en
+  - `ami-connection-setup-guide.md`: زیربخش paths داخل بخش‌های ۰–۹
+- **تأیید:** `npm run build` AdminPanel سبز
+
+## 2026-07-17 (Asia/Tehran) — CallJob list reason + timing columns
+- **درخواست:** نمایش دلیل موفق/ناموفق، زمان تماس، شروع، پایان، طول تماس در فهرست کارها
+- **تغییرات:**
+  - WebApi: `ResultReason` · `StartedAtUtc` · `EndedAtUtc` · `DurationSeconds` · `CallTimeUtc` روی CallJobDto؛ ثبت در engine
+  - UserPanel + AdminPanel jobs list/export + i18n fa/en
+- **تأیید:** `dotnet build` WebApi · `ng build` UserPanel + AdminPanel سبز
+
+## 2026-07-17 (Asia/Tehran) — fix PJSIP Originate channel format (reason=0)
+- **درخواست:** OriginateResponse Failure reason=0
+- **ریشه:** فرمت chan_sip برای PJSIP (`PJSIP/trunk/number`) → endpoint نامعتبر؛ reason=0
+- **تغییرات:** `FormatTrunkDial` → `PJSIP/{number}@{trunk}`؛ پیام خطای خوانا + به‌روزرسانی dialplan-contract
+- **تأیید:** `dotnet build` WebApi سبز
+- **اقدام اپراتور:** نام DefaultTrunk باید با `pjsip show endpoints` یکی باشد
+
+## 2026-07-17 (Asia/Tehran) — design-auditor Signal Desk redesign
+- **درخواست:** /design-auditor کلیه صفحات را از صفر طراحی کن
+- **جهت:** Signal Desk — slate/teal · Vazirmatn + IBM Plex (self-host) · بدون purple/pill-slop
+- **UserPanel:** shell · forms · jobs (card board با reason + timing)
+- **AdminPanel:** dark rail · connection stats · monitor tabs · jobs/settings/toolbar tokens
+- **گزارش:** `karavi/karavi.status/DesignAuditor_SignalDesk.json`
+- **نمرات:** Design B+ · AI Slop A · Accessibility A-
+- **تأیید:** `ng build` UserPanel + AdminPanel سبز

@@ -1,95 +1,157 @@
 .shell {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  color: var(--text);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
 }
 
 .topbar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4);
+  align-items: end;
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  border-block-end: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.brand__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.brand__mark::before {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--signal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 25%, transparent);
 }
 
 .brand h1 {
   margin: 0;
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  color: var(--ink);
+  max-width: 22ch;
 }
 
 .brand p {
-  margin: 0.35rem 0 0;
+  margin: 0;
   color: var(--muted);
   font-size: 0.92rem;
+  max-width: 42ch;
 }
 
 .meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: flex-end;
+  gap: var(--space-3);
 }
 
 .hub {
-  font-size: 0.85rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
-  background: var(--surface-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-soft);
 }
 
 .hub[data-state='connected'] {
-  background: var(--success-bg);
-  color: var(--success-text);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: var(--ok-soft);
+  color: var(--ok);
 }
 
 .hub[data-state='disconnected'] {
-  background: var(--error-bg);
-  color: var(--error-text);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 .hub[data-state='reconnecting'] {
-  background: var(--warn-bg);
-  color: var(--warn-text);
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--line));
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.locale {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-raised);
 }
 
 .locale button {
-  margin-inline-start: 0.25rem;
-  padding: 0.35rem 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: 0.35rem;
-  background: var(--input-bg);
-  color: var(--text);
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.4rem 0.7rem;
   cursor: pointer;
+}
+
+.locale button:hover {
+  color: var(--ink);
+  background: var(--paper-deep);
 }
 
 .nav {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-5);
+  border-block-end: 1px solid var(--line);
   background: var(--surface);
 }
 
 .nav a {
   text-decoration: none;
-  color: var(--text);
-  padding: 0.45rem 0.85rem;
-  border-radius: 0.35rem;
+  color: var(--ink-soft);
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.nav a:hover {
+  background: var(--paper-deep);
+  color: var(--ink);
 }
 
 .nav a.active {
-  background: var(--accent);
-  color: var(--accent-contrast);
+  background: var(--signal-soft);
+  color: var(--signal);
+  border-color: color-mix(in srgb, var(--signal) 35%, var(--line));
+  font-weight: 600;
 }
 
 .content {
-  flex: 1;
-  padding: 1.5rem;
-  width: min(1100px, 100%);
+  padding: var(--space-5);
+  width: min(1180px, 100%);
   margin-inline: auto;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .meta {
+    justify-content: flex-start;
+  }
 }

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -14,7 +13,7 @@ const TERMINAL: CallJobStatus[] = ['completed', 'failed', 'cancelled'];
 @Component({
   selector: 'app-jobs-list',
   standalone: true,
-  imports: [FormsModule, TranslatePipe, DatePipe],
+  imports: [FormsModule, TranslatePipe],
   templateUrl: './jobs-list.component.html',
   styleUrl: './jobs-list.component.scss',
 })
@@ -177,6 +176,44 @@ export class JobsListComponent implements OnInit, OnDestroy {
     return job.to || job.mobile2 || '—';
   }
 
+  displayReason(job: CallJob): string {
+    return job.resultReason || job.errorMessage || '—';
+  }
+
+  reasonTone(job: CallJob): 'fail' | 'ok' | 'neutral' {
+    const status = resolveJobStatus(job);
+    if (status === 'failed' || status === 'cancelled') {
+      return 'fail';
+    }
+    if (status === 'completed' || status === 'bridged') {
+      return 'ok';
+    }
+    return 'neutral';
+  }
+
+  callTime(job: CallJob): string | null | undefined {
+    return job.callTimeUtc || job.createdAtUtc;
+  }
+
+  formatUtc(value: string | null | undefined): string {
+    if (!value) {
+      return '—';
+    }
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+      return value;
+    }
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  formatDuration(job: CallJob): string {
+    if (job.durationSeconds == null || job.durationSeconds < 0) {
+      return '—';
+    }
+    return this.i18n.t('JOBS.DURATION_SEC').replace('{sec}', String(job.durationSeconds));
+  }
+
   resolveJobStatus = resolveJobStatus;
 
   private exportColumns(): { key: string; header: string }[] {
@@ -184,8 +221,13 @@ export class JobsListComponent implements OnInit, OnDestroy {
       { key: 'id', header: this.i18n.t('JOBS.COL_ID') },
       { key: 'type', header: this.i18n.t('JOBS.COL_TYPE') },
       { key: 'status', header: this.i18n.t('JOBS.COL_STATUS') },
+      { key: 'resultReason', header: this.i18n.t('JOBS.COL_REASON') },
       { key: 'from', header: this.i18n.t('JOBS.COL_FROM') },
       { key: 'to', header: this.i18n.t('JOBS.COL_TO') },
+      { key: 'callTimeUtc', header: this.i18n.t('JOBS.COL_CALL_TIME') },
+      { key: 'startedAtUtc', header: this.i18n.t('JOBS.COL_STARTED') },
+      { key: 'endedAtUtc', header: this.i18n.t('JOBS.COL_ENDED') },
+      { key: 'durationSeconds', header: this.i18n.t('JOBS.COL_DURATION') },
       { key: 'updatedAtUtc', header: this.i18n.t('JOBS.COL_UPDATED') },
     ];
   }
@@ -195,8 +237,13 @@ export class JobsListComponent implements OnInit, OnDestroy {
       id: job.id,
       type: job.type,
       status: resolveJobStatus(job) ?? '',
+      resultReason: this.displayReason(job),
       from: this.displayFrom(job),
       to: this.displayTo(job),
+      callTimeUtc: this.callTime(job) ?? '',
+      startedAtUtc: job.startedAtUtc ?? '',
+      endedAtUtc: job.endedAtUtc ?? '',
+      durationSeconds: job.durationSeconds ?? '',
       updatedAtUtc: job.updatedAtUtc || job.createdAtUtc,
     }));
   }

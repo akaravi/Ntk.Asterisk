@@ -1,16 +1,16 @@
-using Microsoft.Extensions.Options;
 using Ntk.AsterNet.AMI.Manager;
 using Ntk.AsterNet.AMI.Manager.Action;
 using Ntk.AsterNet.AMI.Manager.Event;
 using Ntk.AsterNet.AMI.Manager.Response;
 using Ntk.Asterisk.WebApi.Configuration;
 using Ntk.Asterisk.WebApi.Contracts;
+using Ntk.Asterisk.WebApi.Services;
 
 namespace Ntk.Asterisk.WebApi.Ami;
 
 public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
 {
-    private readonly IOptionsMonitor<AsteriskOptions> _options;
+    private readonly IAsteriskSettingsService _settings;
     private readonly ILogger<AmiSession> _logger;
     private readonly object _gate = new();
     private ManagerConnection? _connection;
@@ -21,9 +21,9 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
     public event EventHandler<ManagerEvent>? AmiEvent;
     public event EventHandler? ConnectionChanged;
 
-    public AmiSession(IOptionsMonitor<AsteriskOptions> options, ILogger<AmiSession> logger)
+    public AmiSession(IAsteriskSettingsService settings, ILogger<AmiSession> logger)
     {
-        _options = options;
+        _settings = settings;
         _logger = logger;
     }
 
@@ -37,7 +37,7 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
 
     public ConnectionStatusDto GetStatus()
     {
-        var opt = _options.CurrentValue;
+        var opt = _settings.GetEffective();
         var connected = false;
         string? version = null;
         lock (_gate)
@@ -72,7 +72,7 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_options.CurrentValue.AutoConnectOnStartup)
+        if (_settings.GetEffective().AutoConnectOnStartup)
             _ = Task.Run(() => EnsureConnectedAsync(cancellationToken), CancellationToken.None);
         return Task.CompletedTask;
     }
@@ -84,10 +84,10 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
 
     public async Task EnsureConnectedAsync(CancellationToken cancellationToken = default)
     {
-        var opt = _options.CurrentValue;
+        var opt = _settings.GetEffective();
         if (!opt.IsConfigured)
         {
-            _lastError = "AMI not configured. Set Host/Port/Username/Secret in appsettings overlay and restart.";
+            _lastError = "AMI not configured. Set Host/Port/Username/Secret in Admin Settings.";
             ConnectionChanged?.Invoke(this, EventArgs.Empty);
             return;
         }
@@ -109,6 +109,22 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
         {
             Interlocked.Exchange(ref _connecting, 0);
         }
+    }
+
+    public async Task<ConnectionStatusDto> TestConnectionAsync(CancellationToken cancellationToken = default)
+    {
+        await DisconnectAsync().ConfigureAwait(false);
+
+        // Wait briefly if a background connect is still finishing.
+        var spins = 0;
+        while (Interlocked.CompareExchange(ref _connecting, 0, 0) != 0 && spins < 50)
+        {
+            await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+            spins++;
+        }
+
+        await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
+        return GetStatus();
     }
 
     private void ConnectCore(AsteriskOptions opt)

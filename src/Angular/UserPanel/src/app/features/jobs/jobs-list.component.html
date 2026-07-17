@@ -1,37 +1,45 @@
 <section class="jobs">
-  <header class="toolbar">
-    <h2>{{ 'JOBS.TITLE' | t }}</h2>
-    <div class="toolbar-actions">
-      <label class="search">
-        <span>{{ 'JOBS.QUICK_SEARCH' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="search"
-          [(ngModel)]="quickSearch"
-          [attr.placeholder]="'JOBS.QUICK_SEARCH_PH' | t"
-          (keyup.enter)="onSearch()"
-        />
-      </label>
-      <label>
-        <span>{{ 'JOBS.PAGE_SIZE' | t }}</span>
-        <select class="ltr" dir="ltr" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
-          @for (size of pageSizeOptions; track size) {
-            <option [ngValue]="size">{{ size }}</option>
-          }
-        </select>
-      </label>
-      <button type="button" (click)="toggleAdvanced()">{{ 'JOBS.ADVANCED' | t }}</button>
-      <button type="button" (click)="onSearch()">{{ 'JOBS.REFRESH' | t }}</button>
-      <button type="button" (click)="exportPdf()">{{ 'JOBS.EXPORT_PDF' | t }}</button>
-      <button type="button" (click)="exportExcel()">{{ 'JOBS.EXPORT_EXCEL' | t }}</button>
-      <button type="button" (click)="printTable()">{{ 'JOBS.PRINT' | t }}</button>
+  <header class="panel-head">
+    <div>
+      <h2>{{ 'JOBS.TITLE' | t }}</h2>
+      <p class="panel-head__sub">{{ 'JOBS.SUBTITLE' | t }}</p>
+    </div>
+    <div class="panel-head__actions">
+      <button type="button" class="btn" (click)="onSearch()">{{ 'JOBS.REFRESH' | t }}</button>
+      <button type="button" class="btn btn--ghost" (click)="exportPdf()">{{ 'JOBS.EXPORT_PDF' | t }}</button>
+      <button type="button" class="btn btn--ghost" (click)="exportExcel()">{{ 'JOBS.EXPORT_EXCEL' | t }}</button>
+      <button type="button" class="btn btn--ghost" (click)="printTable()">{{ 'JOBS.PRINT' | t }}</button>
     </div>
   </header>
 
+  <div class="filter-rail">
+    <label class="field field--grow">
+      <span>{{ 'JOBS.QUICK_SEARCH' | t }}</span>
+      <input
+        class="ltr"
+        dir="ltr"
+        type="search"
+        [(ngModel)]="quickSearch"
+        [attr.placeholder]="'JOBS.QUICK_SEARCH_PH' | t"
+        (keyup.enter)="onSearch()"
+      />
+    </label>
+    <label class="field">
+      <span>{{ 'JOBS.PAGE_SIZE' | t }}</span>
+      <select class="ltr" dir="ltr" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+        @for (size of pageSizeOptions; track size) {
+          <option [ngValue]="size">{{ size }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" class="btn btn--ghost" (click)="toggleAdvanced()">
+      {{ 'JOBS.ADVANCED' | t }}
+    </button>
+  </div>
+
   @if (advancedOpen) {
     <div class="advanced" role="region" [attr.aria-label]="'JOBS.ADVANCED' | t">
-      <label>
+      <label class="field">
         <span>{{ 'JOBS.FILTER_STATUS' | t }}</span>
         <input
           class="ltr"
@@ -42,7 +50,7 @@
           (keyup.enter)="onSearch()"
         />
       </label>
-      <label>
+      <label class="field">
         <span>{{ 'JOBS.FILTER_TYPE' | t }}</span>
         <input
           class="ltr"
@@ -53,7 +61,7 @@
           (keyup.enter)="onSearch()"
         />
       </label>
-      <label>
+      <label class="field">
         <span>{{ 'JOBS.FILTER_FROM' | t }}</span>
         <input
           class="ltr"
@@ -64,7 +72,7 @@
           (keyup.enter)="onSearch()"
         />
       </label>
-      <label>
+      <label class="field">
         <span>{{ 'JOBS.FILTER_TO' | t }}</span>
         <input
           class="ltr"
@@ -82,84 +90,80 @@
     <p class="banner error" role="alert">{{ errorMessage() }}</p>
   }
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>
-            <button type="button" class="sort" (click)="toggleSort('type')">
-              {{ 'JOBS.COL_TYPE' | t }}
-              @if (sortBy === 'type') {
-                <span>({{ (sortDir === 'asc' ? 'JOBS.SORT_ASC' : 'JOBS.SORT_DESC') | t }})</span>
-              }
-            </button>
-          </th>
-          <th>{{ 'JOBS.COL_ID' | t }}</th>
-          <th>
-            <button type="button" class="sort" (click)="toggleSort('status')">
-              {{ 'JOBS.COL_STATUS' | t }}
-              @if (sortBy === 'status') {
-                <span>({{ (sortDir === 'asc' ? 'JOBS.SORT_ASC' : 'JOBS.SORT_DESC') | t }})</span>
-              }
-            </button>
-          </th>
-          <th>{{ 'JOBS.COL_FROM' | t }}</th>
-          <th>{{ 'JOBS.COL_TO' | t }}</th>
-          <th>
-            <button type="button" class="sort" (click)="toggleSort('updatedAtUtc')">
-              {{ 'JOBS.COL_UPDATED' | t }}
-              @if (sortBy === 'updatedAtUtc') {
-                <span>({{ (sortDir === 'asc' ? 'JOBS.SORT_ASC' : 'JOBS.SORT_DESC') | t }})</span>
-              }
-            </button>
-          </th>
-          <th>{{ 'JOBS.COL_ACTIONS' | t }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (loading()) {
-          <tr>
-            <td colspan="7">…</td>
-          </tr>
-        } @else if (jobs().length === 0) {
-          <tr>
-            <td colspan="7">{{ 'JOBS.EMPTY' | t }}</td>
-          </tr>
-        } @else {
-          @for (job of jobs(); track job.id) {
-            <tr>
-              <td>{{ typeKey(job.type) | t }}</td>
-              <td class="ltr" dir="ltr">{{ job.id }}</td>
-              <td>
-                <span class="status" [attr.data-status]="resolveJobStatus(job)">{{ statusKey(job) | t }}</span>
-              </td>
-              <td class="ltr" dir="ltr">{{ displayFrom(job) }}</td>
-              <td class="ltr" dir="ltr">{{ displayTo(job) }}</td>
-              <td class="ltr" dir="ltr">{{ (job.updatedAtUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-              <td>
-                @if (canCancel(job)) {
-                  <button
-                    type="button"
-                    class="danger"
-                    [disabled]="cancellingId() === job.id"
-                    (click)="cancel(job)"
-                  >
-                    {{ (cancellingId() === job.id ? 'JOBS.CANCELLING' : 'JOBS.CANCEL') | t }}
-                  </button>
-                }
-              </td>
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
+  <div class="job-board" [attr.aria-busy]="loading()">
+    @if (loading()) {
+      <p class="muted">…</p>
+    } @else if (jobs().length === 0) {
+      <p class="empty">{{ 'JOBS.EMPTY' | t }}</p>
+    } @else {
+      @for (job of jobs(); track job.id) {
+        <article class="job-card" [attr.data-status]="resolveJobStatus(job)">
+          <header class="job-card__head">
+            <div class="job-card__identity">
+              <span class="job-card__type">{{ typeKey(job.type) | t }}</span>
+              <span class="status" [attr.data-status]="resolveJobStatus(job)">{{ statusKey(job) | t }}</span>
+            </div>
+            <div class="job-card__route ltr" dir="ltr">
+              <span>{{ displayFrom(job) }}</span>
+              <span class="job-card__arrow" aria-hidden="true">→</span>
+              <span>{{ displayTo(job) }}</span>
+            </div>
+            @if (canCancel(job)) {
+              <button
+                type="button"
+                class="btn btn--danger"
+                [disabled]="cancellingId() === job.id"
+                (click)="cancel(job)"
+              >
+                {{ (cancellingId() === job.id ? 'JOBS.CANCELLING' : 'JOBS.CANCEL') | t }}
+              </button>
+            }
+          </header>
+
+          <p class="job-card__reason" [attr.data-tone]="reasonTone(job)">
+            <span class="job-card__reason-label">{{ 'JOBS.COL_REASON' | t }}</span>
+            <span>{{ displayReason(job) }}</span>
+          </p>
+
+          <dl class="job-card__meta">
+            <div>
+              <dt>{{ 'JOBS.COL_CALL_TIME' | t }}</dt>
+              <dd class="ltr" dir="ltr">{{ formatUtc(callTime(job)) }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_STARTED' | t }}</dt>
+              <dd class="ltr" dir="ltr">{{ formatUtc(job.startedAtUtc) }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_ENDED' | t }}</dt>
+              <dd class="ltr" dir="ltr">{{ formatUtc(job.endedAtUtc) }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_DURATION' | t }}</dt>
+              <dd class="ltr" dir="ltr">{{ formatDuration(job) }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_UPDATED' | t }}</dt>
+              <dd class="ltr" dir="ltr">{{ formatUtc(job.updatedAtUtc || job.createdAtUtc) }}</dd>
+            </div>
+            <div class="job-card__id">
+              <dt>{{ 'JOBS.COL_ID' | t }}</dt>
+              <dd class="ltr" dir="ltr">{{ job.id }}</dd>
+            </div>
+          </dl>
+        </article>
+      }
+    }
   </div>
 
   <footer class="pager">
-    <button type="button" [disabled]="pageIndex <= 0 || loading()" (click)="prevPage()">‹</button>
+    <button type="button" class="btn btn--ghost" [disabled]="pageIndex <= 0 || loading()" (click)="prevPage()">
+      ‹
+    </button>
     <span class="ltr" dir="ltr">{{ pageIndex + 1 }} / {{ totalCount() }}</span>
     <button
       type="button"
+      class="btn btn--ghost"
       [disabled]="loading() || (pageIndex + 1) * pageSize >= totalCount()"
       (click)="nextPage()"
     >

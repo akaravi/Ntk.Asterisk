@@ -1,62 +1,85 @@
 .call-forms {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.panel-head p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .tab {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  padding: 0.55rem 0.9rem;
-  border-radius: 0.4rem;
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  color: var(--ink-soft);
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
+.tab:hover {
+  color: var(--ink);
+  background: var(--paper-deep);
+}
+
 .tab.active {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  border-color: var(--accent);
+  background: var(--signal-soft);
+  color: var(--signal);
+  border-color: color-mix(in srgb, var(--signal) 40%, var(--line));
+  font-weight: 600;
 }
 
 .form {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
   max-width: 28rem;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--elevate-1);
 }
 
 label {
   display: grid;
   gap: 0.35rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
 }
 
 input {
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   background: var(--input-bg);
-  color: var(--text);
+  color: var(--ink);
 }
 
 input.ltr {
   text-align: left;
+  font-family: var(--font-mono);
 }
 
 .primary {
   justify-self: start;
-  padding: 0.65rem 1.2rem;
-  border: none;
-  border-radius: 0.4rem;
-  background: var(--accent);
-  color: var(--accent-contrast);
+  padding: 0.7rem 1.25rem;
+  border: 1px solid var(--signal);
+  border-radius: var(--radius-sm);
+  background: var(--signal);
+  color: var(--signal-contrast);
   cursor: pointer;
+  font-weight: 600;
 }
 
 .primary:disabled {
@@ -66,16 +89,16 @@ input.ltr {
 
 .banner {
   padding: 0.75rem 1rem;
-  border-radius: 0.4rem;
+  border-radius: var(--radius-md);
   margin: 0;
 }
 
 .banner.success {
-  background: var(--success-bg);
-  color: var(--success-text);
+  background: var(--ok-soft);
+  color: var(--ok);
 }
 
 .banner.error {
-  background: var(--error-bg);
-  color: var(--error-text);
+  background: var(--danger-soft);
+  color: var(--danger);
 }

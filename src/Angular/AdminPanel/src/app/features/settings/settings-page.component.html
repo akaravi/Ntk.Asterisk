@@ -1,15 +1,26 @@
 <section class="page">
   <header class="page__header">
     <h1>{{ 'NAV.SETTINGS' | translate }}</h1>
-    <button type="button" class="btn" (click)="reload()" [disabled]="loading()">
-      {{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
-    </button>
+    <div class="page__actions">
+      <button type="button" class="btn btn--ghost" (click)="reload()" [disabled]="loading() || saving() || testing()">
+        {{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="testConnection()" [disabled]="loading() || saving() || testing()">
+        {{ testing() ? ('ACTION.LOADING' | translate) : ('SETTINGS.TEST' | translate) }}
+      </button>
+      <button type="button" class="btn" (click)="save()" [disabled]="loading() || saving() || testing() || form.invalid">
+        {{ saving() ? ('ACTION.LOADING' | translate) : ('SETTINGS.SAVE' | translate) }}
+      </button>
+    </div>
   </header>
 
   <p class="muted">{{ 'SETTINGS.HINT' | translate }}</p>
 
   @if (error()) {
     <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
   }
 
   <div class="settings-grid">
@@ -27,38 +38,240 @@
       </dl>
     </article>
 
-    <article class="panel">
-      <h2>{{ 'SETTINGS.AMI_FLAGS' | translate }}</h2>
-      @if (status(); as s) {
-        <dl class="kv">
+    <article class="panel panel--form">
+      <h2>{{ 'SETTINGS.AMI_FORM' | translate }}</h2>
+      @if (settings(); as s) {
+        <p class="muted status-line" dir="ltr">
+          {{ s.amiConfigured ? ('SETTINGS.AMI_READY' | translate) : ('SETTINGS.AMI_INCOMPLETE' | translate) }}
+          ·
+          {{ s.secretConfigured ? ('SETTINGS.SECRET_SET' | translate) : ('SETTINGS.SECRET_MISSING' | translate) }}
+          ·
+          {{ s.persisted ? ('SETTINGS.PERSISTED' | translate) : ('SETTINGS.FROM_APPSETTINGS' | translate) }}
+        </p>
+      }
+
+      <form class="ami-form" [formGroup]="form" (ngSubmit)="save()">
+        <label class="field">
+          <span>{{ 'SETTINGS.HOST' | translate }}</span>
+          <input
+            type="text"
+            formControlName="host"
+            dir="ltr"
+            autocomplete="off"
+            [placeholder]="'SETTINGS.HOST_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.PORT' | translate }}</span>
+          <input
+            type="number"
+            formControlName="port"
+            dir="ltr"
+            [placeholder]="'SETTINGS.PORT_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.USER' | translate }}</span>
+          <input
+            type="text"
+            formControlName="username"
+            dir="ltr"
+            autocomplete="username"
+            [placeholder]="'SETTINGS.USER_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.SECRET' | translate }}</span>
+          <input
+            type="password"
+            formControlName="secret"
+            dir="ltr"
+            autocomplete="new-password"
+            [placeholder]="'SETTINGS.SECRET_PH' | translate"
+          />
+        </label>
+
+        <label class="check">
+          <input type="checkbox" formControlName="clearSecret" />
+          <span>{{ 'SETTINGS.CLEAR_SECRET' | translate }}</span>
+        </label>
+
+        <label class="field">
+          <span>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</span>
+          <input
+            type="text"
+            formControlName="channelTech"
+            dir="ltr"
+            [placeholder]="'SETTINGS.CHANNEL_TECH_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.DEFAULT_TRUNK' | translate }}</span>
+          <input
+            type="text"
+            formControlName="defaultTrunk"
+            dir="ltr"
+            [placeholder]="'SETTINGS.DEFAULT_TRUNK_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.TRUNK_FILTER' | translate }}</span>
+          <input
+            type="text"
+            formControlName="trunkPeerFilter"
+            dir="ltr"
+            [placeholder]="'SETTINGS.TRUNK_FILTER_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.TIMEOUT_MS' | translate }}</span>
+          <input
+            type="number"
+            formControlName="defaultTimeoutMs"
+            dir="ltr"
+            [placeholder]="'SETTINGS.TIMEOUT_MS_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.CALLER_ID' | translate }}</span>
+          <input
+            type="text"
+            formControlName="defaultCallerId"
+            dir="ltr"
+            [placeholder]="'SETTINGS.CALLER_ID_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.PING_MS' | translate }}</span>
+          <input
+            type="number"
+            formControlName="pingIntervalMs"
+            dir="ltr"
+            [placeholder]="'SETTINGS.PING_MS_PH' | translate"
+          />
+        </label>
+
+        <label class="check">
+          <input type="checkbox" formControlName="keepAlive" />
+          <span>{{ 'SETTINGS.KEEP_ALIVE' | translate }}</span>
+        </label>
+
+        <label class="check">
+          <input type="checkbox" formControlName="autoConnectOnStartup" />
+          <span>{{ 'SETTINGS.AUTO_CONNECT' | translate }}</span>
+        </label>
+
+        <label class="check">
+          <input type="checkbox" formControlName="reconnectAfterSave" />
+          <span>{{ 'SETTINGS.RECONNECT_AFTER_SAVE' | translate }}</span>
+        </label>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn--ghost"
+            (click)="testConnection()"
+            [disabled]="saving() || testing() || loading()"
+          >
+            {{ testing() ? ('ACTION.LOADING' | translate) : ('SETTINGS.TEST' | translate) }}
+          </button>
+          <button type="submit" class="btn" [disabled]="saving() || testing() || form.invalid">
+            {{ saving() ? ('ACTION.LOADING' | translate) : ('SETTINGS.SAVE' | translate) }}
+          </button>
+        </div>
+      </form>
+
+      @if (testResult(); as t) {
+        <dl class="kv test-result" dir="ltr">
+          <div>
+            <dt>{{ 'SETTINGS.TEST_CONNECTED' | translate }}</dt>
+            <dd>{{ t.connected ? ('CONNECTION.CONNECTED' | translate) : ('CONNECTION.DISCONNECTED' | translate) }}</dd>
+          </div>
           <div>
             <dt>{{ 'SETTINGS.HOST' | translate }}</dt>
-            <dd>{{ flagLabel(s.amiHostConfigured) | translate }}</dd>
+            <dd>{{ t.host || '—' }}:{{ t.port || '—' }}</dd>
           </div>
-          <div>
-            <dt>{{ 'SETTINGS.PORT' | translate }}</dt>
-            <dd>{{ flagLabel(s.amiPortConfigured) | translate }}</dd>
-          </div>
-          <div>
-            <dt>{{ 'SETTINGS.USER' | translate }}</dt>
-            <dd>{{ flagLabel(s.amiUserConfigured) | translate }}</dd>
-          </div>
-          <div>
-            <dt>{{ 'SETTINGS.SECRET' | translate }}</dt>
-            <dd>{{ flagLabel(s.amiSecretConfigured) | translate }}</dd>
-          </div>
-          <div>
-            <dt>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</dt>
-            <dd dir="ltr">{{ s.channelTech || '—' }}</dd>
-          </div>
-          <div>
-            <dt>{{ 'SETTINGS.TRUNK_FILTER' | translate }}</dt>
-            <dd>{{ flagLabel(s.trunkPeerFilterConfigured) | translate }}</dd>
-          </div>
+          @if (t.asteriskVersion) {
+            <div>
+              <dt>{{ 'SETTINGS.TEST_VERSION' | translate }}</dt>
+              <dd>{{ t.asteriskVersion }}</dd>
+            </div>
+          }
+          @if (t.lastError) {
+            <div>
+              <dt>{{ 'SETTINGS.TEST_ERROR' | translate }}</dt>
+              <dd>{{ t.lastError }}</dd>
+            </div>
+          }
         </dl>
-      } @else {
-        <p class="muted">{{ 'CONNECTION.NO_DATA' | translate }}</p>
       }
     </article>
   </div>
+
+  <details class="guide">
+    <summary class="guide__summary">{{ 'SETTINGS.GUIDE_TITLE' | translate }}</summary>
+    <div class="guide__body">
+      <p class="muted">{{ 'SETTINGS.GUIDE_INTRO' | translate }}</p>
+      <p class="guide__doc" dir="ltr">{{ 'SETTINGS.GUIDE_DOC_PATH' | translate }}</p>
+
+      <ol class="guide__steps">
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S1_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S1_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S1_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S2_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S2_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S2_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S3_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S3_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S3_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S4_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S4_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S4_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S5_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S5_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S5_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S6_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S6_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S6_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S7_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S7_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S7_PATHS' | translate }}</pre>
+        </li>
+        <li>
+          <strong>{{ 'SETTINGS.GUIDE_S8_TITLE' | translate }}</strong>
+          <p>{{ 'SETTINGS.GUIDE_S8_BODY' | translate }}</p>
+          <h4 class="guide__paths-title">{{ 'SETTINGS.GUIDE_PATHS_TITLE' | translate }}</h4>
+          <pre class="guide__paths" dir="ltr">{{ 'SETTINGS.GUIDE_S8_PATHS' | translate }}</pre>
+        </li>
+      </ol>
+    </div>
+  </details>
 </section>

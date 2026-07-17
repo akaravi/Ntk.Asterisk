@@ -1,19 +1,20 @@
 <div class="shell">
   <header class="topbar">
     <div class="brand">
+      <span class="brand__mark" dir="ltr">NTK · ASTERISK</span>
       <h1>{{ 'APP.TITLE' | t }}</h1>
       <p>{{ 'APP.SUBTITLE' | t }}</p>
     </div>
     <div class="meta">
       <span class="hub" [attr.data-state]="hubState">{{ hubLabelKey() | t }}</span>
-      <div class="locale" role="group" aria-label="locale">
+      <div class="locale" role="group" [attr.aria-label]="'LOCALE.GROUP' | t">
         <button type="button" (click)="setLocale('fa')">{{ 'LOCALE.FA' | t }}</button>
         <button type="button" (click)="setLocale('en')">{{ 'LOCALE.EN' | t }}</button>
       </div>
     </div>
   </header>
 
-  <nav class="nav">
+  <nav class="nav" aria-label="main">
     <a routerLink="/calls" routerLinkActive="active">{{ 'NAV.CALLS' | t }}</a>
     <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | t }}</a>
   </nav>

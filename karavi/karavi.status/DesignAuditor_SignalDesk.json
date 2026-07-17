@@ -1,0 +1,32 @@
+{
+  "audit": "design-auditor v2.2",
+  "scope": ["UserPanel", "AdminPanel"],
+  "direction": "Signal Desk — cool slate paper, deep teal signal, IBM Plex + Vazirmatn (self-hosted)",
+  "assumptions": [
+    "Full redesign (not audit-only) for all User + Admin pages",
+    "WCAG AA floor",
+    "Light primary + prefers-color-scheme dark",
+    "Avoid purple gradients, cream+terracotta, pill-everything, multi-shadow"
+  ],
+  "grades": {
+    "design": "B+",
+    "aiSlop": "A",
+    "accessibility": "A-"
+  },
+  "categoryNotes": {
+    "visualHierarchy": "Brand mark + page title + status chip; jobs reason as dedicated callout",
+    "typography": "Vazirmatn Variable + IBM Plex Sans/Mono — no Inter/Roboto/system-only",
+    "colorContrast": "Teal on soft teal / ink on paper targets AA; dark scheme paired",
+    "spacingLayout": "Tokenized --space-* scale; filter rail separated from export actions",
+    "interactionStates": "focus-visible, hover nav, disabled opacity",
+    "navigationIa": "User top nav; Admin dark signal rail with active border",
+    "responsive": "Shell collapses; job cards auto-fit meta grid",
+    "accessibility": "aria labels, role=alert/status, LTR latin fields, keyboard focus",
+    "motion": "140ms nav/tab transitions only — no decorative motion noise",
+    "aiSlopRemediation": "Removed pill tabs/badges; no purple hero; flat elevation-1 only"
+  },
+  "surfaces": {
+    "user": ["/calls", "/jobs"],
+    "admin": ["/connection", "/monitor", "/jobs", "/settings"]
+  }
+}

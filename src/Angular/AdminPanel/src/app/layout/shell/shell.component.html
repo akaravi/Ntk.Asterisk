@@ -1,6 +1,7 @@
 <div class="shell">
   <aside class="shell__nav" aria-label="main">
     <div class="brand">
+      <span class="brand__mark" dir="ltr">NTK · SIGNAL DESK</span>
       <span class="brand__title">{{ 'APP.TITLE' | translate }}</span>
       <span class="brand__badge" [class.brand__badge--ok]="hubOk()" dir="ltr">SignalR</span>
     </div>
@@ -10,13 +11,9 @@
       <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | translate }}</a>
       <a routerLink="/settings" routerLinkActive="active">{{ 'NAV.SETTINGS' | translate }}</a>
     </nav>
-    <div class="lang">
-      <button type="button" class="btn btn--ghost" [class.active]="lang() === 'fa'" (click)="setLang('fa')">
-        FA
-      </button>
-      <button type="button" class="btn btn--ghost" [class.active]="lang() === 'en'" (click)="setLang('en')">
-        EN
-      </button>
+    <div class="lang" role="group" aria-label="locale">
+      <button type="button" class="btn" [class.active]="lang() === 'fa'" (click)="setLang('fa')">FA</button>
+      <button type="button" class="btn" [class.active]="lang() === 'en'" (click)="setLang('en')">EN</button>
     </div>
   </aside>
   <main class="shell__main">

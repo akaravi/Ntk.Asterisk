@@ -7,6 +7,8 @@ import {
   HangupRequest,
   ListQuery,
   PeerItem,
+  SiteSettings,
+  SiteSettingsUpdateRequest,
   TrunkItem,
 } from '../models/asterisk.models';
 import { ApiResult } from '../models/api-result';
@@ -18,6 +20,18 @@ export class AsteriskApiService {
 
   getConnectionStatus(): Observable<ConnectionStatus | null> {
     return this.api.getOne<ConnectionStatus>('/api/v1/Asterisk/Connection/GetStatus');
+  }
+
+  getSiteSettings(): Observable<SiteSettings | null> {
+    return this.api.getOne<SiteSettings>('/api/v1/Config/GetSiteSettings');
+  }
+
+  updateSiteSettings(body: SiteSettingsUpdateRequest): Observable<ApiResult<SiteSettings>> {
+    return this.api.postAction<SiteSettings>('/api/v1/Config/UpdateSiteSettings', body);
+  }
+
+  testConnection(): Observable<ApiResult<ConnectionStatus>> {
+    return this.api.postAction<ConnectionStatus>('/api/v1/Config/ActionTestConnection', {});
   }
 
   getPeers(query?: Partial<ListQuery>): Observable<ApiResult<PeerItem>> {

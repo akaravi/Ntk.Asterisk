@@ -9,6 +9,9 @@ This repo does **not** own production dialplan on customer PBX — only document
 - Pattern: Async `Originate` + `Application=Dial` (see `asterisk-ami` skill)
 - Not used in Wave 1: FastAGI outbound, Call File spool writers, ARI Stasis
 
+Step-by-step AMI enablement on Asterisk / FreePBX and Admin Settings mapping:  
+[`ami-connection-setup-guide.md`](ami-connection-setup-guide.md)
+
 ## Manager user (least privilege)
 
 Suggested `manager.conf` write classes for Wave 1:
@@ -25,26 +28,39 @@ Read classes: `call`, `system` (peer/channel events). Never commit real secrets 
 
 | Tech | Originate channel examples |
 |------|----------------------------|
-| `PJSIP` (default) | `PJSIP/100`, `PJSIP/trunk-out/0912…` |
-| `SIP` (legacy chan_sip) | `SIP/100`, `SIP/trunk/09…` |
+| `PJSIP` (default) | Extension: `PJSIP/100` · Outbound: `PJSIP/0912…@trunk-out` |
+| `SIP` (legacy chan_sip) | Extension: `SIP/100` · Outbound: `SIP/trunk/0912…` |
 
 Configured via `Asterisk:ChannelTech` in environment overlays (not base `appsettings.json`).
 
+**Important:** PJSIP does **not** use `PJSIP/trunk/number` (that is chan_sip style). Wrong format → AMI `OriginateResponse Failure reason=0` (no such endpoint / bad tech).
+
 ## Trunk naming
 
-- Outbound trunk peer/endpoint name: `Asterisk:DefaultTrunk` (e.g. `trunk-out`)
+- Outbound trunk peer/endpoint name: `Asterisk:DefaultTrunk` (e.g. `trunk-out`) — must match `pjsip show endpoints`
 - Trunk inventory filter: `Asterisk:TrunkPeerFilter` regex (default `^(trunk|Trunk|TRUNK)`)
-- Mobile legs: `{tech}/{trunk}/{mobileNumber}`
+- Mobile legs (PJSIP): `{tech}/{mobileNumber}@{trunk}`
+- Mobile legs (SIP): `{tech}/{trunk}/{mobileNumber}`
 
 ## CallJob Originate shapes
 
 | Type | Channel (leg1) | Application Data (Dial) |
 |------|----------------|-------------------------|
 | ExtToExt | `{tech}/{fromExt}` | `{tech}/{toExt},{timeoutSec}` |
-| MobileToExt | `{tech}/{trunk}/{mobile}` | `{tech}/{ext},{timeoutSec}` |
-| MobileToMobile | `{tech}/{trunk}/{mobile1}` | `{tech}/{trunk}/{mobile2},{timeoutSec}` |
+| MobileToExt (PJSIP) | `{tech}/{mobile}@{trunk}` | `{tech}/{ext},{timeoutSec}` |
+| MobileToMobile (PJSIP) | `{tech}/{mobile1}@{trunk}` | `{tech}/{mobile2}@{trunk},{timeoutSec}` |
+| MobileTo* (SIP) | `{tech}/{trunk}/{mobile}` | same pattern for Dial data |
 
 Cancel: `Hangup` on tracked channel name when known.
+
+### OriginateResponse reason codes (common)
+
+| Reason | Meaning |
+|--------|---------|
+| 0 | No such endpoint/number or invalid channel tech/trunk name |
+| 3 | Ringing / often answer timeout |
+| 5 | Busy |
+| 8 | Congestion / unavailable |
 
 ## FreePBX `_custom` notes
 

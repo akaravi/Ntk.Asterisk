@@ -350,3 +350,7 @@ karavi/karavi.deploy.config/Deploy_TestUsers.info
 karavi/karavi.deploy.config/deploy.secrets.json
 karavi/karavi.logs/.check-logs-state.json
 
+# WebApi runtime AMI settings (may contain secrets)
+**/App_Data/asterisk-settings.json
+**/App_Data/asterisk-settings.json.tmp
+

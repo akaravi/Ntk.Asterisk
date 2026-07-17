@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Options;
 using Ntk.AsterNet.AMI.Manager.Action;
 using Ntk.AsterNet.AMI.Manager.Event;
 using Ntk.Asterisk.WebApi.Ami;
 using Ntk.Asterisk.WebApi.Configuration;
 using Ntk.Asterisk.WebApi.Contracts;
 using Ntk.Asterisk.WebApi.Hubs;
+using Ntk.Asterisk.WebApi.Services;
 
 namespace Ntk.Asterisk.WebApi.Jobs;
 
@@ -21,7 +21,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
 {
     private readonly ICallJobStore _store;
     private readonly IAmiSession _ami;
-    private readonly IOptionsMonitor<AsteriskOptions> _options;
+    private readonly IAsteriskSettingsService _settings;
     private readonly IHubContext<AsteriskHub> _hub;
     private readonly ILogger<CallJobEngine> _logger;
     private readonly System.Threading.Channels.Channel<string> _queue =
@@ -32,13 +32,13 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
     public CallJobEngine(
         ICallJobStore store,
         IAmiSession ami,
-        IOptionsMonitor<AsteriskOptions> options,
+        IAsteriskSettingsService settings,
         IHubContext<AsteriskHub> hub,
         ILogger<CallJobEngine> logger)
     {
         _store = store;
         _ami = ami;
-        _options = options;
+        _settings = settings;
         _hub = hub;
         _logger = logger;
     }
@@ -74,7 +74,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         if (!TryParseType(request.Type, out var type) || type is CallJobType.CommandHangup or CallJobType.CommandBridge)
             throw new ArgumentException("Invalid CallJob type. Use ExtToExt, MobileToExt, or MobileToMobile.");
 
-        var opt = _options.CurrentValue;
+        var opt = _settings.GetEffective();
         var job = new CallJob
         {
             Type = type,
@@ -162,7 +162,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             }
         }
 
-        SetState(job, CallJobState.Cancelled, null);
+        SetState(job, CallJobState.Cancelled, null, "Cancelled by user");
         await PublishJobAsync(job).ConfigureAwait(false);
         return _store.ToDto(job);
     }
@@ -203,7 +203,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             var resp = await _ami.SendActionAsync(new HangupAction(job.Channel!), ct).ConfigureAwait(false);
             if (resp.IsSuccess())
             {
-                SetState(job, CallJobState.Completed, null);
+                SetState(job, CallJobState.Completed, null, "Hangup completed successfully");
             }
             else
             {
@@ -223,7 +223,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             if (resp.IsSuccess())
             {
                 SetState(job, CallJobState.Bridged, null);
-                SetState(job, CallJobState.Completed, null);
+                SetState(job, CallJobState.Completed, null, "Bridge completed successfully");
             }
             else
             {
@@ -234,9 +234,10 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             return;
         }
 
-        var opt = _options.CurrentValue;
-        var tech = string.IsNullOrWhiteSpace(opt.ChannelTech) ? "PJSIP" : opt.ChannelTech;
+        var opt = _settings.GetEffective();
+        var tech = string.IsNullOrWhiteSpace(opt.ChannelTech) ? "PJSIP" : opt.ChannelTech.Trim();
         var (channel, dialData) = BuildOriginate(job, tech);
+        job.Channel = channel;
 
         SetState(job, CallJobState.DialingLeg1, null);
         await PublishJobAsync(job).ConfigureAwait(false);
@@ -251,6 +252,10 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             Async = true,
             ActionId = job.ActionId
         };
+
+        _logger.LogInformation(
+            "CallJob {JobId} Originate Channel={Channel} Data={Data} Tech={Tech} Trunk={Trunk}",
+            job.Id, channel, dialData, tech, job.Trunk);
 
         var response = await _ami.SendActionAsync(originate, ct).ConfigureAwait(false);
         if (!response.IsSuccess())
@@ -280,7 +285,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         }
         else if (job.State == CallJobState.Bridged)
         {
-            SetState(job, CallJobState.Completed, null);
+            SetState(job, CallJobState.Completed, null, "Call bridged and completed");
             await PublishJobAsync(job).ConfigureAwait(false);
         }
     }
@@ -299,11 +304,11 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
                 var ok = string.Equals(ore.Response, "Success", StringComparison.OrdinalIgnoreCase);
                 if (ok)
                 {
-                    SetState(job, CallJobState.Bridged, null);
+                    SetState(job, CallJobState.Bridged, null, "Originate success — legs bridging");
                 }
                 else
                 {
-                    SetState(job, CallJobState.Failed, $"OriginateResponse: {ore.Response} reason={ore.Reason}");
+                    SetState(job, CallJobState.Failed, FormatOriginateFailure(ore, job));
                 }
 
                 _ = PublishJobAsync(job);
@@ -316,7 +321,10 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
                 if (job is null) return;
                 if (job.State is CallJobState.Bridged or CallJobState.WaitingAnswer or CallJobState.DialingLeg2)
                 {
-                    SetState(job, CallJobState.Completed, null);
+                    var hangupReason = string.IsNullOrWhiteSpace(he.CauseTxt)
+                        ? $"Hangup cause={he.Cause}"
+                        : $"Hangup: {he.CauseTxt} (cause={he.Cause})";
+                    SetState(job, CallJobState.Completed, null, hangupReason);
                     _ = PublishJobAsync(job);
                 }
             }
@@ -352,20 +360,73 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
 
     private static (string channel, string dialData) BuildOriginate(CallJob job, string tech)
     {
+        var timeoutSec = Math.Max(1, job.TimeoutMs / 1000);
         return job.Type switch
         {
             CallJobType.ExtToExt => (
-                $"{tech}/{job.From}",
-                $"{tech}/{job.To},{Math.Max(1, job.TimeoutMs / 1000)}"),
+                FormatEndpoint(tech, job.From!),
+                $"{FormatEndpoint(tech, job.To!)},{timeoutSec}"),
             CallJobType.MobileToExt => (
-                $"{tech}/{job.Trunk}/{job.Mobile1}",
-                $"{tech}/{job.To},{Math.Max(1, job.TimeoutMs / 1000)}"),
+                FormatTrunkDial(tech, job.Trunk!, job.Mobile1!),
+                $"{FormatEndpoint(tech, job.To!)},{timeoutSec}"),
             CallJobType.MobileToMobile => (
-                $"{tech}/{job.Trunk}/{job.Mobile1}",
-                $"{tech}/{job.Trunk}/{job.Mobile2},{Math.Max(1, job.TimeoutMs / 1000)}"),
+                FormatTrunkDial(tech, job.Trunk!, job.Mobile1!),
+                $"{FormatTrunkDial(tech, job.Trunk!, job.Mobile2!)},{timeoutSec}"),
             _ => throw new InvalidOperationException($"Unsupported dial job type {job.Type}")
         };
     }
+
+    /// <summary>
+    /// Extension / local endpoint: PJSIP/100 or SIP/100.
+    /// </summary>
+    private static string FormatEndpoint(string tech, string endpoint) =>
+        $"{NormalizeTech(tech)}/{endpoint.Trim()}";
+
+    /// <summary>
+    /// Outbound via trunk:
+    /// PJSIP uses number@endpoint (FreePBX / Asterisk PJSIP) — not trunk/number.
+    /// Legacy SIP/IAX2 keeps trunk/number.
+    /// </summary>
+    private static string FormatTrunkDial(string tech, string trunk, string number)
+    {
+        var t = NormalizeTech(tech);
+        var trunkName = trunk.Trim();
+        var num = number.Trim();
+        if (string.Equals(t, "PJSIP", StringComparison.OrdinalIgnoreCase))
+            return $"{t}/{num}@{trunkName}";
+        return $"{t}/{trunkName}/{num}";
+    }
+
+    private static string NormalizeTech(string tech)
+    {
+        var t = string.IsNullOrWhiteSpace(tech) ? "PJSIP" : tech.Trim();
+        if (string.Equals(t, "SIP", StringComparison.OrdinalIgnoreCase)) return "SIP";
+        if (string.Equals(t, "IAX2", StringComparison.OrdinalIgnoreCase)) return "IAX2";
+        return "PJSIP";
+    }
+
+    private static string FormatOriginateFailure(OriginateResponseEvent ore, CallJob job)
+    {
+        var reasonText = MapOriginateReason(ore.Reason);
+        var channel = string.IsNullOrWhiteSpace(ore.Channel) ? job.Channel : ore.Channel;
+        return
+            $"OriginateResponse: {ore.Response} reason={ore.Reason} ({reasonText}). " +
+            $"Channel={channel ?? "—"}. " +
+            "Hint: for PJSIP use number@trunk (e.g. PJSIP/0912…@trunk-out); " +
+            "verify endpoint with CLI `pjsip show endpoints` and DefaultTrunk name.";
+    }
+
+    private static string MapOriginateReason(int reason) => reason switch
+    {
+        0 => "no such endpoint/number or invalid channel tech/trunk",
+        1 => "hangup / no answer (AST_CONTROL_HANGUP)",
+        2 => "local ring",
+        3 => "remote ringing / often answer timeout",
+        4 => "answered",
+        5 => "busy",
+        8 => "congestion / unavailable",
+        _ => "see Asterisk control-frame reason"
+    };
 
     private static void ValidateDialJob(CallJob job)
     {
@@ -402,10 +463,46 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         return Enum.TryParse(normalized, true, out type);
     }
 
-    private void SetState(CallJob job, CallJobState state, string? error)
+    private void SetState(CallJob job, CallJobState state, string? error, string? successReason = null)
     {
+        var now = DateTimeOffset.UtcNow;
+        if (job.StartedAtUtc is null
+            && state is CallJobState.DialingLeg1
+                or CallJobState.WaitingAnswer
+                or CallJobState.DialingLeg2
+                or CallJobState.Bridged)
+        {
+            job.StartedAtUtc = now;
+        }
+
         job.State = state;
-        if (error is not null) job.ErrorMessage = error;
+        if (error is not null)
+        {
+            job.ErrorMessage = error;
+            job.ResultReason = error;
+        }
+
+        if (state is CallJobState.Completed or CallJobState.Failed or CallJobState.Cancelled)
+        {
+            job.EndedAtUtc ??= now;
+            if (job.StartedAtUtc is not null)
+            {
+                job.DurationSeconds = (int)Math.Max(
+                    0,
+                    (job.EndedAtUtc.Value - job.StartedAtUtc.Value).TotalSeconds);
+            }
+
+            if (error is null)
+            {
+                job.ResultReason = state switch
+                {
+                    CallJobState.Cancelled => successReason ?? "Cancelled",
+                    CallJobState.Completed => successReason ?? "Completed successfully",
+                    _ => successReason
+                };
+            }
+        }
+
         _store.Update(job);
     }
 

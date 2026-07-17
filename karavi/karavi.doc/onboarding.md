@@ -22,7 +22,8 @@
 
 **خارجی (نه host این repo):** Asterisk AMI `:5038` · ARI `:8088`
 
-Dialplan/AMI contract: [`asterisk-dialplan-contract.md`](asterisk-dialplan-contract.md)
+Dialplan/AMI contract: [`asterisk-dialplan-contract.md`](asterisk-dialplan-contract.md)  
+AMI connection setup (server + FreePBX/Issabel + Admin Settings): [`ami-connection-setup-guide.md`](ami-connection-setup-guide.md)
 
 ## ۳. stackهای فعال
 

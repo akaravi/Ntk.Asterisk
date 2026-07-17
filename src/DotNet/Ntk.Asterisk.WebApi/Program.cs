@@ -38,6 +38,8 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<IAsteriskSettingsService, AsteriskSettingsService>();
+
 builder.Services.AddSingleton<AmiSession>();
 builder.Services.AddSingleton<IAmiSession>(sp => sp.GetRequiredService<AmiSession>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<AmiSession>());

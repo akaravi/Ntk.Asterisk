@@ -1,19 +1,103 @@
+.page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.guide {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--elevate-1);
+}
+
+.guide__summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.guide__body {
+  margin-top: 0.75rem;
+}
+
+.guide__body > .muted,
+.guide__steps li p {
+  white-space: pre-line;
+  line-height: 1.7;
+}
+
+.guide__doc {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.guide__paths-title {
+  margin: 0.85rem 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.guide__paths {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  direction: ltr;
+  text-align: left;
+}
+
+.guide__steps {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.guide__steps li strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.guide__steps li p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: 1rem;
 }
 
 .panel {
   padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--elevate-1);
 }
 
 .panel h2 {
   margin: 0 0 0.75rem;
   font-size: 1rem;
+}
+
+.panel--form {
+  grid-column: 1 / -1;
 }
 
 .kv {
@@ -38,4 +122,60 @@
   margin: 0;
   font-weight: 600;
   word-break: break-all;
+}
+
+.status-line {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
+.ami-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.85rem 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.field input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  align-self: end;
+  padding-block: 0.4rem;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.test-result {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.banner--ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.4rem;
 }

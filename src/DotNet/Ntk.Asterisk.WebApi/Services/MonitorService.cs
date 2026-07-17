@@ -1,10 +1,8 @@
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR;
 using Ntk.AsterNet.AMI.Manager.Action;
 using Ntk.AsterNet.AMI.Manager.Event;
 using Ntk.Asterisk.WebApi.Ami;
-using Ntk.Asterisk.WebApi.Configuration;
 using Ntk.Asterisk.WebApi.Contracts;
 using Ntk.Asterisk.WebApi.Hubs;
 
@@ -21,18 +19,18 @@ public interface IMonitorService
 public sealed class MonitorService : IMonitorService, IHostedService
 {
     private readonly IAmiSession _ami;
-    private readonly IOptionsMonitor<AsteriskOptions> _options;
+    private readonly IAsteriskSettingsService _settings;
     private readonly IHubContext<AsteriskHub> _hub;
     private readonly ILogger<MonitorService> _logger;
 
     public MonitorService(
         IAmiSession ami,
-        IOptionsMonitor<AsteriskOptions> options,
+        IAsteriskSettingsService settings,
         IHubContext<AsteriskHub> hub,
         ILogger<MonitorService> logger)
     {
         _ami = ami;
-        _options = options;
+        _settings = settings;
         _hub = hub;
         _logger = logger;
     }
@@ -51,23 +49,7 @@ public sealed class MonitorService : IMonitorService, IHostedService
         return Task.CompletedTask;
     }
 
-    public ConfigVisibilityDto GetConfigVisibility()
-    {
-        var opt = _options.CurrentValue;
-        return new ConfigVisibilityDto
-        {
-            AmiConfigured = opt.IsConfigured,
-            Host = opt.Host,
-            Port = opt.Port,
-            UsernameConfigured = string.IsNullOrWhiteSpace(opt.Username) ? null : Mask(opt.Username),
-            SecretConfigured = !string.IsNullOrWhiteSpace(opt.Secret),
-            ChannelTech = opt.ChannelTech,
-            DefaultTrunk = opt.DefaultTrunk,
-            TrunkPeerFilter = opt.TrunkPeerFilter,
-            DefaultTimeoutMs = opt.DefaultTimeoutMs,
-            DefaultCallerId = opt.DefaultCallerId
-        };
-    }
+    public ConfigVisibilityDto GetConfigVisibility() => _settings.GetSiteSettings();
 
     public async Task<IReadOnlyList<PeerDto>> GetPeersAsync(CancellationToken cancellationToken = default)
     {
@@ -91,7 +73,7 @@ public sealed class MonitorService : IMonitorService, IHostedService
     public async Task<IReadOnlyList<PeerDto>> GetTrunksAsync(CancellationToken cancellationToken = default)
     {
         var peers = await GetPeersAsync(cancellationToken).ConfigureAwait(false);
-        var filter = _options.CurrentValue.TrunkPeerFilter;
+        var filter = _settings.GetEffective().TrunkPeerFilter;
         Regex? rx = null;
         if (!string.IsNullOrWhiteSpace(filter))
         {
@@ -150,7 +132,7 @@ public sealed class MonitorService : IMonitorService, IHostedService
     private PeerDto MapPeer(PeerEntryEvent e)
     {
         var id = e.ObjectName ?? string.Empty;
-        var filter = _options.CurrentValue.TrunkPeerFilter;
+        var filter = _settings.GetEffective().TrunkPeerFilter;
         var isTrunk = false;
         if (!string.IsNullOrWhiteSpace(filter))
         {
@@ -165,7 +147,7 @@ public sealed class MonitorService : IMonitorService, IHostedService
         return new PeerDto
         {
             Id = id,
-            Tech = e.ChannelType ?? _options.CurrentValue.ChannelTech,
+            Tech = e.ChannelType ?? _settings.GetEffective().ChannelTech,
             Status = e.Status ?? string.Empty,
             Ip = e.IpAddress,
             Channel = null,
@@ -189,10 +171,4 @@ public sealed class MonitorService : IMonitorService, IHostedService
 
     private void OnConnectionChanged(object? sender, EventArgs e) =>
         _ = _hub.Clients.Group("monitor").SendAsync("connectionStatus", _ami.GetStatus());
-
-    private static string Mask(string value)
-    {
-        if (value.Length <= 2) return "**";
-        return value[0] + new string('*', Math.Min(6, value.Length - 1));
-    }
 }
