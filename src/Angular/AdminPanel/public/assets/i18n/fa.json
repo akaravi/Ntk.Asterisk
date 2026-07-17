@@ -1,11 +1,11 @@
 {
   "APP": {
-    "TITLE": "پنل مدیریت آستریسک"
+    "TITLE": "مدیریت تماس"
   },
   "NAV": {
     "CONNECTION": "وضعیت اتصال",
     "MONITOR": "مانیتور",
-    "JOBS": "جاب‌ها",
+    "JOBS": "فهرست کارهای تماس",
     "SETTINGS": "تنظیمات"
   },
   "ACTION": {
@@ -50,14 +50,17 @@
     "SECRET_PH": "خالی = حفظ رمز فعلی",
     "CLEAR_SECRET": "پاک کردن رمز ذخیره‌شده",
     "CHANNEL_TECH_PH": "PJSIP",
-    "DEFAULT_TRUNK": "ترانک پیش‌فرض",
-    "DEFAULT_TRUNK_PH": "trunk-out",
+    "ORIGINATE_VIA": "روش Originate",
+    "ORIGINATE_CONTEXT": "Context (Local)",
+    "ORIGINATE_CONTEXT_PH": "from-internal",
+    "DEFAULT_TRUNK": "ترانک پیش‌فرض (فقط DirectTech)",
+    "DEFAULT_TRUNK_PH": "نام واقعی endpoint از pjsip show endpoints",
     "TRUNK_FILTER": "فیلتر ترانک",
     "TRUNK_FILTER_PH": "^(trunk|Trunk|TRUNK)",
     "TIMEOUT_MS": "مهلت پیش‌فرض (ms)",
     "TIMEOUT_MS_PH": "30000",
     "CALLER_ID": "CallerId پیش‌فرض",
-    "CALLER_ID_PH": "NtkAsterisk",
+    "CALLER_ID_PH": "NtkCall",
     "PING_MS": "بازه Ping (ms)",
     "PING_MS_PH": "10000",
     "KEEP_ALIVE": "KeepAlive",
@@ -69,7 +72,7 @@
     "TEST_OK": "تست اتصال موفق بود",
     "TEST_FAIL": "تست اتصال ناموفق بود",
     "TEST_CONNECTED": "وضعیت AMI",
-    "TEST_VERSION": "نسخه Asterisk",
+    "TEST_VERSION": "نسخه سرور",
     "TEST_ERROR": "آخرین خطا",
     "AMI_READY": "AMI آماده پیکربندی",
     "AMI_INCOMPLETE": "AMI ناقص",
@@ -79,15 +82,15 @@
     "FROM_APPSETTINGS": "از appsettings (هنوز ذخیره نشده)",
     "CONFIGURED": "پیکربندی شده",
     "NOT_CONFIGURED": "پیکربندی نشده",
-    "GUIDE_TITLE": "راهنمای کامل پیاده‌سازی روی سرور / پنل Asterisk",
-    "GUIDE_INTRO": "این راهنما همه لایه‌های لازم برای اتصال AMI را پوشش می‌دهد.\n\n• سرور Asterisk یا پنل FreePBX / Issabel / Elastix\n• کاربر Manager با حداقل دسترسی\n• هم‌ترازی ChannelTech و ترانک\n• شبکه و فایروال\n• فرم Settings، تست اتصال، صفحه اتصال، مانیتور و جاب‌ها\n\nقبل از ذخیره فرم:\nManager روی سرور باید فعال باشد و مسیر TCP از WebApi به پورت ۵۰۳۸ باز باشد.\n\nرمز هرگز در پاسخ API برنمی‌گردد.\nفیلد خالی یعنی حفظ رمز قبلی.\n\nسند کامل:\nkaravi/karavi.doc/ami-connection-setup-guide.md\n\nترتیب پیشنهادی:\nفعال‌سازی Manager → ساخت کاربر → پنل (در صورت نیاز) → ترانک → شبکه → ذخیره و تست → عیب‌یابی\n\nآدرس فایل و URL مربوط به هر مرحله، داخل همان مرحله (بلوک کپی‌پذیر) آمده است.",
+    "GUIDE_TITLE": "راهنمای کامل پیاده‌سازی روی سرور / پنل تماس",
+    "GUIDE_INTRO": "این راهنما همه لایه‌های لازم برای اتصال AMI را پوشش می‌دهد.\n\n• سرور تماس (PBX) یا پنل FreePBX / Issabel / Elastix\n• کاربر Manager با حداقل دسترسی\n• هم‌ترازی ChannelTech و ترانک\n• شبکه و فایروال\n• فرم Settings، تست اتصال، صفحه اتصال، مانیتور و جاب‌ها\n\nقبل از ذخیره فرم:\nManager روی سرور باید فعال باشد و مسیر TCP از WebApi به پورت ۵۰۳۸ باز باشد.\n\nرمز هرگز در پاسخ API برنمی‌گردد.\nفیلد خالی یعنی حفظ رمز قبلی.\n\nسند کامل:\nkaravi/karavi.doc/ami-connection-setup-guide.md\n\nترتیب پیشنهادی:\nفعال‌سازی Manager → ساخت کاربر → پنل (در صورت نیاز) → ترانک → شبکه → ذخیره و تست → عیب‌یابی\n\nآدرس فایل و URL مربوط به هر مرحله، داخل همان مرحله (بلوک کپی‌پذیر) آمده است.",
     "GUIDE_DOC_PATH": "karavi/karavi.doc/ami-connection-setup-guide.md",
     "GUIDE_S1_TITLE": "۱) فعال‌سازی Manager روی سرور (general و پورت)",
-    "GUIDE_S1_BODY": "روی سرور Asterisk بخش [general] را طوری تنظیم کنید که Manager روشن شود.\n\nenabled = yes\nport = 5038\nbindaddr امن (هم‌ماشین: 127.0.0.1)\n\nپورت باید عین فیلد Port در Settings باشد.\nاگر پورت را عوض کنید بدون به‌روزرسانی UI، WebApi به هدف اشتباه وصل می‌شود.\n\nپس از ذخیره فایل روی سرور:\nmanager reload\nسپس manager show settings\n\nبدون این مرحله، ساخت کاربر یا پر کردن فرم بی‌فایده است.\n\nمرتبط با:\nHost/Port · مرحله شبکه · Connection refused",
+    "GUIDE_S1_BODY": "روی سرور تماس بخش [general] را طوری تنظیم کنید که Manager روشن شود.\n\nenabled = yes\nport = 5038\nbindaddr امن (هم‌ماشین: 127.0.0.1)\n\nپورت باید عین فیلد Port در Settings باشد.\nاگر پورت را عوض کنید بدون به‌روزرسانی UI، WebApi به هدف اشتباه وصل می‌شود.\n\nپس از ذخیره فایل روی سرور:\nmanager reload\nسپس manager show settings\n\nبدون این مرحله، ساخت کاربر یا پر کردن فرم بی‌فایده است.\n\nمرتبط با:\nHost/Port · مرحله شبکه · Connection refused",
     "GUIDE_S2_TITLE": "۲) ساخت کاربر AMI با least privilege و کلاس‌ها",
     "GUIDE_S2_BODY": "یک بخش کاربر جدا مثل ntk-ami بسازید.\n\nنام بخش = Username در Settings\nsecret قوی = رمز فرم (هرگز در git/لاگ/API)\n\nالگوی امن:\ndeny همه\npermit فقط IP سرور WebApi\n\nکلاس‌های Wave-1:\nread = system,call\nwrite = system,call,originate\n\nکمبود originate → Login سبز ولی جاب قرمز.\nبعد از اتصال موفق یک Originate آزمایشی روی lab ببینید.\n\nپس از ویرایش:\nmanager reload\nmanager show user\n\nمرتبط با:\nپنل FreePBX · Username/Secret · Auth / Originate denied",
     "GUIDE_S3_TITLE": "۳) پیاده‌سازی از پنل FreePBX / Issabel / Elastix",
-    "GUIDE_S3_BODY": "اگر از GUI استفاده می‌کنید، همان مفاهیم کاربر Manager و permit و کلاس‌ها برقرار است.\n\nFreePBX: Settings → Asterisk Manager Users\nIssabel/Elastix: Tools مربوط به Asterisk Manager Users\n\nUsername/Password عین این فرم، Permit فقط IP وب‌ای‌پی،\nRead حداقل system,call و Write حداقل system,call,originate\nسپس Apply Config و تأیید با manager show user\n\nفایل‌های additional را دستی خراب نکنید.\nاگر کاربر در پنل هست ولی Login شکست می‌خورد به شبکه/bindaddr برگردید.\n\nمرتبط با:\nمراحل ۱ و ۲ و ۵ و ۶ · تست اتصال",
+    "GUIDE_S3_BODY": "اگر از GUI استفاده می‌کنید، همان مفاهیم کاربر Manager و permit و کلاس‌ها برقرار است.\n\nFreePBX: Settings → Manager Users\nIssabel/Elastix: Tools مربوط به Manager Users\n\nUsername/Password عین این فرم، Permit فقط IP وب‌ای‌پی،\nRead حداقل system,call و Write حداقل system,call,originate\nسپس Apply Config و تأیید با manager show user\n\nفایل‌های additional را دستی خراب نکنید.\nاگر کاربر در پنل هست ولی Login شکست می‌خورد به شبکه/bindaddr برگردید.\n\nمرتبط با:\nمراحل ۱ و ۲ و ۵ و ۶ · تست اتصال",
     "GUIDE_S4_TITLE": "۴) ترانک، ChannelTech، فیلتر، CallerId و Timeout",
     "GUIDE_S4_BODY": "پس از Login موفق، Originate به ChannelTech و نام ترانک وابسته است.\n\nChannel tech: PJSIP (مدرن) یا SIP (قدیمی)\nDefault trunk: عین نام endpoint ترانک خروجی\nفیلتر ترانک: regex برای Monitor\nCallerId و Timeout: پیش‌فرض Originate/Dial\n\nناهمخوانی Tech → خطای کانال حتی با تست سبز.\nفیلتر غلط → لیست ترانک خالی با AMI سالم.\n\nمرتبط با:\nCallJobs · Monitor · No such endpoint",
     "GUIDE_S5_TITLE": "۵) شبکه، فایروال، bindaddr و permit",
@@ -109,6 +112,7 @@
     "GUIDE_S8_PATHS": "src/DotNet/Ntk.Asterisk.WebApi/App_Data/asterisk-settings.json\nsrc/DotNet/Ntk.Asterisk.WebApi/appsettings.Development.json\nsrc/DotNet/Ntk.Asterisk.WebApi/appsettings.Production.json\n/etc/asterisk/manager.conf\nkaravi/karavi.doc/ami-connection-setup-guide.md\nkaravi/karavi.doc/asterisk-dialplan-contract.md\nkaravi/karavi.doc/admin-panel.md\nkaravi/karavi.doc/onboarding.md\nkaravi/karavi.build.config/local-dev-ports.json\nsrc/Angular/AdminPanel/src/environments/environment.ts\nhttp://localhost:5314/settings\nhttp://localhost:5310/api/v1/Config/GetSiteSettings\nhttp://localhost:5310/api/v1/Config/ActionTestConnection"
   },
   "MONITOR": {
+    "SUBTITLE": "وضعیت peerها، ترانک‌ها و کانال‌های زنده",
     "EXTENSIONS": "اکستنشن / SIP",
     "TRUNKS": "ترانک‌ها",
     "CHANNELS": "کانال‌های زنده",
@@ -136,6 +140,7 @@
     "FILTER_CHANNEL_PH": "PJSIP/100-…"
   },
   "JOBS": {
+    "SUBTITLE": "وضعیت، دلیل نتیجه، و زمان‌بندی هر Originate",
     "COL_ID": "شناسه",
     "COL_TYPE": "نوع",
     "COL_STATE": "وضعیت",
@@ -157,6 +162,21 @@
     "FILTER_FROM": "از",
     "FILTER_FROM_PH": "شماره یا اکستنشن",
     "FILTER_TO": "به",
-    "FILTER_TO_PH": "شماره یا اکستنشن"
+    "FILTER_TO_PH": "شماره یا اکستنشن",
+    "TYPE": {
+      "ExtToExt": "داخلی → داخلی",
+      "MobileToExt": "موبایل → داخلی",
+      "MobileToMobile": "موبایل → موبایل"
+    },
+    "STATUS": {
+      "queued": "در صف",
+      "dialing_leg1": "شروع پایه ۱",
+      "waiting_answer": "منتظر پاسخ",
+      "dialing_leg2": "شروع پایه ۲",
+      "bridged": "متصل",
+      "completed": "پایان‌یافته",
+      "failed": "ناموفق",
+      "cancelled": "لغو شده"
+    }
   }
 }

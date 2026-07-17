@@ -1,6 +1,9 @@
 <section class="page">
   <header class="page__header">
-    <h1>{{ 'NAV.MONITOR' | translate }}</h1>
+    <div>
+      <h1>{{ 'NAV.MONITOR' | translate }}</h1>
+      <p class="page__header-sub">{{ 'MONITOR.SUBTITLE' | translate }}</p>
+    </div>
   </header>
 
   <div class="tabs" role="tablist">
@@ -52,101 +55,122 @@
     (exportExcel)="exportExcel()"
   />
 
-  <div class="table-wrap">
-    @if (tab() === 'extensions') {
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'MONITOR.COL_ID' | translate }}</button></th>
-            <th><button type="button" class="th-btn" (click)="sort('tech')">{{ 'MONITOR.COL_TECH' | translate }}</button></th>
-            <th><button type="button" class="th-btn" (click)="sort('status')">{{ 'MONITOR.COL_STATUS' | translate }}</button></th>
-            <th><button type="button" class="th-btn" (click)="sort('ip')">{{ 'MONITOR.COL_IP' | translate }}</button></th>
-            <th>{{ 'MONITOR.COL_CHANNEL' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of peersRows(); track row.id) {
-            <tr>
-              <td dir="ltr">{{ row.id }}</td>
-              <td dir="ltr">{{ row.tech }}</td>
-              <td>{{ row.status }}</td>
-              <td dir="ltr">{{ row.ip || '—' }}</td>
-              <td dir="ltr">{{ row.channel || '—' }}</td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-
-    @if (tab() === 'trunks') {
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'MONITOR.COL_ID' | translate }}</button></th>
-            <th><button type="button" class="th-btn" (click)="sort('tech')">{{ 'MONITOR.COL_TECH' | translate }}</button></th>
-            <th><button type="button" class="th-btn" (click)="sort('status')">{{ 'MONITOR.COL_STATUS' | translate }}</button></th>
-            <th><button type="button" class="th-btn" (click)="sort('ip')">{{ 'MONITOR.COL_IP' | translate }}</button></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of trunksRows(); track row.id) {
-            <tr>
-              <td dir="ltr">{{ row.id }}</td>
-              <td dir="ltr">{{ row.tech }}</td>
-              <td>{{ row.status }}</td>
-              <td dir="ltr">{{ row.ip || '—' }}</td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="4" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-
-    @if (tab() === 'channels') {
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th><button type="button" class="th-btn" (click)="sort('channel')">{{ 'MONITOR.COL_CHANNEL' | translate }}</button></th>
-            <th>{{ 'MONITOR.COL_UNIQUE' | translate }}</th>
-            <th>{{ 'MONITOR.COL_CALLER' | translate }}</th>
-            <th><button type="button" class="th-btn" (click)="sort('state')">{{ 'MONITOR.COL_STATE' | translate }}</button></th>
-            <th>{{ 'MONITOR.COL_APP' | translate }}</th>
-            <th>{{ 'MONITOR.COL_ACTIONS' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of channelsRows(); track row.channel) {
-            <tr>
-              <td dir="ltr">{{ row.channel }}</td>
-              <td dir="ltr">{{ row.uniqueId || '—' }}</td>
-              <td dir="ltr">{{ row.callerId || '—' }}</td>
-              <td>{{ row.state || '—' }}</td>
-              <td dir="ltr">{{ row.application || '—' }}</td>
-              <td>
-                <button
-                  type="button"
-                  class="btn btn--danger"
-                  [disabled]="actionBusy()"
-                  (click)="hangup(row.channel)"
-                >
-                  {{ actionBusy() ? ('ACTION.LOADING' | translate) : ('MONITOR.HANGUP' | translate) }}
-                </button>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="6" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <div class="entity-board" [attr.aria-busy]="loading()">
+    @if (loading()) {
+      <p class="entity-empty muted">…</p>
+    } @else if (tab() === 'extensions') {
+      @if (peersRows().length === 0) {
+        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+      } @else {
+        @for (row of peersRows(); track row.id) {
+          <article class="entity-card" [attr.data-status]="row.status">
+            <header class="entity-card__head">
+              <div class="entity-card__identity">
+                <span class="entity-card__title ltr" dir="ltr">{{ row.id }}</span>
+                <span class="status-pill" [attr.data-status]="row.status">{{ row.status || '—' }}</span>
+              </div>
+              <div class="entity-card__route ltr" dir="ltr">{{ row.tech || '—' }}</div>
+            </header>
+            <dl class="entity-card__meta">
+              <div>
+                <dt>{{ 'MONITOR.COL_IP' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.ip || '—' }}</dd>
+              </div>
+              <div>
+                <dt>{{ 'MONITOR.COL_CHANNEL' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.channel || '—' }}</dd>
+              </div>
+              <div>
+                <dt>{{ 'MONITOR.COL_TECH' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.tech || '—' }}</dd>
+              </div>
+              <div class="entity-card__id">
+                <dt>{{ 'MONITOR.COL_ID' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.id }}</dd>
+              </div>
+            </dl>
+          </article>
+        }
+      }
+    } @else if (tab() === 'trunks') {
+      @if (trunksRows().length === 0) {
+        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+      } @else {
+        @for (row of trunksRows(); track row.id) {
+          <article class="entity-card" [attr.data-status]="row.status">
+            <header class="entity-card__head">
+              <div class="entity-card__identity">
+                <span class="entity-card__title ltr" dir="ltr">{{ row.id }}</span>
+                <span class="status-pill" [attr.data-status]="row.status">{{ row.status || '—' }}</span>
+              </div>
+              <div class="entity-card__route ltr" dir="ltr">{{ row.tech || '—' }}</div>
+            </header>
+            <dl class="entity-card__meta">
+              <div>
+                <dt>{{ 'MONITOR.COL_IP' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.ip || '—' }}</dd>
+              </div>
+              <div>
+                <dt>{{ 'MONITOR.COL_TECH' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.tech || '—' }}</dd>
+              </div>
+              <div class="entity-card__id">
+                <dt>{{ 'MONITOR.COL_ID' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.id }}</dd>
+              </div>
+            </dl>
+          </article>
+        }
+      }
+    } @else {
+      @if (channelsRows().length === 0) {
+        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+      } @else {
+        @for (row of channelsRows(); track row.channel) {
+          <article class="entity-card" [attr.data-status]="row.state" data-tone="active">
+            <header class="entity-card__head">
+              <div class="entity-card__identity">
+                <span class="entity-card__title ltr" dir="ltr">{{ row.channel }}</span>
+                <span class="status-pill" [attr.data-status]="row.state">{{ row.state || '—' }}</span>
+              </div>
+              <div class="entity-card__route ltr" dir="ltr">{{ row.callerId || '—' }}</div>
+              <button
+                type="button"
+                class="btn btn--danger"
+                [disabled]="actionBusy()"
+                (click)="hangup(row.channel)"
+              >
+                {{ actionBusy() ? ('ACTION.LOADING' | translate) : ('MONITOR.HANGUP' | translate) }}
+              </button>
+            </header>
+            <dl class="entity-card__meta">
+              <div>
+                <dt>{{ 'MONITOR.COL_UNIQUE' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.uniqueId || '—' }}</dd>
+              </div>
+              <div>
+                <dt>{{ 'MONITOR.COL_CALLER' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.callerId || '—' }}</dd>
+              </div>
+              <div>
+                <dt>{{ 'MONITOR.COL_APP' | translate }}</dt>
+                <dd class="ltr" dir="ltr">{{ row.application || '—' }}</dd>
+              </div>
+              <div>
+                <dt>{{ 'MONITOR.COL_STATE' | translate }}</dt>
+                <dd>{{ row.state || '—' }}</dd>
+              </div>
+            </dl>
+          </article>
+        }
+      }
     }
   </div>
+
+  <app-list-pager
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    (queryChange)="onQueryChange($event)"
+  />
 </section>

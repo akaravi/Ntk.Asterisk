@@ -110,6 +110,24 @@
         </label>
 
         <label class="field">
+          <span>{{ 'SETTINGS.ORIGINATE_VIA' | translate }}</span>
+          <select formControlName="originateVia" dir="ltr">
+            <option value="LocalContext">LocalContext (FreePBX)</option>
+            <option value="DirectTech">DirectTech (PJSIP/SIP trunk)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ 'SETTINGS.ORIGINATE_CONTEXT' | translate }}</span>
+          <input
+            type="text"
+            formControlName="originateContext"
+            dir="ltr"
+            [placeholder]="'SETTINGS.ORIGINATE_CONTEXT_PH' | translate"
+          />
+        </label>
+
+        <label class="field">
           <span>{{ 'SETTINGS.DEFAULT_TRUNK' | translate }}</span>
           <input
             type="text"

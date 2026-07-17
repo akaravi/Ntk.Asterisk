@@ -1,5 +1,24 @@
 <div class="toolbar" [attr.aria-busy]="busy">
-  <div class="toolbar__row">
+  <div class="toolbar__head-actions">
+    @if (showPrint) {
+      <button type="button" class="btn btn--ghost" (click)="print.emit()" [disabled]="busy">
+        {{ 'LIST.PRINT' | translate }}
+      </button>
+    }
+    @if (showExport) {
+      <button type="button" class="btn btn--ghost" (click)="exportExcel.emit()" [disabled]="busy">
+        {{ 'LIST.EXPORT_EXCEL' | translate }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportPdf.emit()" [disabled]="busy">
+        {{ 'LIST.EXPORT_PDF' | translate }}
+      </button>
+    }
+    <button type="button" class="btn" (click)="refresh.emit()" [disabled]="busy">
+      {{ busy ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
+    </button>
+  </div>
+
+  <div class="toolbar__filters">
     <label class="field field--grow">
       <span>{{ 'LIST.QUICK_SEARCH' | translate }}</span>
       <input
@@ -20,27 +39,11 @@
       </select>
     </label>
 
-    <div class="toolbar__actions">
+    @if (advancedFields.length) {
       <button type="button" class="btn btn--ghost" (click)="toggleAdvanced()">
         {{ 'LIST.ADVANCED' | translate }}
       </button>
-      <button type="button" class="btn" (click)="refresh.emit()" [disabled]="busy">
-        {{ busy ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
-      </button>
-      @if (showExport) {
-        <button type="button" class="btn btn--ghost" (click)="exportPdf.emit()">
-          {{ 'LIST.EXPORT_PDF' | translate }}
-        </button>
-        <button type="button" class="btn btn--ghost" (click)="exportExcel.emit()">
-          {{ 'LIST.EXPORT_EXCEL' | translate }}
-        </button>
-      }
-      @if (showPrint) {
-        <button type="button" class="btn btn--ghost" (click)="print.emit()">
-          {{ 'LIST.PRINT' | translate }}
-        </button>
-      }
-    </div>
+    }
   </div>
 
   @if (advancedOpen && advancedFields.length) {
@@ -60,21 +63,4 @@
       }
     </div>
   }
-
-  <div class="toolbar__pager">
-    <button type="button" class="btn btn--ghost" (click)="prev()" [disabled]="query.pageIndex <= 0">
-      {{ 'LIST.PREV' | translate }}
-    </button>
-    <span class="pager-meta" dir="ltr">
-      {{ query.pageIndex + 1 }} / {{ pageCount }} · {{ totalCount }}
-    </span>
-    <button
-      type="button"
-      class="btn btn--ghost"
-      (click)="next()"
-      [disabled]="query.pageIndex + 1 >= pageCount"
-    >
-      {{ 'LIST.NEXT' | translate }}
-    </button>
-  </div>
 </div>

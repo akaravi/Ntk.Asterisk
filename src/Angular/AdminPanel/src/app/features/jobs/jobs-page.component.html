@@ -1,6 +1,9 @@
 <section class="page">
   <header class="page__header">
-    <h1>{{ 'NAV.JOBS' | translate }}</h1>
+    <div>
+      <h1>{{ 'NAV.JOBS' | translate }}</h1>
+      <p class="page__header-sub">{{ 'JOBS.SUBTITLE' | translate }}</p>
+    </div>
   </header>
 
   @if (error()) {
@@ -22,43 +25,31 @@
     (exportExcel)="exportExcel()"
   />
 
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'JOBS.COL_ID' | translate }}</button></th>
-          <th><button type="button" class="th-btn" (click)="sort('type')">{{ 'JOBS.COL_TYPE' | translate }}</button></th>
-          <th><button type="button" class="th-btn" (click)="sort('state')">{{ 'JOBS.COL_STATE' | translate }}</button></th>
-          <th>{{ 'JOBS.COL_REASON' | translate }}</th>
-          <th>{{ 'JOBS.COL_FROM' | translate }}</th>
-          <th>{{ 'JOBS.COL_TO' | translate }}</th>
-          <th>{{ 'JOBS.COL_CALL_TIME' | translate }}</th>
-          <th>{{ 'JOBS.COL_STARTED' | translate }}</th>
-          <th>{{ 'JOBS.COL_ENDED' | translate }}</th>
-          <th>{{ 'JOBS.COL_DURATION' | translate }}</th>
-          <th><button type="button" class="th-btn" (click)="sort('updatedAtUtc')">{{ 'JOBS.COL_UPDATED' | translate }}</button></th>
-          <th>{{ 'MONITOR.COL_ACTIONS' | translate }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (job of jobsRows(); track job.id) {
-          <tr>
-            <td dir="ltr">{{ job.id }}</td>
-            <td dir="ltr">{{ job.type }}</td>
-            <td>{{ job.state }}</td>
-            <td class="reason-cell" [title]="reason(job)">{{ reason(job) }}</td>
-            <td dir="ltr">{{ job.from || job.mobile1 || '—' }}</td>
-            <td dir="ltr">{{ job.to || job.mobile2 || '—' }}</td>
-            <td class="timing" dir="ltr">{{ (job.callTimeUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-            <td class="timing" dir="ltr">{{ job.startedAtUtc ? (job.startedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}</td>
-            <td class="timing" dir="ltr">{{ job.endedAtUtc ? (job.endedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}</td>
-            <td class="timing" dir="ltr">{{ job.durationSeconds != null ? job.durationSeconds + ' s' : '—' }}</td>
-            <td class="timing" dir="ltr">{{ job.updatedAtUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
-            <td>
+  <div class="entity-board" [attr.aria-busy]="loading()">
+    @if (loading()) {
+      <p class="entity-empty muted">…</p>
+    } @else if (jobsRows().length === 0) {
+      <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+    } @else {
+      @for (job of jobsRows(); track job.id) {
+        <article class="entity-card" [attr.data-status]="normalizeState(job.state)">
+          <header class="entity-card__head">
+            <div class="entity-card__identity">
+              <span class="entity-card__title">{{ typeLabel(job.type) }}</span>
+              <span class="status-pill" [attr.data-status]="normalizeState(job.state)">{{
+                stateLabel(job.state)
+              }}</span>
+            </div>
+            <div class="entity-card__route ltr" dir="ltr">
+              <span>{{ displayFrom(job) }}</span>
+              <span class="entity-card__arrow" aria-hidden="true">→</span>
+              <span>{{ displayTo(job) }}</span>
+            </div>
+            @if (canCancel(job)) {
               <button
                 type="button"
                 class="btn btn--danger"
-                [disabled]="!canCancel(job) || actionBusyId() === job.id"
+                [disabled]="actionBusyId() === job.id"
                 (click)="cancel(job)"
               >
                 {{
@@ -67,14 +58,57 @@
                     : ('JOBS.CANCEL' | translate)
                 }}
               </button>
-            </td>
-          </tr>
-        } @empty {
-          <tr>
-            <td colspan="12" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
-          </tr>
-        }
-      </tbody>
-    </table>
+            }
+          </header>
+
+          <p class="entity-card__reason" [attr.data-tone]="reasonTone(job)">
+            <span class="entity-card__reason-label">{{ 'JOBS.COL_REASON' | translate }}</span>
+            <span>{{ reason(job) }}</span>
+          </p>
+
+          <dl class="entity-card__meta">
+            <div>
+              <dt>{{ 'JOBS.COL_CALL_TIME' | translate }}</dt>
+              <dd class="ltr" dir="ltr">
+                {{ (job.callTimeUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_STARTED' | translate }}</dt>
+              <dd class="ltr" dir="ltr">
+                {{ job.startedAtUtc ? (job.startedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_ENDED' | translate }}</dt>
+              <dd class="ltr" dir="ltr">
+                {{ job.endedAtUtc ? (job.endedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_DURATION' | translate }}</dt>
+              <dd class="ltr" dir="ltr">
+                {{ job.durationSeconds != null ? job.durationSeconds + ' s' : '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'JOBS.COL_UPDATED' | translate }}</dt>
+              <dd class="ltr" dir="ltr">{{ job.updatedAtUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</dd>
+            </div>
+            <div class="entity-card__id">
+              <dt>{{ 'JOBS.COL_ID' | translate }}</dt>
+              <dd class="ltr" dir="ltr">{{ job.id }}</dd>
+            </div>
+          </dl>
+        </article>
+      }
+    }
   </div>
+
+  <app-list-pager
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    (queryChange)="onQueryChange($event)"
+  />
 </section>

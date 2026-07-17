@@ -89,7 +89,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             Cts = new CancellationTokenSource()
         };
 
-        ValidateDialJob(job);
+        ValidateDialJob(job, opt);
         _store.Add(job);
         await PublishJobAsync(job).ConfigureAwait(false);
         await _queue.Writer.WriteAsync(job.Id, cancellationToken).ConfigureAwait(false);
@@ -236,8 +236,9 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
 
         var opt = _settings.GetEffective();
         var tech = string.IsNullOrWhiteSpace(opt.ChannelTech) ? "PJSIP" : opt.ChannelTech.Trim();
-        var (channel, dialData) = BuildOriginate(job, tech);
+        var (channel, dialData) = BuildOriginate(job, opt);
         job.Channel = channel;
+        job.OriginateDialData = dialData;
 
         SetState(job, CallJobState.DialingLeg1, null);
         await PublishJobAsync(job).ConfigureAwait(false);
@@ -248,14 +249,14 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             Application = "Dial",
             Data = dialData,
             Timeout = job.TimeoutMs,
-            CallerId = job.CallerId ?? opt.DefaultCallerId ?? "NtkAsterisk",
+            CallerId = job.CallerId ?? opt.DefaultCallerId ?? "NtkCall",
             Async = true,
             ActionId = job.ActionId
         };
 
         _logger.LogInformation(
-            "CallJob {JobId} Originate Channel={Channel} Data={Data} Tech={Tech} Trunk={Trunk}",
-            job.Id, channel, dialData, tech, job.Trunk);
+            "CallJob {JobId} Originate Via={Via} Context={Context} Channel={Channel} Data={Data} Tech={Tech} Trunk={Trunk}",
+            job.Id, opt.OriginateVia, opt.OriginateContext, channel, dialData, tech, job.Trunk);
 
         var response = await _ami.SendActionAsync(originate, ct).ConfigureAwait(false);
         if (!response.IsSuccess())
@@ -358,10 +359,46 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             string.Equals(j.UniqueId, uniqueId, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static (string channel, string dialData) BuildOriginate(CallJob job, string tech)
+    private static (string channel, string dialData) BuildOriginate(CallJob job, AsteriskOptions opt)
     {
+        var tech = string.IsNullOrWhiteSpace(opt.ChannelTech) ? "PJSIP" : opt.ChannelTech.Trim();
         var timeoutSec = Math.Max(1, job.TimeoutMs / 1000);
+        if (IsLocalContext(opt))
+            return BuildLocalOriginate(job, opt, tech, timeoutSec);
+        return BuildDirectTechOriginate(job, tech, timeoutSec);
+    }
+
+    /// <summary>
+    /// FreePBX-safe: Local/number@from-internal/n so outbound routes pick the real trunk.
+    /// /n avoids Local&lt;-&gt;Local dialplan recursion loops.
+    /// </summary>
+    private static (string channel, string dialData) BuildLocalOriginate(
+        CallJob job,
+        AsteriskOptions opt,
+        string tech,
+        int timeoutSec)
+    {
+        var ctx = string.IsNullOrWhiteSpace(opt.OriginateContext) ? "from-internal" : opt.OriginateContext.Trim();
         return job.Type switch
+        {
+            CallJobType.ExtToExt => (
+                FormatLocalChannel(job.From!, ctx),
+                $"{FormatLocalChannel(job.To!, ctx)},{timeoutSec}"),
+            CallJobType.MobileToExt => (
+                FormatLocalChannel(job.Mobile1!, ctx),
+                $"{FormatEndpoint(tech, job.To!)},{timeoutSec}"),
+            CallJobType.MobileToMobile => (
+                FormatLocalChannel(job.Mobile1!, ctx),
+                $"{FormatLocalChannel(job.Mobile2!, ctx)},{timeoutSec}"),
+            _ => throw new InvalidOperationException($"Unsupported dial job type {job.Type}")
+        };
+    }
+
+    private static (string channel, string dialData) BuildDirectTechOriginate(
+        CallJob job,
+        string tech,
+        int timeoutSec) =>
+        job.Type switch
         {
             CallJobType.ExtToExt => (
                 FormatEndpoint(tech, job.From!),
@@ -374,7 +411,12 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
                 $"{FormatTrunkDial(tech, job.Trunk!, job.Mobile2!)},{timeoutSec}"),
             _ => throw new InvalidOperationException($"Unsupported dial job type {job.Type}")
         };
-    }
+
+    private static bool IsLocalContext(AsteriskOptions opt) =>
+        !string.Equals(opt.OriginateVia?.Trim(), "DirectTech", StringComparison.OrdinalIgnoreCase);
+
+    private static string FormatLocalChannel(string numberOrExt, string context) =>
+        $"Local/{numberOrExt.Trim()}@{context}/n";
 
     /// <summary>
     /// Extension / local endpoint: PJSIP/100 or SIP/100.
@@ -383,8 +425,8 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         $"{NormalizeTech(tech)}/{endpoint.Trim()}";
 
     /// <summary>
-    /// Outbound via trunk:
-    /// PJSIP uses number@endpoint (FreePBX / Asterisk PJSIP) — not trunk/number.
+    /// Outbound via trunk (DirectTech only):
+    /// PJSIP uses number@endpoint — not trunk/number.
     /// Legacy SIP/IAX2 keeps trunk/number.
     /// </summary>
     private static string FormatTrunkDial(string tech, string trunk, string number)
@@ -409,16 +451,17 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
     {
         var reasonText = MapOriginateReason(ore.Reason);
         var channel = string.IsNullOrWhiteSpace(ore.Channel) ? job.Channel : ore.Channel;
+        var dial = string.IsNullOrWhiteSpace(job.OriginateDialData) ? "—" : job.OriginateDialData;
         return
             $"OriginateResponse: {ore.Response} reason={ore.Reason} ({reasonText}). " +
-            $"Channel={channel ?? "—"}. " +
-            "Hint: for PJSIP use number@trunk (e.g. PJSIP/0912…@trunk-out); " +
-            "verify endpoint with CLI `pjsip show endpoints` and DefaultTrunk name.";
+            $"Channel={channel ?? "—"} Data={dial}. " +
+            "Hint: prefer OriginateVia=LocalContext + OriginateContext=from-internal (FreePBX outbound routes). " +
+            "DirectTech needs a real PJSIP endpoint name (`pjsip show endpoints`), not a label like trunk-out.";
     }
 
     private static string MapOriginateReason(int reason) => reason switch
     {
-        0 => "no such endpoint/number or invalid channel tech/trunk",
+        0 => "no such endpoint/number or invalid channel / context / trunk",
         1 => "hangup / no answer (AST_CONTROL_HANGUP)",
         2 => "local ring",
         3 => "remote ringing / often answer timeout",
@@ -428,8 +471,9 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         _ => "see Asterisk control-frame reason"
     };
 
-    private static void ValidateDialJob(CallJob job)
+    private static void ValidateDialJob(CallJob job, AsteriskOptions opt)
     {
+        var requireTrunk = !IsLocalContext(opt);
         switch (job.Type)
         {
             case CallJobType.ExtToExt:
@@ -439,14 +483,14 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             case CallJobType.MobileToExt:
                 if (string.IsNullOrWhiteSpace(job.Mobile1) || string.IsNullOrWhiteSpace(job.To))
                     throw new ArgumentException("MobileToExt requires Mobile1 and To extension.");
-                if (string.IsNullOrWhiteSpace(job.Trunk))
-                    throw new ArgumentException("MobileToExt requires Trunk (or DefaultTrunk in config).");
+                if (requireTrunk && string.IsNullOrWhiteSpace(job.Trunk))
+                    throw new ArgumentException("MobileToExt DirectTech requires Trunk (or DefaultTrunk).");
                 break;
             case CallJobType.MobileToMobile:
                 if (string.IsNullOrWhiteSpace(job.Mobile1) || string.IsNullOrWhiteSpace(job.Mobile2))
                     throw new ArgumentException("MobileToMobile requires Mobile1 and Mobile2.");
-                if (string.IsNullOrWhiteSpace(job.Trunk))
-                    throw new ArgumentException("MobileToMobile requires Trunk (or DefaultTrunk in config).");
+                if (requireTrunk && string.IsNullOrWhiteSpace(job.Trunk))
+                    throw new ArgumentException("MobileToMobile DirectTech requires Trunk (or DefaultTrunk).");
                 break;
             default:
                 throw new ArgumentException($"Unsupported type {job.Type}");

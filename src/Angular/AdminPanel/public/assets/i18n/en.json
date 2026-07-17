@@ -1,11 +1,11 @@
 {
   "APP": {
-    "TITLE": "Asterisk Admin"
+    "TITLE": "Call Management"
   },
   "NAV": {
     "CONNECTION": "Connection",
     "MONITOR": "Monitor",
-    "JOBS": "Jobs",
+    "JOBS": "Call jobs list",
     "SETTINGS": "Settings"
   },
   "ACTION": {
@@ -50,14 +50,17 @@
     "SECRET_PH": "blank = keep current secret",
     "CLEAR_SECRET": "Clear stored secret",
     "CHANNEL_TECH_PH": "PJSIP",
-    "DEFAULT_TRUNK": "Default trunk",
-    "DEFAULT_TRUNK_PH": "trunk-out",
+    "ORIGINATE_VIA": "Originate via",
+    "ORIGINATE_CONTEXT": "Local context",
+    "ORIGINATE_CONTEXT_PH": "from-internal",
+    "DEFAULT_TRUNK": "Default trunk (DirectTech only)",
+    "DEFAULT_TRUNK_PH": "real endpoint from pjsip show endpoints",
     "TRUNK_FILTER": "Trunk filter",
     "TRUNK_FILTER_PH": "^(trunk|Trunk|TRUNK)",
     "TIMEOUT_MS": "Default timeout (ms)",
     "TIMEOUT_MS_PH": "30000",
     "CALLER_ID": "Default CallerId",
-    "CALLER_ID_PH": "NtkAsterisk",
+    "CALLER_ID_PH": "NtkCall",
     "PING_MS": "Ping interval (ms)",
     "PING_MS_PH": "10000",
     "KEEP_ALIVE": "KeepAlive",
@@ -69,7 +72,7 @@
     "TEST_OK": "Connection test succeeded",
     "TEST_FAIL": "Connection test failed",
     "TEST_CONNECTED": "AMI status",
-    "TEST_VERSION": "Asterisk version",
+    "TEST_VERSION": "Server version",
     "TEST_ERROR": "Last error",
     "AMI_READY": "AMI configured",
     "AMI_INCOMPLETE": "AMI incomplete",
@@ -79,15 +82,15 @@
     "FROM_APPSETTINGS": "From appsettings (not saved yet)",
     "CONFIGURED": "Configured",
     "NOT_CONFIGURED": "Not configured",
-    "GUIDE_TITLE": "Full AMI setup guide for Asterisk server / FreePBX panel",
-    "GUIDE_INTRO": "This guide covers every layer required for AMI connectivity.\n\n• Asterisk server or FreePBX / Issabel / Elastix panels\n• Least-privilege Manager user\n• ChannelTech and trunk alignment\n• Network and firewall\n• Settings form, Test Connection, Connection, Monitor, Jobs\n\nBefore saving:\nManager must be enabled and TCP from WebApi to port 5038 must work.\n\nSecret is never returned by the API.\nBlank secret keeps the previous value.\n\nFull document:\nkaravi/karavi.doc/ami-connection-setup-guide.md\n\nRecommended order:\nEnable Manager → create user → panel (if needed) → trunk → network → save and test → troubleshoot\n\nFile paths and URLs for each lesson are inside that same lesson (copy-ready block).",
+    "GUIDE_TITLE": "Full AMI setup guide for call server / PBX panel",
+    "GUIDE_INTRO": "This guide covers every layer required for AMI connectivity.\n\n• Call server (PBX) or FreePBX / Issabel / Elastix panels\n• Least-privilege Manager user\n• ChannelTech and trunk alignment\n• Network and firewall\n• Settings form, Test Connection, Connection, Monitor, Jobs\n\nBefore saving:\nManager must be enabled and TCP from WebApi to port 5038 must work.\n\nSecret is never returned by the API.\nBlank secret keeps the previous value.\n\nFull document:\nkaravi/karavi.doc/ami-connection-setup-guide.md\n\nRecommended order:\nEnable Manager → create user → panel (if needed) → trunk → network → save and test → troubleshoot\n\nFile paths and URLs for each lesson are inside that same lesson (copy-ready block).",
     "GUIDE_DOC_PATH": "karavi/karavi.doc/ami-connection-setup-guide.md",
     "GUIDE_S1_TITLE": "1) Enable Manager on the server (general and port)",
-    "GUIDE_S1_BODY": "On the Asterisk server configure [general] so Manager is enabled.\n\nenabled = yes\nport = 5038\nsafe bindaddr (same host: 127.0.0.1)\n\nPort must match the Port field in Settings.\nChanging the port without updating the UI makes WebApi hit the wrong target.\n\nAfter saving on the server:\nmanager reload\nthen manager show settings\n\nWithout this step, creating a user or filling the form cannot work.\n\nRelated to:\nHost/Port · network step · Connection refused",
+    "GUIDE_S1_BODY": "On the call server configure [general] so Manager is enabled.\n\nenabled = yes\nport = 5038\nsafe bindaddr (same host: 127.0.0.1)\n\nPort must match the Port field in Settings.\nChanging the port without updating the UI makes WebApi hit the wrong target.\n\nAfter saving on the server:\nmanager reload\nthen manager show settings\n\nWithout this step, creating a user or filling the form cannot work.\n\nRelated to:\nHost/Port · network step · Connection refused",
     "GUIDE_S2_TITLE": "2) Create an AMI user with least privilege and classes",
     "GUIDE_S2_BODY": "Create a dedicated Manager section such as ntk-ami.\n\nSection name = Settings Username\nstrong secret = form password (never in git/logs/API)\n\nSecure pattern:\ndeny all\npermit only the WebApi host IP\n\nWave-1 classes:\nread = system,call\nwrite = system,call,originate\n\nMissing originate → green Login but red jobs.\nAfter connect, validate a lab Originate.\n\nAfter editing:\nmanager reload\nmanager show user\n\nRelated to:\nFreePBX panel · Username/Secret · Auth / Originate denied",
     "GUIDE_S3_TITLE": "3) Implement via FreePBX / Issabel / Elastix panel",
-    "GUIDE_S3_BODY": "When using the GUI, the same Manager user, permit, and class concepts apply.\n\nFreePBX: Settings → Asterisk Manager Users\nIssabel/Elastix: Tools for Asterisk Manager Users\n\nSame Username/Password as this form, Permit only WebApi IP,\nRead at least system,call and Write at least system,call,originate\nthen Apply Config and verify with manager show user\n\nDo not hand-edit generated additional files.\nIf the GUI user exists but Login fails, revisit network/bindaddr.\n\nRelated to:\nsteps 1, 2, 5, and 6 · Test Connection",
+    "GUIDE_S3_BODY": "When using the GUI, the same Manager user, permit, and class concepts apply.\n\nFreePBX: Settings → Manager Users\nIssabel/Elastix: Tools for Manager Users\n\nSame Username/Password as this form, Permit only WebApi IP,\nRead at least system,call and Write at least system,call,originate\nthen Apply Config and verify with manager show user\n\nDo not hand-edit generated additional files.\nIf the GUI user exists but Login fails, revisit network/bindaddr.\n\nRelated to:\nsteps 1, 2, 5, and 6 · Test Connection",
     "GUIDE_S4_TITLE": "4) Trunk, ChannelTech, filter, CallerId, and timeout",
     "GUIDE_S4_BODY": "After a successful Login, Originate depends on ChannelTech and trunk naming.\n\nChannel tech: PJSIP (modern) or SIP (legacy)\nDefault trunk: exact outbound trunk endpoint name\nTrunk filter: regex for Monitor\nCallerId and Timeout: Originate/Dial defaults\n\nTech mismatch → channel error even with a green test.\nBad filter → empty trunk list with healthy AMI.\n\nRelated to:\nCallJobs · Monitor · No such endpoint",
     "GUIDE_S5_TITLE": "5) Network, firewall, bindaddr, and permit",
@@ -109,6 +112,7 @@
     "GUIDE_S8_PATHS": "src/DotNet/Ntk.Asterisk.WebApi/App_Data/asterisk-settings.json\nsrc/DotNet/Ntk.Asterisk.WebApi/appsettings.Development.json\nsrc/DotNet/Ntk.Asterisk.WebApi/appsettings.Production.json\n/etc/asterisk/manager.conf\nkaravi/karavi.doc/ami-connection-setup-guide.md\nkaravi/karavi.doc/asterisk-dialplan-contract.md\nkaravi/karavi.doc/admin-panel.md\nkaravi/karavi.doc/onboarding.md\nkaravi/karavi.build.config/local-dev-ports.json\nsrc/Angular/AdminPanel/src/environments/environment.ts\nhttp://localhost:5314/settings\nhttp://localhost:5310/api/v1/Config/GetSiteSettings\nhttp://localhost:5310/api/v1/Config/ActionTestConnection"
   },
   "MONITOR": {
+    "SUBTITLE": "Peer, trunk, and live channel status",
     "EXTENSIONS": "Extensions / SIP",
     "TRUNKS": "Trunks",
     "CHANNELS": "Live channels",
@@ -136,6 +140,7 @@
     "FILTER_CHANNEL_PH": "PJSIP/100-…"
   },
   "JOBS": {
+    "SUBTITLE": "Status, result reason, and timing for every Originate",
     "COL_ID": "Id",
     "COL_TYPE": "Type",
     "COL_STATE": "State",
@@ -157,6 +162,21 @@
     "FILTER_FROM": "From",
     "FILTER_FROM_PH": "number or extension",
     "FILTER_TO": "To",
-    "FILTER_TO_PH": "number or extension"
+    "FILTER_TO_PH": "number or extension",
+    "TYPE": {
+      "ExtToExt": "Ext → Ext",
+      "MobileToExt": "Mobile → Ext",
+      "MobileToMobile": "Mobile → Mobile"
+    },
+    "STATUS": {
+      "queued": "Queued",
+      "dialing_leg1": "Dialing leg 1",
+      "waiting_answer": "Waiting answer",
+      "dialing_leg2": "Dialing leg 2",
+      "bridged": "Bridged",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    }
   }
 }

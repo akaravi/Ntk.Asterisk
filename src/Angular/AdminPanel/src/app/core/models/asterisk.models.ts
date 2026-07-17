@@ -92,6 +92,8 @@ export interface SiteSettings {
   usernameConfigured: string | null;
   secretConfigured: boolean;
   channelTech: string;
+  originateVia: string;
+  originateContext: string;
   defaultTrunk: string | null;
   trunkPeerFilter: string | null;
   defaultTimeoutMs: number;
@@ -110,6 +112,8 @@ export interface SiteSettingsUpdateRequest {
   secret?: string | null;
   clearSecret?: boolean;
   channelTech?: string | null;
+  originateVia?: string | null;
+  originateContext?: string | null;
   defaultTrunk?: string | null;
   trunkPeerFilter?: string | null;
   defaultTimeoutMs?: number | null;

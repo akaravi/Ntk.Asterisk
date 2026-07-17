@@ -11,6 +11,13 @@ public sealed class AsteriskOptions
     public string ChannelTech { get; set; } = "PJSIP";
     public string? DefaultTrunk { get; set; }
     public string? TrunkPeerFilter { get; set; }
+    /// <summary>
+    /// LocalContext (default): FreePBX-safe Local/number@context — uses outbound routes.
+    /// DirectTech: dial PJSIP/number@trunk or SIP/trunk/number without dialplan routes.
+    /// </summary>
+    public string OriginateVia { get; set; } = "LocalContext";
+    /// <summary>Dialplan context for Local channels (FreePBX: from-internal).</summary>
+    public string OriginateContext { get; set; } = "from-internal";
     public int DefaultTimeoutMs { get; set; } = 30000;
     public string? DefaultCallerId { get; set; }
     public bool KeepAlive { get; set; } = true;

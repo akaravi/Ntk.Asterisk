@@ -85,6 +85,14 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 next.DefaultTrunk = NullIfWhiteSpace(request.DefaultTrunk);
             if (request.TrunkPeerFilter != null)
                 next.TrunkPeerFilter = NullIfWhiteSpace(request.TrunkPeerFilter);
+            if (request.OriginateVia != null)
+                next.OriginateVia = string.IsNullOrWhiteSpace(request.OriginateVia)
+                    ? "LocalContext"
+                    : request.OriginateVia.Trim();
+            if (request.OriginateContext != null)
+                next.OriginateContext = string.IsNullOrWhiteSpace(request.OriginateContext)
+                    ? "from-internal"
+                    : request.OriginateContext.Trim();
             if (request.DefaultTimeoutMs.HasValue && request.DefaultTimeoutMs.Value > 0)
                 next.DefaultTimeoutMs = request.DefaultTimeoutMs.Value;
             if (request.DefaultCallerId != null)
@@ -156,6 +164,8 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         ChannelTech = opt.ChannelTech,
         DefaultTrunk = opt.DefaultTrunk,
         TrunkPeerFilter = opt.TrunkPeerFilter,
+        OriginateVia = opt.OriginateVia,
+        OriginateContext = opt.OriginateContext,
         DefaultTimeoutMs = opt.DefaultTimeoutMs,
         DefaultCallerId = opt.DefaultCallerId,
         KeepAlive = opt.KeepAlive,
@@ -174,6 +184,8 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         ChannelTech = src.ChannelTech,
         DefaultTrunk = src.DefaultTrunk,
         TrunkPeerFilter = src.TrunkPeerFilter,
+        OriginateVia = src.OriginateVia,
+        OriginateContext = src.OriginateContext,
         DefaultTimeoutMs = src.DefaultTimeoutMs,
         DefaultCallerId = src.DefaultCallerId,
         KeepAlive = src.KeepAlive,
@@ -186,6 +198,10 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         opt.ChannelTech = string.IsNullOrWhiteSpace(opt.ChannelTech) ? "PJSIP" : opt.ChannelTech.Trim();
         if (opt.DefaultTimeoutMs <= 0) opt.DefaultTimeoutMs = 30000;
         if (opt.PingIntervalMs <= 0) opt.PingIntervalMs = 10000;
+        opt.OriginateVia = string.IsNullOrWhiteSpace(opt.OriginateVia) ? "LocalContext" : opt.OriginateVia.Trim();
+        opt.OriginateContext = string.IsNullOrWhiteSpace(opt.OriginateContext)
+            ? "from-internal"
+            : opt.OriginateContext.Trim();
         return opt;
     }
 

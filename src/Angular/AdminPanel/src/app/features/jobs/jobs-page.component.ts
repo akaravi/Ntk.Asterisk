@@ -11,11 +11,12 @@ import {
   AdvancedFilterField,
   ListToolbarComponent,
 } from '../../shared/components/list-toolbar/list-toolbar.component';
+import { ListPagerComponent } from '../../shared/components/list-pager/list-pager.component';
 
 @Component({
   selector: 'app-jobs-page',
   standalone: true,
-  imports: [TranslatePipe, ListToolbarComponent, DatePipe],
+  imports: [TranslatePipe, ListToolbarComponent, ListPagerComponent, DatePipe],
   templateUrl: './jobs-page.component.html',
   styleUrl: './jobs-page.component.scss',
 })
@@ -101,8 +102,43 @@ export class JobsPageComponent implements OnInit, OnDestroy {
     return !terminal.includes(String(job.state).toLowerCase());
   }
 
+  normalizeState(state: string | null | undefined): string {
+    return String(state || '').trim().toLowerCase();
+  }
+
+  typeLabel(type: string | null | undefined): string {
+    const raw = String(type || '').trim();
+    if (!raw) return '—';
+    const key = `JOBS.TYPE.${raw}`;
+    const translated = this.i18n.instant(key);
+    return translated === key ? raw : translated;
+  }
+
+  stateLabel(state: string | null | undefined): string {
+    const raw = this.normalizeState(state);
+    if (!raw) return '—';
+    const key = `JOBS.STATUS.${raw}`;
+    const translated = this.i18n.instant(key);
+    return translated === key ? String(state) : translated;
+  }
+
+  displayFrom(job: CallJob): string {
+    return job.from || job.mobile1 || '—';
+  }
+
+  displayTo(job: CallJob): string {
+    return job.to || job.mobile2 || '—';
+  }
+
   reason(job: CallJob): string {
     return job.resultReason || job.errorMessage || '—';
+  }
+
+  reasonTone(job: CallJob): 'fail' | 'ok' | 'neutral' {
+    const state = this.normalizeState(job.state);
+    if (state === 'failed' || state === 'cancelled') return 'fail';
+    if (state === 'completed' || state === 'bridged') return 'ok';
+    return 'neutral';
   }
 
   cancel(job: CallJob): void {

@@ -26,23 +26,40 @@ Read classes: `call`, `system` (peer/channel events). Never commit real secrets 
 
 ## Channel technology
 
-| Tech | Originate channel examples |
+| Tech | DirectTech channel examples |
 |------|----------------------------|
-| `PJSIP` (default) | Extension: `PJSIP/100` · Outbound: `PJSIP/0912…@trunk-out` |
+| `PJSIP` (default) | Extension: `PJSIP/100` · Outbound: `PJSIP/0912…@real-endpoint` |
 | `SIP` (legacy chan_sip) | Extension: `SIP/100` · Outbound: `SIP/trunk/0912…` |
 
 Configured via `Asterisk:ChannelTech` in environment overlays (not base `appsettings.json`).
 
-**Important:** PJSIP does **not** use `PJSIP/trunk/number` (that is chan_sip style). Wrong format → AMI `OriginateResponse Failure reason=0` (no such endpoint / bad tech).
+**Important:** PJSIP does **not** use `PJSIP/trunk/number` (that is chan_sip style). Wrong format → AMI `OriginateResponse Failure reason=0`.
 
-## Trunk naming
+## OriginateVia (preferred for FreePBX)
 
-- Outbound trunk peer/endpoint name: `Asterisk:DefaultTrunk` (e.g. `trunk-out`) — must match `pjsip show endpoints`
+| Mode | Setting | Behavior |
+|------|---------|----------|
+| **LocalContext** (default) | `OriginateVia=LocalContext`, `OriginateContext=from-internal` | `Local/{number}@from-internal/n` — FreePBX outbound routes select the real trunk. **DefaultTrunk is not required.** |
+| **DirectTech** | `OriginateVia=DirectTech` | Dial `PJSIP/{number}@{DefaultTrunk}` — `DefaultTrunk` must be a real PJSIP endpoint name from `pjsip show endpoints` (labels like `trunk-out` often fail with reason=0). |
+
+## Trunk naming (DirectTech only)
+
+- Outbound trunk peer/endpoint name: `Asterisk:DefaultTrunk` — must match `pjsip show endpoints`
 - Trunk inventory filter: `Asterisk:TrunkPeerFilter` regex (default `^(trunk|Trunk|TRUNK)`)
 - Mobile legs (PJSIP): `{tech}/{mobileNumber}@{trunk}`
 - Mobile legs (SIP): `{tech}/{trunk}/{mobileNumber}`
 
 ## CallJob Originate shapes
+
+### LocalContext (default — FreePBX)
+
+| Type | Channel (leg1) | Application Data (Dial) |
+|------|----------------|-------------------------|
+| ExtToExt | `Local/{from}@from-internal/n` | `Local/{to}@from-internal/n,{timeoutSec}` |
+| MobileToExt | `Local/{mobile}@from-internal/n` | `{tech}/{ext},{timeoutSec}` |
+| MobileToMobile | `Local/{mobile1}@from-internal/n` | `Local/{mobile2}@from-internal/n,{timeoutSec}` |
+
+### DirectTech
 
 | Type | Channel (leg1) | Application Data (Dial) |
 |------|----------------|-------------------------|
@@ -57,10 +74,12 @@ Cancel: `Hangup` on tracked channel name when known.
 
 | Reason | Meaning |
 |--------|---------|
-| 0 | No such endpoint/number or invalid channel tech/trunk name |
+| 0 | No such endpoint/number or invalid channel / context / trunk name |
 | 3 | Ringing / often answer timeout |
 | 5 | Busy |
 | 8 | Congestion / unavailable |
+
+If reason=0 on FreePBX: switch to **LocalContext** + `from-internal`, or fix DirectTech trunk to a real endpoint name.
 
 ## FreePBX `_custom` notes
 

@@ -35,6 +35,8 @@ public sealed class CallJob
     public int TimeoutMs { get; set; } = 30000;
     public string? ActionId { get; set; }
     public string? Channel { get; set; }
+    /// <summary>Application Data string used for Originate Dial (for diagnostics).</summary>
+    public string? OriginateDialData { get; set; }
     public string? UniqueId { get; set; }
     public string? ErrorMessage { get; set; }
     /// <summary>Human-readable outcome for success or failure (shown in job lists).</summary>

@@ -11,13 +11,14 @@ import {
   AdvancedFilterField,
   ListToolbarComponent,
 } from '../../shared/components/list-toolbar/list-toolbar.component';
+import { ListPagerComponent } from '../../shared/components/list-pager/list-pager.component';
 
 type MonitorTab = 'extensions' | 'trunks' | 'channels';
 
 @Component({
   selector: 'app-monitor-page',
   standalone: true,
-  imports: [TranslatePipe, FormsModule, ListToolbarComponent],
+  imports: [TranslatePipe, FormsModule, ListToolbarComponent, ListPagerComponent],
   templateUrl: './monitor-page.component.html',
   styleUrl: './monitor-page.component.scss',
 })

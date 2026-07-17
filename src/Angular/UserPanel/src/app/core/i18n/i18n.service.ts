@@ -4,7 +4,7 @@ export type AppLocale = 'fa' | 'en';
 
 const MESSAGES: Record<AppLocale, Record<string, string>> = {
   fa: {
-    'APP.TITLE': 'پنل کاربر — تماس Asterisk',
+    'APP.TITLE': 'مدیریت تماس',
     'APP.SUBTITLE': 'صدور و پیگیری دستورات تماس (بدون احراز هویت)',
     'NAV.CALLS': 'فرم‌های تماس',
     'NAV.JOBS': 'کارهای تماس',
@@ -81,7 +81,7 @@ const MESSAGES: Record<AppLocale, Record<string, string>> = {
     'ERROR.GENERIC': 'خطا در ارتباط با سرور',
   },
   en: {
-    'APP.TITLE': 'User Panel — Asterisk Calls',
+    'APP.TITLE': 'Call Management',
     'APP.SUBTITLE': 'Create and track call jobs (no auth)',
     'NAV.CALLS': 'Call forms',
     'NAV.JOBS': 'Call jobs',

@@ -1,5 +1,23 @@
 # history.2026-07-17
 
+## 2026-07-17 (Asia/Tehran) — Shared card-list UI for Admin lists
+- **درخواست:** فرم زیبای فهرست کارهای تماس برای لیست‌های دیگر پروژه
+- **تغییرات:**
+  - الگوی entity-card مشترک در Admin `styles.scss`
+  - Jobs + Monitor: کارت‌بورد به‌جای table · toolbar فیلتر + actions · pager پایین
+  - `ListPagerComponent` · i18n SUBTITLE/TYPE/STATUS
+- **تأیید:** ng build AdminPanel
+
+## 2026-07-17 (Asia/Tehran) — Originate reason=0 → LocalContext default
+- **درخواست:** تکرار خطای `OriginateResponse: Failure reason=0`
+- **ریشه:** DirectTech با `DefaultTrunk=trunk-out` اغلب endpoint واقعی PJSIP نیست → reason=0
+- **تغییرات:**
+  - پیش‌فرض `OriginateVia=LocalContext` · `OriginateContext=from-internal` → `Local/{number}@from-internal/n`
+  - تنظیمات Admin + DTO + App_Data · پیام خطا با Channel+Data
+  - قرارداد dialplan به‌روز شد
+- **تأیید:** dotnet build WebApi · ng build AdminPanel
+- **اقدام کاربر:** restart WebApi سپس تماس مجدد
+
 ## 2026-07-17 (Asia/Tehran) — AMI guide expanded (≥100 words/section)
 - **درخواست:** آموزش‌ها کامل شوند؛ هر بخش به همه موارد ارجاع دهد و هر توضیح ≥۱۰۰ کلمه
 - **تغییرات:**
@@ -126,4 +144,9 @@
 - **AdminPanel:** dark rail · connection stats · monitor tabs · jobs/settings/toolbar tokens
 - **گزارش:** `karavi/karavi.status/DesignAuditor_SignalDesk.json`
 - **نمرات:** Design B+ · AI Slop A · Accessibility A-
+- **تأیید:** `ng build` UserPanel + AdminPanel سبز
+
+## 2026-07-17 (Asia/Tehran) — rebrand dashboards to مدیریت تماس
+- **درخواست:** حذف عبارت آستریسک از داشبوردها؛ برند «مدیریت تماس»
+- **تغییرات:** User/Admin titles · brand mark NTK · CALLS · index.html · i18n fa/en (عنوان، نسخه سرور، راهنما)
 - **تأیید:** `ng build` UserPanel + AdminPanel سبز

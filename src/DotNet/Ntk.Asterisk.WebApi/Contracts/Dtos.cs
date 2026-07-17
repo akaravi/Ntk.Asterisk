@@ -106,6 +106,8 @@ public sealed class ConfigVisibilityDto
     public string ChannelTech { get; init; } = "PJSIP";
     public string? DefaultTrunk { get; init; }
     public string? TrunkPeerFilter { get; init; }
+    public string OriginateVia { get; init; } = "LocalContext";
+    public string OriginateContext { get; init; } = "from-internal";
     public int DefaultTimeoutMs { get; init; }
     public string? DefaultCallerId { get; init; }
     public bool KeepAlive { get; init; } = true;
@@ -126,6 +128,8 @@ public sealed class AsteriskSiteSettingsUpdateRequest
     public string? ChannelTech { get; set; }
     public string? DefaultTrunk { get; set; }
     public string? TrunkPeerFilter { get; set; }
+    public string? OriginateVia { get; set; }
+    public string? OriginateContext { get; set; }
     public int? DefaultTimeoutMs { get; set; }
     public string? DefaultCallerId { get; set; }
     public bool? KeepAlive { get; set; }
