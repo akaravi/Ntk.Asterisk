@@ -1,0 +1,72 @@
+<div class="toolbar" [attr.aria-busy]="busy">
+  <div class="toolbar__row">
+    <label class="field field--grow">
+      <span>{{ 'LIST.QUICK_SEARCH' | translate }}</span>
+      <input
+        type="search"
+        [ngModel]="query.quickSearch"
+        (ngModelChange)="onQuickSearch($event)"
+        [placeholder]="'LIST.QUICK_SEARCH_PLACEHOLDER' | translate"
+        autocomplete="off"
+      />
+    </label>
+
+    <label class="field">
+      <span>{{ 'LIST.PAGE_SIZE' | translate }}</span>
+      <select [ngModel]="query.pageSize" (ngModelChange)="onPageSize($event)">
+        @for (size of pageSizes; track size) {
+          <option [ngValue]="size">{{ size }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="toolbar__actions">
+      <button type="button" class="btn btn--ghost" (click)="toggleAdvanced()">
+        {{ 'LIST.ADVANCED' | translate }}
+      </button>
+      <button type="button" class="btn" (click)="refresh.emit()" [disabled]="busy">
+        {{ busy ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
+      </button>
+      @if (showPrint) {
+        <button type="button" class="btn btn--ghost" (click)="print.emit()">
+          {{ 'LIST.PRINT' | translate }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (advancedOpen && advancedFields.length) {
+    <div class="toolbar__advanced">
+      @for (field of advancedFields; track field.key) {
+        <label class="field">
+          <span>{{ field.labelKey | translate }}</span>
+          <input
+            type="text"
+            [attr.dir]="field.ltr ? 'ltr' : null"
+            [ngModel]="query.filter[field.key] || ''"
+            (ngModelChange)="onFilter(field.key, $event)"
+            [placeholder]="field.placeholderKey | translate"
+            autocomplete="off"
+          />
+        </label>
+      }
+    </div>
+  }
+
+  <div class="toolbar__pager">
+    <button type="button" class="btn btn--ghost" (click)="prev()" [disabled]="query.pageIndex <= 0">
+      {{ 'LIST.PREV' | translate }}
+    </button>
+    <span class="pager-meta" dir="ltr">
+      {{ query.pageIndex + 1 }} / {{ pageCount }} · {{ totalCount }}
+    </span>
+    <button
+      type="button"
+      class="btn btn--ghost"
+      (click)="next()"
+      [disabled]="query.pageIndex + 1 >= pageCount"
+    >
+      {{ 'LIST.NEXT' | translate }}
+    </button>
+  </div>
+</div>

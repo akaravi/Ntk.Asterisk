@@ -1,6 +1,21 @@
 {
   "productId": "ntk-asterisk",
   "hosts": {
+    "webapi": {
+      "port": 5310,
+      "healthPath": "/health",
+      "note": "Ntk.Asterisk.WebApi — AMI control plane"
+    },
+    "admin-panel": {
+      "port": 5314,
+      "healthPath": null,
+      "note": "Angular AdminPanel — monitor/settings/jobs"
+    },
+    "user-panel": {
+      "port": 5312,
+      "healthPath": null,
+      "note": "Angular UserPanel — call forms + jobs"
+    },
     "ami-lib": {
       "port": null,
       "healthPath": null,

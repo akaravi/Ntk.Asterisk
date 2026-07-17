@@ -1,0 +1,94 @@
+{
+  "APP": {
+    "TITLE": "پنل مدیریت آستریسک"
+  },
+  "NAV": {
+    "CONNECTION": "وضعیت اتصال",
+    "MONITOR": "مانیتور",
+    "JOBS": "جاب‌ها",
+    "SETTINGS": "تنظیمات"
+  },
+  "ACTION": {
+    "REFRESH": "بازخوانی",
+    "LOADING": "در حال انجام…"
+  },
+  "LIST": {
+    "QUICK_SEARCH": "جستجوی سریع",
+    "QUICK_SEARCH_PLACEHOLDER": "جستجو در نتایج…",
+    "PAGE_SIZE": "تعداد در صفحه",
+    "ADVANCED": "جستجوی پیشرفته",
+    "PRINT": "چاپ",
+    "PREV": "قبلی",
+    "NEXT": "بعدی",
+    "EMPTY": "موردی یافت نشد"
+  },
+  "CONNECTION": {
+    "AMI": "اتصال AMI",
+    "SIGNALR": "اتصال زنده",
+    "CONNECTED": "متصل",
+    "DISCONNECTED": "قطع",
+    "UPTIME": "آپتایم",
+    "CHANNEL_TECH": "تکنولوژی کانال",
+    "NO_DATA": "داده‌ای از سرور دریافت نشد"
+  },
+  "SETTINGS": {
+    "HINT": "فقط پرچم‌های غیرحساس نمایش داده می‌شود؛ رمز AMI هرگز در UI نیست.",
+    "CLIENT": "اندپوینت کلاینت",
+    "API_BASE": "آدرس API",
+    "HUB_URL": "آدرس Hub",
+    "AMI_FLAGS": "پرچم‌های پیکربندی AMI",
+    "HOST": "میزبان AMI",
+    "PORT": "پورت AMI",
+    "USER": "کاربر AMI",
+    "SECRET": "رمز AMI",
+    "TRUNK_FILTER": "فیلتر ترانک",
+    "CONFIGURED": "پیکربندی شده",
+    "NOT_CONFIGURED": "پیکربندی نشده"
+  },
+  "MONITOR": {
+    "EXTENSIONS": "اکستنشن / SIP",
+    "TRUNKS": "ترانک‌ها",
+    "CHANNELS": "کانال‌های زنده",
+    "COL_ID": "شناسه",
+    "COL_TECH": "Tech",
+    "COL_STATUS": "وضعیت",
+    "COL_IP": "IP",
+    "COL_CHANNEL": "کانال",
+    "COL_UNIQUE": "UniqueId",
+    "COL_CALLER": "CallerId",
+    "COL_STATE": "State",
+    "COL_APP": "Application",
+    "COL_ACTIONS": "عملیات",
+    "HANGUP": "قطع تماس",
+    "HANGUP_OK": "دستور hangup ارسال شد",
+    "FILTER_STATUS": "وضعیت",
+    "FILTER_STATUS_PH": "مثلاً OK / UNREACHABLE",
+    "FILTER_TECH": "Tech",
+    "FILTER_TECH_PH": "PJSIP یا SIP",
+    "FILTER_IP": "IP",
+    "FILTER_IP_PH": "مثلاً 192.168.1.10",
+    "FILTER_STATE": "State",
+    "FILTER_STATE_PH": "مثلاً Up",
+    "FILTER_CHANNEL": "کانال",
+    "FILTER_CHANNEL_PH": "PJSIP/100-…"
+  },
+  "JOBS": {
+    "COL_ID": "شناسه",
+    "COL_TYPE": "نوع",
+    "COL_STATE": "وضعیت",
+    "COL_FROM": "از",
+    "COL_TO": "به",
+    "COL_UPDATED": "به‌روزرسانی",
+    "COL_ERROR": "خطا",
+    "CANCEL": "لغو",
+    "CANCEL_OK": "جاب لغو شد",
+    "FILTER_STATE": "وضعیت",
+    "FILTER_STATE_PH": "queued / bridged / …",
+    "FILTER_TYPE": "نوع",
+    "FILTER_TYPE_PH": "ExtToExt",
+    "FILTER_FROM": "از",
+    "FILTER_FROM_PH": "شماره یا اکستنشن",
+    "FILTER_TO": "به",
+    "FILTER_TO_PH": "شماره یا اکستنشن"
+  }
+}

@@ -1,0 +1,6 @@
+@Ntk.Asterisk.WebApi_HostAddress = http://localhost:5299
+
+GET {{Ntk.Asterisk.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

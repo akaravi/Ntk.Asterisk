@@ -8,7 +8,7 @@ Bootstrap از `Prompts.Project.CMS/karavi/starter-kit` (**بدون وابستگ
 |---|---|
 | قرارداد عمومی | `Prompts.Project.CMS/karavi/README.md` |
 | شروع این پروژه | [`karavi.doc/onboarding.md`](karavi.doc/onboarding.md) |
-| پلن فعلی | [`karavi.plans.prompt/cursor/Karavi.001.plan.md`](karavi.plans.prompt/cursor/Karavi.001.plan.md) |
+| پلن‌ها | [`Karavi.001`](karavi.plans.prompt/cursor/Karavi.001.plan.md) · [`Karavi.002` Wave1 WebApi](karavi.plans.prompt/cursor/Karavi.002.plan.md) |
 | verify ساختار | `.\karavi\karavi.scripts.tools\verify.karavi-structure.ps1` |
 
 ```powershell

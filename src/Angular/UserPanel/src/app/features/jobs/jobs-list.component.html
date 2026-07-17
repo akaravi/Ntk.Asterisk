@@ -1,0 +1,116 @@
+<section class="jobs">
+  <header class="toolbar">
+    <h2>{{ 'JOBS.TITLE' | t }}</h2>
+    <div class="toolbar-actions">
+      <label class="search">
+        <span>{{ 'JOBS.QUICK_SEARCH' | t }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          type="search"
+          [(ngModel)]="quickSearch"
+          [attr.placeholder]="'JOBS.QUICK_SEARCH_PH' | t"
+          (keyup.enter)="onSearch()"
+        />
+      </label>
+      <label>
+        <span>{{ 'JOBS.PAGE_SIZE' | t }}</span>
+        <select class="ltr" dir="ltr" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          @for (size of pageSizeOptions; track size) {
+            <option [ngValue]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+      <button type="button" (click)="onSearch()">{{ 'JOBS.REFRESH' | t }}</button>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="banner error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>
+            <button type="button" class="sort" (click)="toggleSort('type')">
+              {{ 'JOBS.COL_TYPE' | t }}
+              @if (sortBy === 'type') {
+                <span>({{ (sortDir === 'asc' ? 'JOBS.SORT_ASC' : 'JOBS.SORT_DESC') | t }})</span>
+              }
+            </button>
+          </th>
+          <th>{{ 'JOBS.COL_ID' | t }}</th>
+          <th>
+            <button type="button" class="sort" (click)="toggleSort('status')">
+              {{ 'JOBS.COL_STATUS' | t }}
+              @if (sortBy === 'status') {
+                <span>({{ (sortDir === 'asc' ? 'JOBS.SORT_ASC' : 'JOBS.SORT_DESC') | t }})</span>
+              }
+            </button>
+          </th>
+          <th>{{ 'JOBS.COL_FROM' | t }}</th>
+          <th>{{ 'JOBS.COL_TO' | t }}</th>
+          <th>
+            <button type="button" class="sort" (click)="toggleSort('updatedAtUtc')">
+              {{ 'JOBS.COL_UPDATED' | t }}
+              @if (sortBy === 'updatedAtUtc') {
+                <span>({{ (sortDir === 'asc' ? 'JOBS.SORT_ASC' : 'JOBS.SORT_DESC') | t }})</span>
+              }
+            </button>
+          </th>
+          <th>{{ 'JOBS.COL_ACTIONS' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) {
+          <tr>
+            <td colspan="7">…</td>
+          </tr>
+        } @else if (jobs().length === 0) {
+          <tr>
+            <td colspan="7">{{ 'JOBS.EMPTY' | t }}</td>
+          </tr>
+        } @else {
+          @for (job of jobs(); track job.id) {
+            <tr>
+              <td>{{ typeKey(job.type) | t }}</td>
+              <td class="ltr" dir="ltr">{{ job.id }}</td>
+              <td>
+                <span class="status" [attr.data-status]="job.status">{{ statusKey(job.status) | t }}</span>
+              </td>
+              <td class="ltr" dir="ltr">{{ displayFrom(job) }}</td>
+              <td class="ltr" dir="ltr">{{ displayTo(job) }}</td>
+              <td class="ltr" dir="ltr">{{ (job.updatedAtUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+              <td>
+                @if (canCancel(job)) {
+                  <button
+                    type="button"
+                    class="danger"
+                    [disabled]="cancellingId() === job.id"
+                    (click)="cancel(job)"
+                  >
+                    {{ (cancellingId() === job.id ? 'JOBS.CANCELLING' : 'JOBS.CANCEL') | t }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="pager">
+    <button type="button" [disabled]="pageIndex <= 0 || loading()" (click)="prevPage()">‹</button>
+    <span class="ltr" dir="ltr">{{ pageIndex + 1 }} / {{ totalCount() }}</span>
+    <button
+      type="button"
+      [disabled]="loading() || (pageIndex + 1) * pageSize >= totalCount()"
+      (click)="nextPage()"
+    >
+      ›
+    </button>
+  </footer>
+</section>

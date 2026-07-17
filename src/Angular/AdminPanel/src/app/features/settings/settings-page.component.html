@@ -1,0 +1,64 @@
+<section class="page">
+  <header class="page__header">
+    <h1>{{ 'NAV.SETTINGS' | translate }}</h1>
+    <button type="button" class="btn" (click)="reload()" [disabled]="loading()">
+      {{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
+    </button>
+  </header>
+
+  <p class="muted">{{ 'SETTINGS.HINT' | translate }}</p>
+
+  @if (error()) {
+    <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="settings-grid">
+    <article class="panel">
+      <h2>{{ 'SETTINGS.CLIENT' | translate }}</h2>
+      <dl class="kv">
+        <div>
+          <dt>{{ 'SETTINGS.API_BASE' | translate }}</dt>
+          <dd dir="ltr">{{ apiBaseUrl }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'SETTINGS.HUB_URL' | translate }}</dt>
+          <dd dir="ltr">{{ hubUrl }}</dd>
+        </div>
+      </dl>
+    </article>
+
+    <article class="panel">
+      <h2>{{ 'SETTINGS.AMI_FLAGS' | translate }}</h2>
+      @if (status(); as s) {
+        <dl class="kv">
+          <div>
+            <dt>{{ 'SETTINGS.HOST' | translate }}</dt>
+            <dd>{{ flagLabel(s.amiHostConfigured) | translate }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'SETTINGS.PORT' | translate }}</dt>
+            <dd>{{ flagLabel(s.amiPortConfigured) | translate }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'SETTINGS.USER' | translate }}</dt>
+            <dd>{{ flagLabel(s.amiUserConfigured) | translate }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'SETTINGS.SECRET' | translate }}</dt>
+            <dd>{{ flagLabel(s.amiSecretConfigured) | translate }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</dt>
+            <dd dir="ltr">{{ s.channelTech || '—' }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'SETTINGS.TRUNK_FILTER' | translate }}</dt>
+            <dd>{{ flagLabel(s.trunkPeerFilterConfigured) | translate }}</dd>
+          </div>
+        </dl>
+      } @else {
+        <p class="muted">{{ 'CONNECTION.NO_DATA' | translate }}</p>
+      }
+    </article>
+  </div>
+</section>

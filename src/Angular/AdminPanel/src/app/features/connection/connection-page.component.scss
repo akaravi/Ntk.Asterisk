@@ -1,0 +1,33 @@
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.stat {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.stat h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.stat__value {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.stat--ok {
+  border-color: var(--ok);
+}
+
+.stat--bad {
+  border-color: var(--danger);
+}

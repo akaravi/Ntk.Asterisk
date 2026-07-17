@@ -1,0 +1,135 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --nav-bg: #eef2f6;
+  --text: #1a2330;
+  --muted: #5b6b7c;
+  --border: #d5dde6;
+  --accent: #0b6e4f;
+  --accent-soft: #d8f3e7;
+  --accent-contrast: #ffffff;
+  --ok: #0b6e4f;
+  --ok-soft: #d8f3e7;
+  --danger: #b42318;
+  --danger-soft: #fde8e6;
+  --warn: #8a5b00;
+  --warn-soft: #fff3d6;
+  font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f141a;
+    --surface: #171e26;
+    --nav-bg: #12181f;
+    --text: #e8eef5;
+    --muted: #9aabbd;
+    --border: #2a3542;
+    --accent: #3ecf8e;
+    --accent-soft: #163528;
+    --accent-contrast: #04150e;
+    --ok: #3ecf8e;
+    --ok-soft: #163528;
+    --danger: #ff7b72;
+    --danger-soft: #3a1715;
+    --warn: #f0c14a;
+    --warn-soft: #3a2e10;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  line-height: 1.45;
+}
+
+.page__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block-end: 1rem;
+}
+
+.page__header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.banner {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.45rem;
+  margin-block-end: 1rem;
+}
+
+.banner--error {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.banner--warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.banner--ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+@media print {
+  .shell__nav,
+  .toolbar,
+  .tabs,
+  .btn {
+    display: none !important;
+  }
+
+  .shell {
+    display: block;
+  }
+}

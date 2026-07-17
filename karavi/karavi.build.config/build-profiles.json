@@ -5,16 +5,33 @@
         "configuration": "Release",
         "rid": "win-x64",
         "solution": "Ntk.Asterisk.sln"
+      },
+      "angular": {
+        "configuration": "production",
+        "projects": [
+          "src/Angular/AdminPanel",
+          "src/Angular/UserPanel"
+        ]
       }
     },
     "Debug": {
       "dotnet": {
         "configuration": "Debug",
         "solution": "Ntk.Asterisk.sln"
+      },
+      "angular": {
+        "configuration": "development",
+        "projects": [
+          "src/Angular/AdminPanel",
+          "src/Angular/UserPanel"
+        ]
       }
     }
   },
   "enabledStacks": [
+    "webapi",
+    "admin-panel",
+    "user-panel",
     "ami-lib",
     "ari-lib",
     "console-ami",
@@ -23,6 +40,9 @@
     "winform-ari"
   ],
   "projects": {
+    "webapi": "src/DotNet/Ntk.Asterisk.WebApi/Ntk.Asterisk.WebApi.csproj",
+    "admin-panel": "src/Angular/AdminPanel",
+    "user-panel": "src/Angular/UserPanel",
     "ami-lib": "src/DotNet/Ntk.AsterNet.AMI/Ntk.AsterNet.AMI.csproj",
     "ari-lib": "src/DotNet/Ntk.AsterNet.ARI/Ntk.AsterNet.ARI.csproj",
     "console-ami": "src/DotNet/Asterisk.Console.AMI/Asterisk.Console.AMI.csproj",

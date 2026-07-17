@@ -1,0 +1,150 @@
+<section class="page">
+  <header class="page__header">
+    <h1>{{ 'NAV.MONITOR' | translate }}</h1>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [class.tab--active]="tab() === 'extensions'"
+      (click)="setTab('extensions')"
+    >
+      {{ 'MONITOR.EXTENSIONS' | translate }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [class.tab--active]="tab() === 'trunks'"
+      (click)="setTab('trunks')"
+    >
+      {{ 'MONITOR.TRUNKS' | translate }}
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [class.tab--active]="tab() === 'channels'"
+      (click)="setTab('channels')"
+    >
+      {{ 'MONITOR.CHANNELS' | translate }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+  }
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="tab() === 'channels' ? channelFilters : peerFilters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+    (print)="printTable()"
+  />
+
+  <div class="table-wrap">
+    @if (tab() === 'extensions') {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'MONITOR.COL_ID' | translate }}</button></th>
+            <th><button type="button" class="th-btn" (click)="sort('tech')">{{ 'MONITOR.COL_TECH' | translate }}</button></th>
+            <th><button type="button" class="th-btn" (click)="sort('status')">{{ 'MONITOR.COL_STATUS' | translate }}</button></th>
+            <th><button type="button" class="th-btn" (click)="sort('ip')">{{ 'MONITOR.COL_IP' | translate }}</button></th>
+            <th>{{ 'MONITOR.COL_CHANNEL' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of peersRows(); track row.id) {
+            <tr>
+              <td dir="ltr">{{ row.id }}</td>
+              <td dir="ltr">{{ row.tech }}</td>
+              <td>{{ row.status }}</td>
+              <td dir="ltr">{{ row.ip || '—' }}</td>
+              <td dir="ltr">{{ row.channel || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (tab() === 'trunks') {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'MONITOR.COL_ID' | translate }}</button></th>
+            <th><button type="button" class="th-btn" (click)="sort('tech')">{{ 'MONITOR.COL_TECH' | translate }}</button></th>
+            <th><button type="button" class="th-btn" (click)="sort('status')">{{ 'MONITOR.COL_STATUS' | translate }}</button></th>
+            <th><button type="button" class="th-btn" (click)="sort('ip')">{{ 'MONITOR.COL_IP' | translate }}</button></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of trunksRows(); track row.id) {
+            <tr>
+              <td dir="ltr">{{ row.id }}</td>
+              <td dir="ltr">{{ row.tech }}</td>
+              <td>{{ row.status }}</td>
+              <td dir="ltr">{{ row.ip || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (tab() === 'channels') {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th><button type="button" class="th-btn" (click)="sort('channel')">{{ 'MONITOR.COL_CHANNEL' | translate }}</button></th>
+            <th>{{ 'MONITOR.COL_UNIQUE' | translate }}</th>
+            <th>{{ 'MONITOR.COL_CALLER' | translate }}</th>
+            <th><button type="button" class="th-btn" (click)="sort('state')">{{ 'MONITOR.COL_STATE' | translate }}</button></th>
+            <th>{{ 'MONITOR.COL_APP' | translate }}</th>
+            <th>{{ 'MONITOR.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of channelsRows(); track row.channel) {
+            <tr>
+              <td dir="ltr">{{ row.channel }}</td>
+              <td dir="ltr">{{ row.uniqueId || '—' }}</td>
+              <td dir="ltr">{{ row.callerId || '—' }}</td>
+              <td>{{ row.state || '—' }}</td>
+              <td dir="ltr">{{ row.application || '—' }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn--danger"
+                  [disabled]="actionBusy()"
+                  (click)="hangup(row.channel)"
+                >
+                  {{ actionBusy() ? ('ACTION.LOADING' | translate) : ('MONITOR.HANGUP' | translate) }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</section>

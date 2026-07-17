@@ -1,0 +1,49 @@
+<section class="page">
+  <header class="page__header">
+    <h1>{{ 'NAV.CONNECTION' | translate }}</h1>
+    <button type="button" class="btn" (click)="reload()" [disabled]="loading()">
+      {{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
+    </button>
+  </header>
+
+  @if (error()) {
+    <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+
+  @if (status(); as s) {
+    <div class="status-grid">
+      <article class="stat" [class.stat--ok]="s.connected" [class.stat--bad]="!s.connected">
+        <h2>{{ 'CONNECTION.AMI' | translate }}</h2>
+        <p class="stat__value">
+          {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
+        </p>
+      </article>
+      <article class="stat" [class.stat--ok]="hubConnected()" [class.stat--bad]="!hubConnected()">
+        <h2>{{ 'CONNECTION.SIGNALR' | translate }}</h2>
+        <p class="stat__value">
+          {{ (hubConnected() ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
+        </p>
+      </article>
+      <article class="stat">
+        <h2>{{ 'CONNECTION.UPTIME' | translate }}</h2>
+        <p class="stat__value" dir="ltr">
+          {{ s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
+        </p>
+      </article>
+      <article class="stat">
+        <h2>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</h2>
+        <p class="stat__value" dir="ltr">{{ s.channelTech || '—' }}</p>
+      </article>
+    </div>
+
+    @if (s.lastError) {
+      <p class="banner banner--warn" role="status">{{ s.lastError }}</p>
+    }
+  } @else if (!loading()) {
+    <p class="muted">{{ 'CONNECTION.NO_DATA' | translate }}</p>
+  }
+
+  @if (refreshedAt(); as t) {
+    <p class="muted" dir="ltr">{{ t | date: 'yyyy-MM-dd HH:mm:ss' }} UTC display</p>
+  }
+</section>

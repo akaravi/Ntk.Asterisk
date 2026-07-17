@@ -1,0 +1,143 @@
+import { DatePipe } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
+import { CallJob, ListQuery } from '../../core/models/asterisk.models';
+import { AsteriskApiService } from '../../core/services/asterisk-api.service';
+import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
+import { applyClientList, defaultListQuery } from '../../core/utils/list-query.util';
+import {
+  AdvancedFilterField,
+  ListToolbarComponent,
+} from '../../shared/components/list-toolbar/list-toolbar.component';
+
+@Component({
+  selector: 'app-jobs-page',
+  standalone: true,
+  imports: [TranslatePipe, ListToolbarComponent, DatePipe],
+  templateUrl: './jobs-page.component.html',
+  styleUrl: './jobs-page.component.scss',
+})
+export class JobsPageComponent implements OnInit, OnDestroy {
+  private readonly api = inject(AsteriskApiService);
+  private readonly hub = inject(AsteriskHubService);
+  private sub?: Subscription;
+
+  readonly loading = signal(false);
+  readonly actionBusyId = signal<string | null>(null);
+  readonly error = signal<string | null>(null);
+  readonly success = signal<string | null>(null);
+  readonly jobsAll = signal<CallJob[]>([]);
+  readonly jobsRows = signal<CallJob[]>([]);
+  readonly totalCount = signal(0);
+
+  query: ListQuery = { ...defaultListQuery('createdAtUtc'), sortDir: 'desc' };
+
+  readonly filters: AdvancedFilterField[] = [
+    { key: 'state', labelKey: 'JOBS.FILTER_STATE', placeholderKey: 'JOBS.FILTER_STATE_PH' },
+    { key: 'type', labelKey: 'JOBS.FILTER_TYPE', placeholderKey: 'JOBS.FILTER_TYPE_PH', ltr: true },
+    { key: 'from', labelKey: 'JOBS.FILTER_FROM', placeholderKey: 'JOBS.FILTER_FROM_PH', ltr: true },
+    { key: 'to', labelKey: 'JOBS.FILTER_TO', placeholderKey: 'JOBS.FILTER_TO_PH', ltr: true },
+  ];
+
+  ngOnInit(): void {
+    this.reload();
+    this.sub = this.hub.hubEvents$.subscribe((ev) => {
+      if (ev.kind !== 'job') return;
+      const next = [...this.jobsAll()];
+      const idx = next.findIndex((j) => j.id === ev.payload.id);
+      if (idx >= 0) next[idx] = ev.payload;
+      else next.unshift(ev.payload);
+      this.jobsAll.set(next);
+      this.repage();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+
+  onQueryChange(q: ListQuery): void {
+    this.query = q;
+    this.repage();
+  }
+
+  reload(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.api.getJobs().subscribe({
+      next: (r) => {
+        this.loading.set(false);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Jobs failed');
+          return;
+        }
+        this.jobsAll.set(r.data || []);
+        this.repage();
+      },
+      error: (err: Error) => {
+        this.loading.set(false);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  sort(column: string): void {
+    if (this.query.sortBy === column) {
+      this.query = {
+        ...this.query,
+        sortDir: this.query.sortDir === 'asc' ? 'desc' : 'asc',
+      };
+    } else {
+      this.query = { ...this.query, sortBy: column, sortDir: 'asc' };
+    }
+    this.repage();
+  }
+
+  canCancel(job: CallJob): boolean {
+    const terminal = ['completed', 'failed', 'cancelled'];
+    return !terminal.includes(String(job.state).toLowerCase());
+  }
+
+  cancel(job: CallJob): void {
+    if (!this.canCancel(job) || this.actionBusyId()) return;
+    this.actionBusyId.set(job.id);
+    this.error.set(null);
+    this.success.set(null);
+    this.api.cancelJob(job.id).subscribe({
+      next: (r) => {
+        this.actionBusyId.set(null);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Cancel failed');
+          return;
+        }
+        this.success.set('JOBS.CANCEL_OK');
+        if (r.data?.[0]) {
+          const next = this.jobsAll().map((j) => (j.id === r.data[0].id ? r.data[0] : j));
+          this.jobsAll.set(next);
+          this.repage();
+        } else {
+          this.reload();
+        }
+      },
+      error: (err: Error) => {
+        this.actionBusyId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  printTable(): void {
+    window.print();
+  }
+
+  private repage(): void {
+    const { rows, totalCount } = applyClientList(
+      this.jobsAll() as unknown as Record<string, unknown>[],
+      this.query,
+      ['id', 'type', 'state', 'from', 'to', 'mobile1', 'mobile2', 'errorMessage']
+    );
+    this.jobsRows.set(rows as unknown as CallJob[]);
+    this.totalCount.set(totalCount);
+  }
+}

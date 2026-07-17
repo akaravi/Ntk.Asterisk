@@ -1,0 +1,70 @@
+<section class="page">
+  <header class="page__header">
+    <h1>{{ 'NAV.JOBS' | translate }}</h1>
+  </header>
+
+  @if (error()) {
+    <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+  }
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+    (print)="printTable()"
+  />
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th><button type="button" class="th-btn" (click)="sort('id')">{{ 'JOBS.COL_ID' | translate }}</button></th>
+          <th><button type="button" class="th-btn" (click)="sort('type')">{{ 'JOBS.COL_TYPE' | translate }}</button></th>
+          <th><button type="button" class="th-btn" (click)="sort('state')">{{ 'JOBS.COL_STATE' | translate }}</button></th>
+          <th>{{ 'JOBS.COL_FROM' | translate }}</th>
+          <th>{{ 'JOBS.COL_TO' | translate }}</th>
+          <th><button type="button" class="th-btn" (click)="sort('updatedAtUtc')">{{ 'JOBS.COL_UPDATED' | translate }}</button></th>
+          <th>{{ 'JOBS.COL_ERROR' | translate }}</th>
+          <th>{{ 'MONITOR.COL_ACTIONS' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (job of jobsRows(); track job.id) {
+          <tr>
+            <td dir="ltr">{{ job.id }}</td>
+            <td dir="ltr">{{ job.type }}</td>
+            <td>{{ job.state }}</td>
+            <td dir="ltr">{{ job.from || job.mobile1 || '—' }}</td>
+            <td dir="ltr">{{ job.to || job.mobile2 || '—' }}</td>
+            <td dir="ltr">{{ job.updatedAtUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td>{{ job.errorMessage || '—' }}</td>
+            <td>
+              <button
+                type="button"
+                class="btn btn--danger"
+                [disabled]="!canCancel(job) || actionBusyId() === job.id"
+                (click)="cancel(job)"
+              >
+                {{
+                  actionBusyId() === job.id
+                    ? ('ACTION.LOADING' | translate)
+                    : ('JOBS.CANCEL' | translate)
+                }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="muted">{{ 'LIST.EMPTY' | translate }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

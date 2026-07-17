@@ -1,0 +1,94 @@
+{
+  "APP": {
+    "TITLE": "Asterisk Admin"
+  },
+  "NAV": {
+    "CONNECTION": "Connection",
+    "MONITOR": "Monitor",
+    "JOBS": "Jobs",
+    "SETTINGS": "Settings"
+  },
+  "ACTION": {
+    "REFRESH": "Refresh",
+    "LOADING": "Working…"
+  },
+  "LIST": {
+    "QUICK_SEARCH": "Quick search",
+    "QUICK_SEARCH_PLACEHOLDER": "Search results…",
+    "PAGE_SIZE": "Page size",
+    "ADVANCED": "Advanced search",
+    "PRINT": "Print",
+    "PREV": "Prev",
+    "NEXT": "Next",
+    "EMPTY": "No rows"
+  },
+  "CONNECTION": {
+    "AMI": "AMI connection",
+    "SIGNALR": "Live hub",
+    "CONNECTED": "Connected",
+    "DISCONNECTED": "Disconnected",
+    "UPTIME": "Uptime",
+    "CHANNEL_TECH": "Channel tech",
+    "NO_DATA": "No data from API"
+  },
+  "SETTINGS": {
+    "HINT": "Non-secret flags only; AMI secret never appears in the UI.",
+    "CLIENT": "Client endpoints",
+    "API_BASE": "API base URL",
+    "HUB_URL": "Hub URL",
+    "AMI_FLAGS": "AMI configuration flags",
+    "HOST": "AMI host",
+    "PORT": "AMI port",
+    "USER": "AMI user",
+    "SECRET": "AMI secret",
+    "TRUNK_FILTER": "Trunk filter",
+    "CONFIGURED": "Configured",
+    "NOT_CONFIGURED": "Not configured"
+  },
+  "MONITOR": {
+    "EXTENSIONS": "Extensions / SIP",
+    "TRUNKS": "Trunks",
+    "CHANNELS": "Live channels",
+    "COL_ID": "Id",
+    "COL_TECH": "Tech",
+    "COL_STATUS": "Status",
+    "COL_IP": "IP",
+    "COL_CHANNEL": "Channel",
+    "COL_UNIQUE": "UniqueId",
+    "COL_CALLER": "CallerId",
+    "COL_STATE": "State",
+    "COL_APP": "Application",
+    "COL_ACTIONS": "Actions",
+    "HANGUP": "Hangup",
+    "HANGUP_OK": "Hangup command sent",
+    "FILTER_STATUS": "Status",
+    "FILTER_STATUS_PH": "e.g. OK / UNREACHABLE",
+    "FILTER_TECH": "Tech",
+    "FILTER_TECH_PH": "PJSIP or SIP",
+    "FILTER_IP": "IP",
+    "FILTER_IP_PH": "e.g. 192.168.1.10",
+    "FILTER_STATE": "State",
+    "FILTER_STATE_PH": "e.g. Up",
+    "FILTER_CHANNEL": "Channel",
+    "FILTER_CHANNEL_PH": "PJSIP/100-…"
+  },
+  "JOBS": {
+    "COL_ID": "Id",
+    "COL_TYPE": "Type",
+    "COL_STATE": "State",
+    "COL_FROM": "From",
+    "COL_TO": "To",
+    "COL_UPDATED": "Updated",
+    "COL_ERROR": "Error",
+    "CANCEL": "Cancel",
+    "CANCEL_OK": "Job cancelled",
+    "FILTER_STATE": "State",
+    "FILTER_STATE_PH": "queued / bridged / …",
+    "FILTER_TYPE": "Type",
+    "FILTER_TYPE_PH": "ExtToExt",
+    "FILTER_FROM": "From",
+    "FILTER_FROM_PH": "number or extension",
+    "FILTER_TO": "To",
+    "FILTER_TO_PH": "number or extension"
+  }
+}

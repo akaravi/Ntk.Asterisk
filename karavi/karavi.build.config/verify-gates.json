@@ -11,8 +11,20 @@
       "required": true
     },
     {
+      "id": "ng-build-admin",
+      "command": "ng build --configuration=production",
+      "cwd": "src/Angular/AdminPanel",
+      "required": true
+    },
+    {
+      "id": "ng-build-user",
+      "command": "ng build --configuration=production",
+      "cwd": "src/Angular/UserPanel",
+      "required": true
+    },
+    {
       "id": "no-secrets-in-config",
-      "note": "Scan diff for Deploy_FTP.info, passwords, tokens, AMI/ARI credentials",
+      "note": "Scan diff for Deploy_FTP.info, passwords, tokens, AMI/ARI credentials in base appsettings.json",
       "required": true
     }
   ]

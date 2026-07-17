@@ -1,0 +1,67 @@
+{
+  "version": "1.2.0",
+  "mandatoryAlways": [
+    "browser-check",
+    "qa-browser-automation",
+    "design-auditor",
+    "a11y-audit",
+    "design-review"
+  ],
+  "phases": {
+    "sessionStart": [
+      "browser-check",
+      "qa-browser-automation",
+      "design-auditor",
+      "a11y-audit",
+      "design-review"
+    ],
+    "everyPageViewport": [
+      "design-auditor",
+      "a11y-audit",
+      "design-review",
+      "qa-browser-automation"
+    ],
+    "onBlocker": [
+      "debug",
+      "focused-fix",
+      "bug-review",
+      "code-reviewer",
+      "code-simplifier",
+      "clean-code",
+      "qa-browser-automation",
+      "a11y-audit",
+      "design-auditor"
+    ],
+    "onPerformanceConcern": [
+      "performance-profiler",
+      "algorithmic-complexity-review",
+      "complexity-optimizer"
+    ],
+    "sessionEnd": [
+      "browser-check",
+      "design-auditor",
+      "qa-browser-automation"
+    ]
+  },
+  "discovery": {
+    "scanRoots": [
+      ".cursor/skills",
+      "~/.cursor/skills"
+    ],
+    "matchKeywords": [
+      "browser",
+      "qa",
+      "a11y",
+      "accessibility",
+      "design-auditor",
+      "design-review",
+      "layout",
+      "rtl"
+    ],
+    "excludeKeywords": [
+      "sales",
+      "marketing",
+      "interview-loop"
+    ]
+  }
+}

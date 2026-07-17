@@ -1,0 +1,41 @@
+{
+  "version": "1.2.0",
+  "productId": "ntk-asterisk",
+  "viewports": [
+    { "id": "mobile", "width": 375, "height": 812 },
+    { "id": "tablet", "width": 768, "height": 1024 },
+    { "id": "desktop", "width": 1440, "height": 900 }
+  ],
+  "hosts": [
+    {
+      "id": "admin-panel",
+      "baseUrl": "http://localhost:5314",
+      "healthPath": null,
+      "requiresAuth": false,
+      "routes": ["/connection", "/monitor", "/jobs", "/settings"]
+    },
+    {
+      "id": "user-panel",
+      "baseUrl": "http://localhost:5312",
+      "healthPath": null,
+      "requiresAuth": false,
+      "routes": ["/calls", "/jobs"]
+    },
+    {
+      "id": "webapi",
+      "baseUrl": "http://localhost:5310",
+      "healthPath": "/health",
+      "requiresAuth": false,
+      "routes": ["/health", "/swagger"]
+    }
+  ],
+  "crudContract": { "add": 2, "edit": 1, "delete": 1 },
+  "maxFixesPerSession": 50,
+  "loopSentinel": "AGENT_LOOP_TICK_browser-check",
+  "artifacts": {
+    "state": "karavi/karavi.logs/.browser-check-state.json",
+    "tree": "karavi/karavi.status/BrowserCheck_Tree.json",
+    "html": "karavi/karavi.status/BrowserCheck.html",
+    "sessionDir": "karavi/karavi.logs/browser-check-{timestamp}"
+  }
+}
