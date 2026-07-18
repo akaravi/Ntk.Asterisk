@@ -1,0 +1,52 @@
+<section class="page">
+  <header class="page__head">
+    <h2>{{ 'WEBPHONE.CDR_TITLE' | t }}</h2>
+    <p>{{ 'WEBPHONE.CDR_SUBTITLE' | t }}</p>
+  </header>
+  @if (error(); as err) {
+    <p class="err" role="alert">{{ err }}</p>
+  }
+  <div class="toolbar">
+    <input type="search" class="ltr" dir="ltr" [(ngModel)]="quickSearch" (ngModelChange)="onSearch()" [placeholder]="'WEBPHONE.SEARCH_PH' | t" />
+    <label>
+      <span>{{ 'WEBPHONE.PAGE_SIZE' | t }}</span>
+      <select [(ngModel)]="pageSize" (ngModelChange)="pageIndex = 0">
+        @for (n of pageSizeOptions; track n) {
+          <option [ngValue]="n">{{ n }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" (click)="reload()" [disabled]="loading()">{{ 'ACTION.REFRESH' | t }}</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.STARTED' | t }}</th>
+          <th>{{ 'WEBPHONE.DIRECTION' | t }}</th>
+          <th>{{ 'WEBPHONE.WITH' | t }}</th>
+          <th>{{ 'WEBPHONE.DURATION' | t }}</th>
+          <th>{{ 'WEBPHONE.DISPOSITION' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of paged(); track row.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ row.startedAtUtc }}</td>
+            <td class="ltr" dir="ltr">{{ row.direction || '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.withNumber || row.displayName || '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.durationSeconds ?? '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.disposition || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">{{ 'WEBPHONE.EMPTY' | t }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="toolbar">
+    <button type="button" (click)="pageIndex = Math.max(0, pageIndex - 1)" [disabled]="pageIndex === 0">{{ 'WEBPHONE.PREV' | t }}</button>
+    <span class="ltr" dir="ltr">{{ pageIndex + 1 }} / {{ Math.max(1, Math.ceil(total() / pageSize)) }} ({{ total() }})</span>
+    <button type="button" (click)="pageIndex = pageIndex + 1" [disabled]="(pageIndex + 1) * pageSize >= total()">{{ 'WEBPHONE.NEXT' | t }}</button>
+  </div>
+</section>

@@ -1,0 +1,41 @@
+<section class="page">
+  <header class="page__head">
+    <h2>{{ 'WEBPHONE.REC_TITLE' | t }}</h2>
+    <p>{{ 'WEBPHONE.REC_SUBTITLE' | t }}</p>
+  </header>
+  @if (error(); as err) {
+    <p class="err" role="alert">{{ err }}</p>
+  }
+  <div class="toolbar">
+    <input type="search" class="ltr" dir="ltr" [(ngModel)]="quickSearch" [placeholder]="'WEBPHONE.SEARCH_PH' | t" />
+    <button type="button" (click)="reload()" [disabled]="loading()">{{ 'ACTION.REFRESH' | t }}</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.FILE' | t }}</th>
+          <th>{{ 'WEBPHONE.SIZE' | t }}</th>
+          <th>{{ 'WEBPHONE.CREATED' | t }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of filtered(); track row.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ row.fileName }}</td>
+            <td class="ltr" dir="ltr">{{ row.sizeBytes }}</td>
+            <td class="ltr" dir="ltr">{{ row.createdAtUtc }}</td>
+            <td>
+              <button type="button" (click)="download(row)" [disabled]="busyId() === row.id">
+                {{ 'WEBPHONE.DOWNLOAD' | t }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4">{{ 'WEBPHONE.EMPTY' | t }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

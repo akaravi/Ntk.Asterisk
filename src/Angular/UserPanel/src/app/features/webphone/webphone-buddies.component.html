@@ -1,0 +1,63 @@
+<section class="page">
+  <header class="page__head">
+    <h2>{{ 'WEBPHONE.BUDDIES_TITLE' | t }}</h2>
+    <p>{{ 'WEBPHONE.BUDDIES_SUBTITLE' | t }}</p>
+  </header>
+
+  @if (error(); as err) {
+    <p class="err" role="alert">{{ err }}</p>
+  }
+  @if (success(); as ok) {
+    <p class="ok" role="status">{{ ok }}</p>
+  }
+
+  <div class="toolbar">
+    <input
+      type="search"
+      class="ltr"
+      dir="ltr"
+      [(ngModel)]="quickSearch"
+      [placeholder]="'WEBPHONE.SEARCH_PH' | t"
+    />
+    <button type="button" (click)="reload()" [disabled]="loading()">{{ 'ACTION.REFRESH' | t }}</button>
+  </div>
+
+  <form class="add-form" (ngSubmit)="add()">
+    <label>
+      <span>{{ 'WEBPHONE.DISPLAY_NAME' | t }}</span>
+      <input [(ngModel)]="displayName" name="dn" [placeholder]="'WEBPHONE.DISPLAY_NAME_PH' | t" />
+    </label>
+    <label>
+      <span>{{ 'WEBPHONE.EXT_NO' | t }}</span>
+      <input class="ltr" dir="ltr" [(ngModel)]="extensionNumber" name="ext" [placeholder]="'WEBPHONE.EXT_NO_PH' | t" />
+    </label>
+    <label>
+      <span>{{ 'WEBPHONE.MOBILE' | t }}</span>
+      <input class="ltr" dir="ltr" [(ngModel)]="mobileNumber" name="mob" [placeholder]="'WEBPHONE.MOBILE_PH' | t" />
+    </label>
+    <button type="submit" [disabled]="busy()">{{ 'WEBPHONE.ADD' | t }}</button>
+  </form>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.DISPLAY_NAME' | t }}</th>
+          <th>{{ 'WEBPHONE.EXT_NO' | t }}</th>
+          <th>{{ 'WEBPHONE.MOBILE' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of filtered(); track row.id) {
+          <tr>
+            <td>{{ row.displayName }}</td>
+            <td class="ltr" dir="ltr">{{ row.extensionNumber || '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.mobileNumber || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="3">{{ 'WEBPHONE.EMPTY' | t }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

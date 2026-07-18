@@ -66,6 +66,47 @@ export const routes: Routes = [
             (m) => m.SettingsPageComponent,
           ),
       },
+      {
+        path: 'webphone/extensions',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./features/webphone/webphone-extensions-page.component').then(
+            (m) => m.WebphoneExtensionsPageComponent,
+          ),
+      },
+      {
+        path: 'webphone/buddies',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./features/webphone/webphone-buddies-page.component').then(
+            (m) => m.WebphoneBuddiesPageComponent,
+          ),
+      },
+      {
+        path: 'webphone/cdr',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./features/webphone/webphone-cdr-page.component').then(
+            (m) => m.WebphoneCdrPageComponent,
+          ),
+      },
+      {
+        path: 'webphone/recordings',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./features/webphone/webphone-recordings-page.component').then(
+            (m) => m.WebphoneRecordingsPageComponent,
+          ),
+      },
+      {
+        path: 'webphone/qos',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./features/webphone/webphone-qos-page.component').then(
+            (m) => m.WebphoneQosPageComponent,
+          ),
+      },
+      { path: 'webphone', pathMatch: 'full', redirectTo: 'webphone/extensions' },
     ],
   },
   { path: '**', redirectTo: 'connection' },

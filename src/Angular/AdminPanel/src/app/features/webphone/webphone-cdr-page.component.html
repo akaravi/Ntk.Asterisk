@@ -1,0 +1,40 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'WEBPHONE.CDR_TITLE' | translate }}</h1>
+      <p class="muted">{{ 'WEBPHONE.CDR_SUBTITLE' | translate }}</p>
+    </div>
+    <a routerLink="/webphone/extensions" class="btn btn--ghost">{{ 'NAV.WEBPHONE' | translate }}</a>
+  </header>
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+  <app-list-toolbar [query]="query" [totalCount]="totalCount()" [busy]="loading()" (queryChange)="onQueryChange($event)" (refresh)="reload()" />
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.STARTED' | translate }}</th>
+          <th>{{ 'WEBPHONE.DIRECTION' | translate }}</th>
+          <th>{{ 'WEBPHONE.WITH' | translate }}</th>
+          <th>{{ 'WEBPHONE.DURATION' | translate }}</th>
+          <th>{{ 'WEBPHONE.DISPOSITION' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ row.startedAtUtc }}</td>
+            <td class="ltr" dir="ltr">{{ row.direction || '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.withNumber || row.displayName || '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.durationSeconds ?? '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.disposition || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">{{ 'LIST.EMPTY' | translate }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

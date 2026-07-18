@@ -20,5 +20,25 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/jobs/jobs-list.component').then((m) => m.JobsListComponent),
   },
+  {
+    path: 'webphone/buddies',
+    canActivate: [authGateGuard],
+    loadComponent: () =>
+      import('./features/webphone/webphone-buddies.component').then((m) => m.WebphoneBuddiesComponent),
+  },
+  {
+    path: 'webphone/cdr',
+    canActivate: [authGateGuard],
+    loadComponent: () =>
+      import('./features/webphone/webphone-cdr.component').then((m) => m.WebphoneCdrComponent),
+  },
+  {
+    path: 'webphone/recordings',
+    canActivate: [authGateGuard],
+    loadComponent: () =>
+      import('./features/webphone/webphone-recordings.component').then(
+        (m) => m.WebphoneRecordingsComponent,
+      ),
+  },
   { path: '**', redirectTo: 'calls' },
 ];

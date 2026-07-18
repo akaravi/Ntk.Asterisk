@@ -1,6 +1,7 @@
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { environment } from '../environments/environment';
 import { TranslatePipe } from './core/i18n/translate.pipe';
 import { AppLocale, I18nService } from './core/i18n/i18n.service';
 import { AsteriskHubService } from './core/services/asterisk-hub.service';
@@ -62,6 +63,11 @@ export class AppComponent implements OnInit {
 
   setLocale(locale: AppLocale): void {
     this.i18n.setLocale(locale);
+  }
+
+  openSoftphone(): void {
+    const base = (environment.webPhoneUrl || 'http://localhost:5316').replace(/\/$/, '');
+    window.open(base + '/', '_blank', 'noopener,noreferrer');
   }
 
   logout(): void {

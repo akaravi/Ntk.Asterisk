@@ -1,0 +1,9 @@
+.page__head { margin-block-end: 1rem; }
+.toolbar, .add-form { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block-end: 1rem; align-items: end; }
+.add-form label { display: flex; flex-direction: column; gap: 0.25rem; }
+.err { color: var(--danger, #b00020); }
+.ok { color: var(--ok, #0a7a3e); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.5rem; border-block-end: 1px solid var(--border, #ddd); text-align: start; }
+.ltr { direction: ltr; text-align: left; }

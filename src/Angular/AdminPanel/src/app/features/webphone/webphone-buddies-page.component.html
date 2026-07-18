@@ -1,0 +1,92 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'WEBPHONE.BUDDIES_TITLE' | translate }}</h1>
+      <p class="muted">{{ 'WEBPHONE.BUDDIES_SUBTITLE' | translate }}</p>
+    </div>
+    <a routerLink="/webphone/extensions" class="btn btn--ghost">{{ 'NAV.WEBPHONE' | translate }}</a>
+  </header>
+
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+  @if (success(); as ok) {
+    <p class="banner banner--ok" role="status">{{ ok }}</p>
+  }
+
+  <article class="entity-card">
+    <h2 class="entity-card__title">
+      {{ (form.id ? 'WEBPHONE.EDIT_BUDDY' : 'WEBPHONE.ADD_BUDDY') | translate }}
+    </h2>
+    <div class="queue-acl__fields">
+      <label class="field">
+        <span>{{ 'WEBPHONE.DISPLAY_NAME' | translate }}</span>
+        <input [(ngModel)]="form.displayName" [placeholder]="'WEBPHONE.DISPLAY_NAME_PH' | translate" />
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.EXT_NO' | translate }}</span>
+        <input class="ltr" dir="ltr" [(ngModel)]="form.extensionNumber" [placeholder]="'WEBPHONE.EXT_NO_PH' | translate" />
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.TYPE' | translate }}</span>
+        <select [(ngModel)]="form.type">
+          <option value="extension">extension</option>
+          <option value="contact">contact</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.MOBILE' | translate }}</span>
+        <input class="ltr" dir="ltr" [(ngModel)]="form.mobileNumber" [placeholder]="'WEBPHONE.MOBILE_PH' | translate" />
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.EMAIL' | translate }}</span>
+        <input class="ltr" dir="ltr" [(ngModel)]="form.email" [placeholder]="'WEBPHONE.EMAIL_PH' | translate" />
+      </label>
+      <label class="field field--wide">
+        <span>{{ 'WEBPHONE.DESC' | translate }}</span>
+        <input [(ngModel)]="form.description" [placeholder]="'WEBPHONE.DESC_PH' | translate" />
+      </label>
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="form.subscribe" />
+        <span>{{ 'WEBPHONE.SUBSCRIBE' | translate }}</span>
+      </label>
+    </div>
+    <div class="queue-acl__actions">
+      <button type="button" class="btn btn--primary" (click)="save()" [disabled]="busy()">{{ 'WEBPHONE.SAVE' | translate }}</button>
+      <button type="button" class="btn btn--ghost" (click)="resetForm()">{{ 'WEBPHONE.RESET' | translate }}</button>
+    </div>
+  </article>
+
+  <app-list-toolbar [query]="query" [totalCount]="totalCount()" [busy]="loading()" (queryChange)="onQueryChange($event)" (refresh)="reload()" />
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.DISPLAY_NAME' | translate }}</th>
+          <th>{{ 'WEBPHONE.EXT_NO' | translate }}</th>
+          <th>{{ 'WEBPHONE.TYPE' | translate }}</th>
+          <th>{{ 'WEBPHONE.MOBILE' | translate }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td>{{ row.displayName }}</td>
+            <td class="ltr" dir="ltr">{{ row.extensionNumber || '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.type }}</td>
+            <td class="ltr" dir="ltr">{{ row.mobileNumber || '—' }}</td>
+            <td>
+              <button type="button" class="btn btn--ghost" (click)="edit(row)">{{ 'WEBPHONE.EDIT' | translate }}</button>
+              <button type="button" class="btn btn--ghost" (click)="remove(row)" [disabled]="busy()">{{ 'WEBPHONE.DELETE' | translate }}</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">{{ 'LIST.EMPTY' | translate }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

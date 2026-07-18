@@ -33,6 +33,10 @@
     <nav class="nav" aria-label="main">
       <a routerLink="/calls" routerLinkActive="active">{{ 'NAV.CALLS' | t }}</a>
       <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | t }}</a>
+      <a routerLink="/webphone/buddies" routerLinkActive="active">{{ 'NAV.WEBPHONE_BUDDIES' | t }}</a>
+      <a routerLink="/webphone/cdr" routerLinkActive="active">{{ 'NAV.WEBPHONE_CDR' | t }}</a>
+      <a routerLink="/webphone/recordings" routerLinkActive="active">{{ 'NAV.WEBPHONE_RECORDINGS' | t }}</a>
+      <button type="button" class="nav-softphone" (click)="openSoftphone()">{{ 'NAV.SOFTPHONE' | t }}</button>
     </nav>
   }
 

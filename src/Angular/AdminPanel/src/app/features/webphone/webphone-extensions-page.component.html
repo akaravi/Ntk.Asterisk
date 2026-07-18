@@ -1,0 +1,143 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'WEBPHONE.EXT_TITLE' | translate }}</h1>
+      <p class="muted">{{ 'WEBPHONE.EXT_SUBTITLE' | translate }}</p>
+    </div>
+    <div class="page__actions">
+      <button type="button" class="btn" (click)="openSoftphone()">
+        {{ 'WEBPHONE.OPEN_SOFTPHONE' | translate }}
+      </button>
+      <a routerLink="/webphone/buddies" class="btn btn--ghost">{{ 'NAV.WEBPHONE_BUDDIES' | translate }}</a>
+      <a routerLink="/webphone/cdr" class="btn btn--ghost">{{ 'NAV.WEBPHONE_CDR' | translate }}</a>
+      <a routerLink="/webphone/recordings" class="btn btn--ghost">{{ 'NAV.WEBPHONE_RECORDINGS' | translate }}</a>
+      <a routerLink="/webphone/qos" class="btn btn--ghost">{{ 'NAV.WEBPHONE_QOS' | translate }}</a>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+  @if (success(); as ok) {
+    <p class="banner banner--ok" role="status">{{ ok }}</p>
+  }
+
+  @if (options(); as opt) {
+    <article class="entity-card" aria-labelledby="wp-opts">
+      <h2 id="wp-opts" class="entity-card__title">{{ 'WEBPHONE.OPTIONS_TITLE' | translate }}</h2>
+      <p class="muted">{{ 'WEBPHONE.OPTIONS_HINT' | translate }}</p>
+      <ul class="wp-flags" dir="ltr">
+        <li>Transfer: {{ opt.enableTransfer }}</li>
+        <li>Conference: {{ opt.enableConference }}</li>
+        <li>RecordAll: {{ opt.enableRecordAll }}</li>
+        <li>Video: {{ opt.enableVideo }}</li>
+        <li>Presence: {{ opt.enablePresence }}</li>
+        <li>MWI: {{ opt.enableMwi }}</li>
+        <li>RequireApiKey: {{ opt.requireApiKey }}</li>
+      </ul>
+      <p class="muted ltr" dir="ltr">{{ webPhoneUrl }}/</p>
+    </article>
+  }
+
+  <article class="entity-card">
+    <h2 class="entity-card__title">
+      {{ (form.id ? 'WEBPHONE.EDIT_EXT' : 'WEBPHONE.ADD_EXT') | translate }}
+    </h2>
+    <div class="queue-acl__fields">
+      <label class="field">
+        <span>{{ 'WEBPHONE.SIP_USER' | translate }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          [(ngModel)]="form.sipUsername"
+          [placeholder]="'WEBPHONE.SIP_USER_PH' | translate"
+        />
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.SIP_PASS' | translate }}</span>
+        <input
+          type="password"
+          class="ltr"
+          dir="ltr"
+          [(ngModel)]="form.sipPassword"
+          [placeholder]="(form.id ? 'WEBPHONE.SIP_PASS_KEEP' : 'WEBPHONE.SIP_PASS_PH') | translate"
+        />
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.PROFILE' | translate }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          [(ngModel)]="form.profileName"
+          [placeholder]="'WEBPHONE.PROFILE_PH' | translate"
+        />
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.SERVER_ID' | translate }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          [(ngModel)]="form.serverId"
+          [placeholder]="'WEBPHONE.SERVER_ID_PH' | translate"
+        />
+      </label>
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="form.isEnabled" />
+        <span>{{ 'WEBPHONE.ENABLED' | translate }}</span>
+      </label>
+    </div>
+    <div class="queue-acl__actions">
+      <button type="button" class="btn btn--primary" (click)="save()" [disabled]="busy()">
+        {{ 'WEBPHONE.SAVE' | translate }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="resetForm()">{{ 'WEBPHONE.RESET' | translate }}</button>
+    </div>
+  </article>
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+  />
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.SIP_USER' | translate }}</th>
+          <th>{{ 'WEBPHONE.PROFILE' | translate }}</th>
+          <th>{{ 'WEBPHONE.SERVER_ID' | translate }}</th>
+          <th>{{ 'WEBPHONE.SECRET' | translate }}</th>
+          <th>{{ 'WEBPHONE.ENABLED' | translate }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ row.sipUsername }}</td>
+            <td class="ltr" dir="ltr">{{ row.profileName }}</td>
+            <td class="ltr" dir="ltr">{{ row.serverId || '—' }}</td>
+            <td>{{ row.secretConfigured ? ('WEBPHONE.SECRET_SET' | translate) : ('WEBPHONE.SECRET_MISSING' | translate) }}</td>
+            <td>{{ row.isEnabled ? ('WEBPHONE.YES' | translate) : ('WEBPHONE.NO' | translate) }}</td>
+            <td class="row-actions">
+              <button type="button" class="btn btn--ghost" (click)="edit(row)">{{ 'WEBPHONE.EDIT' | translate }}</button>
+              <button type="button" class="btn btn--ghost" (click)="remove(row)" [disabled]="busy()">
+                {{ 'WEBPHONE.DELETE' | translate }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6">{{ 'LIST.EMPTY' | translate }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

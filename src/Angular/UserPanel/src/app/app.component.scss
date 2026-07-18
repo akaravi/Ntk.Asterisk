@@ -175,6 +175,24 @@
   font-weight: 600;
 }
 
+.nav-softphone {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+  color: var(--ink-soft);
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.nav-softphone:hover {
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+
 .content {
   padding: var(--space-5);
   width: min(1180px, 100%);

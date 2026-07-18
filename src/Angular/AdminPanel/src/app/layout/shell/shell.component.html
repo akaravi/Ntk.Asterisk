@@ -16,6 +16,7 @@
       <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | translate }}</a>
       <a routerLink="/events" routerLinkActive="active">{{ 'NAV.EVENTS' | translate }}</a>
       @if (!gateActive() || isAdmin()) {
+        <a routerLink="/webphone/extensions" routerLinkActive="active">{{ 'NAV.WEBPHONE' | translate }}</a>
         <a routerLink="/settings" routerLinkActive="active">{{ 'NAV.SETTINGS' | translate }}</a>
       }
     </nav>

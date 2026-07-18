@@ -1,0 +1,42 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'WEBPHONE.QOS_TITLE' | translate }}</h1>
+      <p class="muted">{{ 'WEBPHONE.QOS_SUBTITLE' | translate }}</p>
+    </div>
+    <a routerLink="/webphone/extensions" class="btn btn--ghost">{{ 'NAV.WEBPHONE' | translate }}</a>
+  </header>
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+  <app-list-toolbar [query]="query" [totalCount]="totalCount()" [busy]="loading()" (queryChange)="onQueryChange($event)" (refresh)="reload()" />
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.AT' | translate }}</th>
+          <th>MOS</th>
+          <th>{{ 'WEBPHONE.LOSS' | translate }}</th>
+          <th>{{ 'WEBPHONE.JITTER' | translate }}</th>
+          <th>RTT</th>
+          <th>{{ 'WEBPHONE.CALL_ID' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ row.atUtc }}</td>
+            <td class="ltr" dir="ltr">{{ row.mos ?? '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.packetLossPct ?? '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.jitterMs ?? '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.rttMs ?? '—' }}</td>
+            <td class="ltr" dir="ltr">{{ row.callId || '—' }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6">{{ 'LIST.EMPTY' | translate }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

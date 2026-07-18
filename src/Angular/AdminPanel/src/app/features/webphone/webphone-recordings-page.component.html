@@ -1,0 +1,42 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'WEBPHONE.REC_TITLE' | translate }}</h1>
+      <p class="muted">{{ 'WEBPHONE.REC_SUBTITLE' | translate }}</p>
+    </div>
+    <a routerLink="/webphone/extensions" class="btn btn--ghost">{{ 'NAV.WEBPHONE' | translate }}</a>
+  </header>
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+  <app-list-toolbar [query]="query" [totalCount]="totalCount()" [busy]="loading()" (queryChange)="onQueryChange($event)" (refresh)="reload()" />
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'WEBPHONE.FILE' | translate }}</th>
+          <th>{{ 'WEBPHONE.SIZE' | translate }}</th>
+          <th>{{ 'WEBPHONE.CREATED' | translate }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ row.fileName }}</td>
+            <td class="ltr" dir="ltr">{{ row.sizeBytes }}</td>
+            <td class="ltr" dir="ltr">{{ row.createdAtUtc }}</td>
+            <td>
+              <button type="button" class="btn btn--ghost" (click)="download(row)" [disabled]="busyId() === row.id">
+                {{ 'WEBPHONE.DOWNLOAD' | translate }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4">{{ 'LIST.EMPTY' | translate }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

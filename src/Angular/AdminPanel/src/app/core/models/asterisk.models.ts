@@ -202,6 +202,13 @@ export interface SiteSettings {
   queueRenameMap?: string | null;
   callFileStagingDirectory?: string | null;
   callFileOutgoingDirectory?: string | null;
+  sipWebsocketUrl?: string | null;
+  sipWebsocketHost?: string | null;
+  sipDomain?: string | null;
+  webSocketPath?: string | null;
+  webSocketPort?: number | null;
+  sipUseTls?: boolean;
+  stunServersJson?: string | null;
 }
 
 /** One Asterisk AMI server in the multi-server registry. */
@@ -236,6 +243,13 @@ export interface AsteriskServer {
   queueRenameMap?: string | null;
   callFileStagingDirectory?: string | null;
   callFileOutgoingDirectory?: string | null;
+  sipWebsocketUrl?: string | null;
+  sipWebsocketHost?: string | null;
+  sipDomain?: string | null;
+  webSocketPath?: string | null;
+  webSocketPort?: number | null;
+  sipUseTls?: boolean;
+  stunServersJson?: string | null;
 }
 
 export interface SiteSettingsUpdateRequest {
@@ -266,6 +280,13 @@ export interface SiteSettingsUpdateRequest {
   queueRenameMap?: string | null;
   callFileStagingDirectory?: string | null;
   callFileOutgoingDirectory?: string | null;
+  sipWebsocketUrl?: string | null;
+  sipWebsocketHost?: string | null;
+  sipDomain?: string | null;
+  webSocketPath?: string | null;
+  webSocketPort?: number | null;
+  sipUseTls?: boolean | null;
+  stunServersJson?: string | null;
   reconnectAfterSave?: boolean;
 }
 
@@ -305,6 +326,13 @@ export interface AsteriskServerAddRequest {
   queueRenameMap?: string | null;
   callFileStagingDirectory?: string | null;
   callFileOutgoingDirectory?: string | null;
+  sipWebsocketUrl?: string | null;
+  sipWebsocketHost?: string | null;
+  sipDomain?: string | null;
+  webSocketPath?: string | null;
+  webSocketPort?: number | null;
+  sipUseTls?: boolean | null;
+  stunServersJson?: string | null;
   reconnectAfterSave?: boolean;
 }
 

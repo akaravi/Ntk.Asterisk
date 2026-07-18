@@ -242,3 +242,24 @@
 - **SW:** `ntk-webphone-v3`
 - **Verify:** WebApi Release 0/0 � solution Release � secrets-scan PASS � docs+seed OK
 - **Deferred:** D-XMPP / D-SFU / D-NG (Wave 6+)
+
+## 2026-07-18 (Asia/Tehran) - Karavi.013 WebPhone panels complete
+- **Goal:** Surface `/api/v1/WebPhone/*` on AdminPanel (manage) + UserPanel (consume) with softphone deep-link to `:5316`
+- **Admin:** Settings SECTION_WEBPHONE SIP/WSS; Extensions CRUD + Options read-only; Buddies/CDR/Recordings/QoS; nav + adminRoleGuard
+- **User:** Softphone open; Buddies (add/list); CDR; Recordings download; no Extensions
+- **Verify:** AdminPanel + UserPanel `ng build --configuration=production` exit 0
+- **Plan:** Karavi.013 planVersion 1.0.1 Status=complete Parts 1-5
+
+## 2026-07-18 (Asia/Tehran) - SHIP-READY autonomous verify loop
+- **Command:** SHIP-READY execute plan full autonomous loop until final verification
+- **Plans:** Karavi.001-013 Parts complete (Wave6 deferred XMPP/SFU/Angular rewrite unchanged)
+- **Gap fix:** src/WebPhone/Ntk.Asterisk.WebPhone missing on disk vs solution - restored from src/Html/Ntk.Asterisk.WebPhone (NTK-patched softphone); solution build unblocked
+- **verify-gates:** karavi-structure OK; dotnet build Ntk.Asterisk.sln -c Release 0 errors; AdminPanel + UserPanel production ng build exit 0; secrets-scan PASS (base appsettings null placeholders only)
+- **Residual:** solution+docs use src/WebPhone; git tracks mirror src/Html (118). Both on disk synced. Next commit: git mv Html->WebPhone
+- **No:** commit / push / FTP / Deploy
+
+## 2026-07-18 (Asia/Tehran) - WebPhone path Html to WebPhone
+- **Request:** continue residual from SHIP-READY
+- **Action:** relocate tracked softphone src/Html/Ntk.Asterisk.WebPhone -> src/WebPhone/Ntk.Asterisk.WebPhone (index rename staged; Html disk removed after stopping locked WebPhone.exe)
+- **Verify:** WebPhone Release build 0/0; solution path matches docs/rule
+- **No commit** unless user requests

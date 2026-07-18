@@ -461,6 +461,77 @@
             </fieldset>
 
             <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_WEBPHONE' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_WEBPHONE_HINT' | translate }}</p>
+              <div class="settings__fields">
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.SIP_WSS_URL' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="sipWebsocketUrl"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.SIP_WSS_URL_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.SIP_WSS_HOST' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="sipWebsocketHost"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.SIP_WSS_HOST_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.SIP_DOMAIN' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="sipDomain"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.SIP_DOMAIN_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.SIP_WS_PATH' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="webSocketPath"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.SIP_WS_PATH_PH' | translate"
+                  />
+                </label>
+                <label class="field field--narrow">
+                  <span>{{ 'SETTINGS.SIP_WS_PORT' | translate }}</span>
+                  <input
+                    type="number"
+                    formControlName="webSocketPort"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.SIP_WS_PORT_PH' | translate"
+                  />
+                </label>
+                <label class="check">
+                  <input type="checkbox" formControlName="sipUseTls" />
+                  <span>{{ 'SETTINGS.SIP_USE_TLS' | translate }}</span>
+                </label>
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.STUN_JSON' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="stunServersJson"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.STUN_JSON_PH' | translate"
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="settings__section">
               <legend class="settings__legend">{{ 'SETTINGS.SECTION_SESSION' | translate }}</legend>
               <p class="settings__section-hint">{{ 'SETTINGS.SECTION_SESSION_HINT' | translate }}</p>
               <div class="settings__fields settings__fields--session">

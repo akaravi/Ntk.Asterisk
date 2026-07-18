@@ -378,3 +378,7 @@ src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-d28b107aa9a34d73a83cd41e0
 src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-f728b92e91264ff58a755b5f5d1178b1.wav
 src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-fca96ec64c7e49f2ae1fa9d07aa7f338.wav
 src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-ae76f3a5116f479cbc0c8709d1c76a76.wav
+
+**/App_Data/queue-stats-snapshots.json
+**/App_Data/queue-stats-snapshots.json.tmp
+
