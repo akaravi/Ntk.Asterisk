@@ -1,0 +1,16 @@
+# .dockerignore for WebApi image build (context = repo root)
+**/.git
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.angular
+**/App_Data/*.json
+!**/App_Data/*.example
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/launchSettings.json
+karavi/karavi.logs
+karavi/karavi.build.files
+karavi/karavi.deploy.files
+karavi/karavi.publish.files

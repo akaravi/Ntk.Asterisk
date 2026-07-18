@@ -1,0 +1,24 @@
+# Local compose — WebApi only (AMI host must be reachable from container network)
+# From repo root:
+#   docker compose -f src/DotNet/Ntk.Asterisk.WebApi/docker-compose.yml up --build
+#
+# Mount App_Data for persistence. Never mount appsettings.Development.json into production containers.
+
+services:
+  webapi:
+    build:
+      context: ../../..
+      dockerfile: src/DotNet/Ntk.Asterisk.WebApi/Dockerfile
+    ports:
+      - "5310:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Override AMI via env if your host maps Asterisk__Host etc.
+      # Asterisk__Host: host.docker.internal
+    volumes:
+      - webapi-app-data:/app/App_Data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  webapi-app-data:

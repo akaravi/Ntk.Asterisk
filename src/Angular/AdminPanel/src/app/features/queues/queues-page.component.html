@@ -1,0 +1,171 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1>{{ 'NAV.QUEUES' | translate }}</h1>
+      <p class="page__header-sub">{{ 'QUEUES.SUBTITLE' | translate }}</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="banner banner--error" role="alert">{{ error() }}</p>
+  }
+  @if (success()) {
+    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+  }
+
+  <div class="queues-toolbar-extra">
+    <label class="field">
+      <span>{{ 'QUEUES.SPY_SUPERVISOR' | translate }}</span>
+      <input
+        type="text"
+        dir="ltr"
+        class="input"
+        [(ngModel)]="spySupervisor"
+        (ngModelChange)="onSpySupervisorChange()"
+        [placeholder]="'QUEUES.SPY_SUPERVISOR_PH' | translate"
+      />
+    </label>
+    <label class="field">
+      <span>{{ 'QUEUES.PAUSE_REASON' | translate }}</span>
+      <input
+        type="text"
+        class="input"
+        [(ngModel)]="pauseReason"
+        [placeholder]="'QUEUES.PAUSE_REASON_PH' | translate"
+      />
+    </label>
+  </div>
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+    (print)="printTable()"
+    (exportPdf)="exportPdf()"
+    (exportExcel)="exportExcel()"
+  />
+
+  <div class="entity-board" [attr.aria-busy]="loading() || actionBusy()">
+    @if (loading()) {
+      <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+    } @else if (queuesRows().length === 0) {
+      <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+    } @else {
+      @for (q of queuesRows(); track q.name) {
+        <article class="entity-card queue-card" [attr.data-open]="expanded() === q.name">
+          <header class="entity-card__head">
+            <button type="button" class="queue-card__toggle" (click)="toggleExpand(q.name)">
+              <span class="entity-card__title" dir="ltr">{{ q.name }}</span>
+              <span class="muted" dir="ltr">{{ q.strategy || '—' }}</span>
+            </button>
+            <div class="queue-card__stats" dir="ltr">
+              <span class="stat-chip">{{ 'QUEUES.WAITING' | translate }}: {{ q.callsWaiting }}</span>
+              <span class="stat-chip">{{ 'QUEUES.COMPLETED' | translate }}: {{ q.completed }}</span>
+              <span class="stat-chip">{{ 'QUEUES.ABANDONED' | translate }}: {{ q.abandoned }} ({{
+                q.abandonedPercent
+              }}%)</span>
+              <span class="stat-chip">SL: {{ q.serviceLevelPerf }}%</span>
+            </div>
+          </header>
+
+          @if (expanded() === q.name) {
+            <div class="queue-card__body">
+              <p class="muted queue-meta" dir="ltr">
+                hold {{ q.holdtimeSeconds }}s · talk {{ q.talkTimeSeconds }}s · max {{ q.max }} · weight
+                {{ q.weight }} · snapshot {{ q.snapshotUtc | date: 'medium' }}
+              </p>
+
+              <h3>{{ 'QUEUES.MEMBERS' | translate }}</h3>
+              @if (q.members.length === 0) {
+                <p class="muted">{{ 'LIST.EMPTY' | translate }}</p>
+              } @else {
+                <ul class="queue-list">
+                  @for (m of q.members; track m.interface) {
+                    <li class="queue-list__row">
+                      <div>
+                        <strong>{{ m.name || m.interface }}</strong>
+                        <span class="status-pill" [attr.data-status]="m.paused ? 'paused' : 'ok'" dir="ltr">{{
+                          m.statusLabel
+                        }}</span>
+                        <p class="muted" dir="ltr">{{ m.interface }} · penalty {{ m.penalty }} · taken {{
+                          m.callsTaken
+                        }}</p>
+                        @if (m.pausedReason) {
+                          <p class="muted">{{ m.pausedReason }}</p>
+                        }
+                      </div>
+                      <div class="queue-list__actions">
+                        @if (m.paused) {
+                          <button
+                            type="button"
+                            class="btn"
+                            [disabled]="actionBusy()"
+                            (click)="unpauseMember(q, m)"
+                          >
+                            {{ 'QUEUES.UNPAUSE' | translate }}
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            class="btn"
+                            [disabled]="actionBusy()"
+                            (click)="pauseMember(q, m)"
+                          >
+                            {{ 'QUEUES.PAUSE' | translate }}
+                          </button>
+                        }
+                        @for (sm of spyModes; track sm.mode) {
+                          <button
+                            type="button"
+                            class="btn btn--ghost"
+                            [disabled]="actionBusy()"
+                            (click)="spyOnMember(m, sm.mode)"
+                          >
+                            {{ sm.labelKey | translate }}
+                          </button>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+
+              <h3>{{ 'QUEUES.ENTRIES' | translate }}</h3>
+              @if (q.entries.length === 0) {
+                <p class="muted">{{ 'QUEUES.NO_ENTRIES' | translate }}</p>
+              } @else {
+                <ul class="queue-list">
+                  @for (e of q.entries; track e.position + (e.channel || '')) {
+                    <li class="queue-list__row">
+                      <div>
+                        <strong dir="ltr">#{{ e.position }} {{ e.callerId || '—' }}</strong>
+                        <p class="muted" dir="ltr">
+                          wait {{ e.waitSeconds }}s · pri {{ e.priority }} · {{ e.channel || '—' }}
+                        </p>
+                      </div>
+                      <div class="queue-list__actions">
+                        <button
+                          type="button"
+                          class="btn btn--danger"
+                          [disabled]="actionBusy() || !e.channel"
+                          (click)="hangupEntry(e)"
+                        >
+                          {{ 'QUEUES.HANGUP' | translate }}
+                        </button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+        </article>
+      }
+    }
+  </div>
+
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

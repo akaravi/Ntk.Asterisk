@@ -1,0 +1,30 @@
+---
+description: Ntk.Asterisk.WebApi is API-only — no UI, no static softphone hosting
+globs: src/DotNet/Ntk.Asterisk.WebApi/**
+alwaysApply: true
+---
+
+# WebApi — API only (no UI)
+
+`src/DotNet/Ntk.Asterisk.WebApi` is a **pure HTTP API** host (controllers, SignalR, Swagger, health).
+
+## Forbidden in WebApi
+
+- `wwwroot/` UI / softphone / SPA / HTML pages
+- `UseStaticFiles` / `UseDefaultFiles` for product UI
+- Razor/Blazor/MVC views serving end-user UI
+- Embedding Browser Phone / WebPhone static assets
+
+## Where UI lives
+
+| Surface | Path |
+|---------|------|
+| Softphone (SipJS Browser Phone) | `src/WebPhone/Ntk.Asterisk.WebPhone` |
+| Admin panel | `src/Angular/AdminPanel` |
+| User panel | `src/Angular/UserPanel` |
+
+WebPhone calls WebApi over CORS via `WebPhoneUi:ApiBaseUrl` / `phoneOptions.webPhoneApiBase` — never co-host UI under WebApi.
+
+## Agent checklist
+
+When editing WebApi: REST/SignalR/stores only. Softphone changes → `src/WebPhone/`.

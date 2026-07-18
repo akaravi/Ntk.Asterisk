@@ -9,6 +9,9 @@
   @if (error()) {
     <p class="banner banner--error" role="alert">{{ error() }}</p>
   }
+  @if (success()) {
+    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+  }
 
   <div class="status-grid" aria-live="polite">
     <article class="stat" [class.stat--ok]="hubConnected()" [class.stat--bad]="!hubConnected()">
@@ -34,6 +37,32 @@
       @if (liveStatus()?.serverName) {
         <p class="muted">{{ liveStatus()!.serverName }}</p>
       }
+      <div class="stat__actions">
+        <button
+          type="button"
+          class="btn btn--primary btn--xs"
+          [disabled]="actionBusy() || !!liveStatus()?.connected"
+          (click)="connectLive(liveStatus()?.serverId)"
+        >
+          {{ 'CONNECTION.CONNECT' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn--ghost btn--xs"
+          [disabled]="actionBusy()"
+          (click)="connectAll()"
+        >
+          {{ 'CONNECTION.CONNECT_ALL' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn--danger btn--xs"
+          [disabled]="actionBusy() || !liveStatus()?.connected"
+          (click)="disconnectLive(liveStatus()?.serverId)"
+        >
+          {{ 'CONNECTION.DISCONNECT' | translate }}
+        </button>
+      </div>
     </article>
     <article class="stat">
       <h2>{{ 'CONNECTION.ENABLED_COUNT' | translate }}</h2>
@@ -96,7 +125,7 @@
             <div>
               <dt>{{ 'CONNECTION.UPTIME' | translate }}</dt>
               <dd class="ltr">
-                {{ s.isLiveSession && s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
+                {{ s.connected && s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
               </dd>
             </div>
             @if (s.asteriskVersion) {
@@ -110,6 +139,25 @@
           @if (s.lastError) {
             <p class="banner banner--warn connection__row-error" role="status">{{ s.lastError }}</p>
           }
+
+          <footer class="entity-card__foot">
+            <button
+              type="button"
+              class="btn btn--primary btn--xs"
+              [disabled]="rowBusy(s.serverId) || s.connected || !s.configured"
+              (click)="connectLive(s.serverId)"
+            >
+              {{ 'CONNECTION.CONNECT' | translate }}
+            </button>
+            <button
+              type="button"
+              class="btn btn--danger btn--xs"
+              [disabled]="rowBusy(s.serverId) || !s.connected"
+              (click)="disconnectLive(s.serverId)"
+            >
+              {{ 'CONNECTION.DISCONNECT' | translate }}
+            </button>
+          </footer>
         </article>
       }
     }

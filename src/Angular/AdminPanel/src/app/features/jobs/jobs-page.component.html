@@ -13,6 +13,123 @@
     <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
   }
 
+  <article class="entity-card callfile-card">
+    <header class="entity-card__head">
+      <div class="entity-card__identity">
+        <h2 class="entity-card__title">{{ 'JOBS.CALLFILE_TITLE' | translate }}</h2>
+      </div>
+    </header>
+    <p class="muted callfile-card__hint">{{ 'JOBS.CALLFILE_HINT' | translate }}</p>
+    <form class="callfile-form" [formGroup]="callFileForm" (ngSubmit)="submitCallFile()" novalidate>
+      <div class="callfile-form__grid">
+        <label class="field">
+          <span>{{ 'JOBS.CALLFILE_CHANNEL' | translate }}</span>
+          <input
+            type="text"
+            formControlName="channel"
+            class="ltr"
+            dir="ltr"
+            [placeholder]="'JOBS.CALLFILE_CHANNEL_PH' | translate"
+          />
+        </label>
+        <label class="field">
+          <span>{{ 'JOBS.CALLFILE_CALLER_ID' | translate }}</span>
+          <input
+            type="text"
+            formControlName="callerId"
+            class="ltr"
+            dir="ltr"
+            [placeholder]="'JOBS.CALLFILE_CALLER_ID_PH' | translate"
+          />
+        </label>
+        <label class="field field--narrow">
+          <span>{{ 'JOBS.CALLFILE_WAIT' | translate }}</span>
+          <input type="number" formControlName="waitTimeSec" class="ltr" dir="ltr" [placeholder]="'JOBS.CALLFILE_WAIT_PH' | translate" />
+        </label>
+        <label class="field field--narrow">
+          <span>{{ 'JOBS.CALLFILE_RETRIES' | translate }}</span>
+          <input type="number" formControlName="maxRetries" class="ltr" dir="ltr" [placeholder]="'JOBS.CALLFILE_RETRIES_PH' | translate" />
+        </label>
+        <label class="field field--narrow">
+          <span>{{ 'JOBS.CALLFILE_RETRY_TIME' | translate }}</span>
+          <input type="number" formControlName="retryTimeSec" class="ltr" dir="ltr" [placeholder]="'JOBS.CALLFILE_RETRY_TIME_PH' | translate" />
+        </label>
+        <label class="field field--narrow">
+          <span>{{ 'JOBS.CALLFILE_ARCHIVE' | translate }}</span>
+          <select formControlName="archive" class="ltr" dir="ltr">
+            <option value="yes">yes</option>
+            <option value="no">no</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>{{ 'JOBS.CALLFILE_MODE' | translate }}</span>
+          <select formControlName="mode" class="ltr" dir="ltr">
+            <option value="app">{{ 'JOBS.CALLFILE_MODE_APP' | translate }}</option>
+            <option value="ctx">{{ 'JOBS.CALLFILE_MODE_CTX' | translate }}</option>
+          </select>
+        </label>
+        @if (callFileForm.controls.mode.value === 'app') {
+          <label class="field">
+            <span>{{ 'JOBS.CALLFILE_APPLICATION' | translate }}</span>
+            <input
+              type="text"
+              formControlName="application"
+              class="ltr"
+              dir="ltr"
+              [placeholder]="'JOBS.CALLFILE_APPLICATION_PH' | translate"
+            />
+          </label>
+          <label class="field">
+            <span>{{ 'JOBS.CALLFILE_DATA' | translate }}</span>
+            <input
+              type="text"
+              formControlName="data"
+              class="ltr"
+              dir="ltr"
+              [placeholder]="'JOBS.CALLFILE_DATA_PH' | translate"
+            />
+          </label>
+        } @else {
+          <label class="field">
+            <span>{{ 'JOBS.CALLFILE_CONTEXT' | translate }}</span>
+            <input
+              type="text"
+              formControlName="context"
+              class="ltr"
+              dir="ltr"
+              [placeholder]="'JOBS.CALLFILE_CONTEXT_PH' | translate"
+            />
+          </label>
+          <label class="field">
+            <span>{{ 'JOBS.CALLFILE_EXTENSION' | translate }}</span>
+            <input
+              type="text"
+              formControlName="extension"
+              class="ltr"
+              dir="ltr"
+              [placeholder]="'JOBS.CALLFILE_EXTENSION_PH' | translate"
+            />
+          </label>
+          <label class="field field--narrow">
+            <span>{{ 'JOBS.CALLFILE_PRIORITY' | translate }}</span>
+            <input
+              type="text"
+              formControlName="priority"
+              class="ltr"
+              dir="ltr"
+              [placeholder]="'JOBS.CALLFILE_PRIORITY_PH' | translate"
+            />
+          </label>
+        }
+      </div>
+      <div class="callfile-form__actions">
+        <button type="submit" class="btn" [disabled]="callFileBusy()">
+          {{ callFileBusy() ? ('ACTION.LOADING' | translate) : ('JOBS.CALLFILE_SUBMIT' | translate) }}
+        </button>
+      </div>
+    </form>
+  </article>
+
   <app-list-toolbar
     [query]="query"
     [totalCount]="totalCount()"

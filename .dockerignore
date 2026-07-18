@@ -1,0 +1,23 @@
+# Docker build context = repo root (see WebApi Dockerfile)
+.git
+**/.vs
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/.angular
+**/App_Data/*.json
+!**/App_Data/*.example
+**/App_Data/webphone-extensions.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/launchSettings.json
+karavi/karavi.logs
+karavi/karavi.build.files
+karavi/karavi.deploy.files
+karavi/karavi.publish.files
+src/Angular
+src/DotNet/Asterisk.*
+src/DotNet/Ntk.AsterNet.ARI
+*.md
+!karavi/karavi.doc/**

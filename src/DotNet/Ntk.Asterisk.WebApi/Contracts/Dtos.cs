@@ -26,8 +26,17 @@ public sealed class ConnectionStatusDto
     public string? Username { get; init; }
     public bool IsEnabled { get; init; } = true;
     public bool IsDefault { get; init; }
-    /// <summary>True when this row is the live AmiSession target.</summary>
+    /// <summary>
+    /// True when this row is a persistent live endpoint (connected, ops primary, or previously opened).
+    /// False only when never opened as live (legacy clients treated probe rows as false).
+    /// </summary>
     public bool IsLiveSession { get; init; }
+}
+
+public sealed class ConnectionServerRequest
+{
+    /// <summary>Optional server id; null/blank → active default (ops) server.</summary>
+    public string? ServerId { get; set; }
 }
 
 public sealed class PeerDto
@@ -76,6 +85,22 @@ public sealed class BridgeRequest
     public string Channel1 { get; set; } = string.Empty;
     public string Channel2 { get; set; } = string.Empty;
     public string Tone { get; set; } = "no";
+}
+
+/// <summary>
+/// Supervisor ExtenSpy (Voip.AsteriskChanSpyPro modes via AMI Originate).
+/// Modes: listen | quiet | whisper | privateWhisper | barge | dtmf
+/// </summary>
+public sealed class ChanSpyRequest
+{
+    /// <summary>Extension that will be dialed to become the spy channel (supervisor).</summary>
+    public string SupervisorExtension { get; set; } = string.Empty;
+    /// <summary>Target extension whose active call is spied (ExtenSpy arg).</summary>
+    public string TargetExtension { get; set; } = string.Empty;
+    /// <summary>listen | quiet | whisper | privateWhisper | barge | dtmf</summary>
+    public string Mode { get; set; } = "listen";
+    /// <summary>Optional originate timeout seconds (default from settings).</summary>
+    public int? TimeoutSec { get; set; }
 }
 
 public sealed class CallJobAddRequest
@@ -156,6 +181,11 @@ public sealed class ConfigVisibilityDto
     public string? ServerName { get; init; }
     public bool IsEnabled { get; init; } = true;
     public bool IsDefault { get; init; } = true;
+    public string? QueueHideList { get; init; }
+    public string? QueueShowList { get; init; }
+    public string? QueueRenameMap { get; init; }
+    public string? CallFileStagingDirectory { get; init; }
+    public string? CallFileOutgoingDirectory { get; init; }
 }
 
 /// <summary>List/detail DTO for multi-server Admin management (secret never returned).</summary>
@@ -186,6 +216,18 @@ public sealed class AsteriskServerDto
     public string? RecordingHttpBaseUrl { get; init; }
     public string? RecordingAsteriskDirectory { get; init; }
     public string RecordingFormat { get; init; } = "wav";
+    public string? SipWebsocketUrl { get; init; }
+    public string? SipWebsocketHost { get; init; }
+    public string? SipDomain { get; init; }
+    public string? WebSocketPath { get; init; }
+    public int? WebSocketPort { get; init; }
+    public bool SipUseTls { get; init; }
+    public string? StunServersJson { get; init; }
+    public string? QueueHideList { get; init; }
+    public string? QueueShowList { get; init; }
+    public string? QueueRenameMap { get; init; }
+    public string? CallFileStagingDirectory { get; init; }
+    public string? CallFileOutgoingDirectory { get; init; }
 }
 
 public sealed class AsteriskServerAddRequest
@@ -213,6 +255,18 @@ public sealed class AsteriskServerAddRequest
     public string? RecordingHttpBaseUrl { get; set; }
     public string? RecordingAsteriskDirectory { get; set; }
     public string? RecordingFormat { get; set; }
+    public string? SipWebsocketUrl { get; set; }
+    public string? SipWebsocketHost { get; set; }
+    public string? SipDomain { get; set; }
+    public string? WebSocketPath { get; set; }
+    public int? WebSocketPort { get; set; }
+    public bool? SipUseTls { get; set; }
+    public string? StunServersJson { get; set; }
+    public string? QueueHideList { get; set; }
+    public string? QueueShowList { get; set; }
+    public string? QueueRenameMap { get; set; }
+    public string? CallFileStagingDirectory { get; set; }
+    public string? CallFileOutgoingDirectory { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }
 
@@ -243,6 +297,18 @@ public sealed class AsteriskServerUpdateRequest
     public string? RecordingHttpBaseUrl { get; set; }
     public string? RecordingAsteriskDirectory { get; set; }
     public string? RecordingFormat { get; set; }
+    public string? SipWebsocketUrl { get; set; }
+    public string? SipWebsocketHost { get; set; }
+    public string? SipDomain { get; set; }
+    public string? WebSocketPath { get; set; }
+    public int? WebSocketPort { get; set; }
+    public bool? SipUseTls { get; set; }
+    public string? StunServersJson { get; set; }
+    public string? QueueHideList { get; set; }
+    public string? QueueShowList { get; set; }
+    public string? QueueRenameMap { get; set; }
+    public string? CallFileStagingDirectory { get; set; }
+    public string? CallFileOutgoingDirectory { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }
 
@@ -267,6 +333,33 @@ public sealed class LiveEventDto
     public string? UniqueId { get; init; }
     public string? Privilege { get; init; }
     public IReadOnlyDictionary<string, string>? Attributes { get; init; }
+}
+
+public sealed class CallFileAddRequest
+{
+    /// <summary>e.g. PJSIP/1001 or Local/0912…@from-internal</summary>
+    public string Channel { get; set; } = string.Empty;
+    public string? CallerId { get; set; }
+    public int? WaitTimeSec { get; set; }
+    public int? MaxRetries { get; set; }
+    public int? RetryTimeSec { get; set; }
+    /// <summary>yes | no</summary>
+    public string Archive { get; set; } = "yes";
+    public string? Application { get; set; }
+    public string? Data { get; set; }
+    public string? Context { get; set; }
+    public string? Extension { get; set; }
+    public string? Priority { get; set; }
+    public Dictionary<string, string>? SetVars { get; set; }
+}
+
+public sealed class CallFileDto
+{
+    public string FileName { get; init; } = string.Empty;
+    public string Channel { get; init; } = string.Empty;
+    public string? OutgoingPath { get; init; }
+    public string Mode { get; init; } = string.Empty;
+    public DateTimeOffset CreatedAtUtc { get; init; }
 }
 
 public sealed class AsteriskSiteSettingsUpdateRequest
@@ -295,5 +388,10 @@ public sealed class AsteriskSiteSettingsUpdateRequest
     public string? RecordingHttpBaseUrl { get; set; }
     public string? RecordingAsteriskDirectory { get; set; }
     public string? RecordingFormat { get; set; }
+    public string? QueueHideList { get; set; }
+    public string? QueueShowList { get; set; }
+    public string? QueueRenameMap { get; set; }
+    public string? CallFileStagingDirectory { get; set; }
+    public string? CallFileOutgoingDirectory { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }

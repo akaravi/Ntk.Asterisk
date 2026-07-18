@@ -50,6 +50,42 @@ public sealed class AsteriskOptions
 
     public string RecordingFormat { get; set; } = "wav";
 
+    public string? SipWebsocketUrl { get; set; }
+    public string? SipWebsocketHost { get; set; }
+    public string? SipDomain { get; set; }
+    public string? WebSocketPath { get; set; } = "/ws";
+    public int? WebSocketPort { get; set; } = 8089;
+    public bool SipUseTls { get; set; }
+    public string? StunServersJson { get; set; }
+
+    /// <summary>
+    /// Comma/newline list of AMI queue names to hide (ignored when QueueShowList is set).
+    /// QPanel parity: general.hide
+    /// </summary>
+    public string? QueueHideList { get; set; }
+
+    /// <summary>
+    /// Comma/newline allow-list of AMI queue names. When non-empty, only these are shown.
+    /// QPanel parity: general.show
+    /// </summary>
+    public string? QueueShowList { get; set; }
+
+    /// <summary>
+    /// Rename map: lines <c>realName=Display Name</c> (or JSON object). AMI name stays for actions.
+    /// QPanel parity: [rename] section.
+    /// </summary>
+    public string? QueueRenameMap { get; set; }
+
+    /// <summary>
+    /// Staging dir for .call files (same volume as outgoing). Empty → App_Data/callfile-staging.
+    /// </summary>
+    public string? CallFileStagingDirectory { get; set; }
+
+    /// <summary>
+    /// Asterisk outgoing spool visible to WebApi (UNC of /var/spool/asterisk/outgoing). Required to submit.
+    /// </summary>
+    public string? CallFileOutgoingDirectory { get; set; }
+
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(Host)
         && Port is > 0

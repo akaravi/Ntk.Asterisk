@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "extensions": [
+    {
+      "id": "sample1001",
+      "sipUsername": "1001",
+      "sipPassword": "change-me-local-only",
+      "profileName": "WebPhone Demo",
+      "serverId": null,
+      "isEnabled": true
+    }
+  ]
+}

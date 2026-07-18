@@ -27,6 +27,13 @@
       "healthPath": "/health",
       "requiresAuth": false,
       "routes": ["/health", "/swagger"]
+    },
+    {
+      "id": "webphone",
+      "baseUrl": "http://localhost:5316",
+      "healthPath": null,
+      "requiresAuth": false,
+      "routes": ["/"]
     }
   ],
   "crudContract": { "add": 2, "edit": 1, "delete": 1 },

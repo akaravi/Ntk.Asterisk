@@ -72,10 +72,36 @@ export interface MonitorUnifiedItem {
   lastActivityUtc?: string | null;
   durationSec?: number | null;
   channel?: string | null;
+  /** True when peer/channel is in an active call — spy actions shown. */
+  inCall?: boolean;
+  /** Extension digit string for ExtenSpy target. */
+  spyTarget?: string | null;
 }
 
 export interface HangupRequest {
   channel: string;
+}
+
+/** ExtenSpy modes aligned with Voip.AsteriskChanSpyPro (*30–*35). */
+export type ChanSpyMode =
+  | 'listen'
+  | 'quiet'
+  | 'whisper'
+  | 'privateWhisper'
+  | 'barge'
+  | 'dtmf';
+
+export interface ChanSpyRequest {
+  supervisorExtension: string;
+  targetExtension: string;
+  mode: ChanSpyMode | string;
+  timeoutSec?: number | null;
+}
+
+export interface BridgeRequest {
+  channel1: string;
+  channel2: string;
+  tone?: string;
 }
 
 /** Live AMI / app / system event for Admin console. */
@@ -92,7 +118,13 @@ export interface LiveEventItem {
   attributes?: Record<string, string> | null;
 }
 
-export type CallJobType = 'ExtToExt' | 'MobileToExt' | 'MobileToMobile' | 'CommandHangup';
+export type CallJobType =
+  | 'ExtToExt'
+  | 'MobileToExt'
+  | 'MobileToMobile'
+  | 'CommandHangup'
+  | 'CommandBridge'
+  | 'CommandChanSpy';
 
 export type CallJobState =
   | 'queued'
@@ -165,6 +197,11 @@ export interface SiteSettings {
   serverName?: string | null;
   isEnabled?: boolean;
   isDefault?: boolean;
+  queueHideList?: string | null;
+  queueShowList?: string | null;
+  queueRenameMap?: string | null;
+  callFileStagingDirectory?: string | null;
+  callFileOutgoingDirectory?: string | null;
 }
 
 /** One Asterisk AMI server in the multi-server registry. */
@@ -194,6 +231,11 @@ export interface AsteriskServer {
   recordingHttpBaseUrl?: string | null;
   recordingAsteriskDirectory?: string | null;
   recordingFormat?: string;
+  queueHideList?: string | null;
+  queueShowList?: string | null;
+  queueRenameMap?: string | null;
+  callFileStagingDirectory?: string | null;
+  callFileOutgoingDirectory?: string | null;
 }
 
 export interface SiteSettingsUpdateRequest {
@@ -219,6 +261,11 @@ export interface SiteSettingsUpdateRequest {
   recordingHttpBaseUrl?: string | null;
   recordingAsteriskDirectory?: string | null;
   recordingFormat?: string | null;
+  queueHideList?: string | null;
+  queueShowList?: string | null;
+  queueRenameMap?: string | null;
+  callFileStagingDirectory?: string | null;
+  callFileOutgoingDirectory?: string | null;
   reconnectAfterSave?: boolean;
 }
 
@@ -253,5 +300,33 @@ export interface AsteriskServerAddRequest {
   recordingHttpBaseUrl?: string | null;
   recordingAsteriskDirectory?: string | null;
   recordingFormat?: string | null;
+  queueHideList?: string | null;
+  queueShowList?: string | null;
+  queueRenameMap?: string | null;
+  callFileStagingDirectory?: string | null;
+  callFileOutgoingDirectory?: string | null;
   reconnectAfterSave?: boolean;
+}
+
+export interface CallFileAddRequest {
+  channel: string;
+  callerId?: string | null;
+  waitTimeSec?: number | null;
+  maxRetries?: number | null;
+  retryTimeSec?: number | null;
+  archive?: string;
+  application?: string | null;
+  data?: string | null;
+  context?: string | null;
+  extension?: string | null;
+  priority?: string | null;
+  setVars?: Record<string, string> | null;
+}
+
+export interface CallFileResult {
+  fileName: string;
+  channel: string;
+  outgoingPath?: string | null;
+  mode: string;
+  createdAtUtc: string;
 }

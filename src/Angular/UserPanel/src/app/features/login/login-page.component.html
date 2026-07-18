@@ -1,0 +1,47 @@
+<section class="page login-page">
+  <header class="page__header">
+    <h1>{{ 'AUTH.TITLE' | t }}</h1>
+    <p class="muted">{{ 'AUTH.SUBTITLE' | t }}</p>
+  </header>
+
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+
+  <form class="entity-card login-page__form" (ngSubmit)="submit()">
+    <label class="field">
+      <span>{{ 'AUTH.USERNAME' | t }}</span>
+      <input
+        type="text"
+        class="ltr"
+        dir="ltr"
+        name="username"
+        [(ngModel)]="username"
+        autocomplete="username"
+        [placeholder]="'AUTH.USERNAME_PH' | t"
+        required
+      />
+    </label>
+    <label class="field">
+      <span>{{ 'AUTH.PASSWORD' | t }}</span>
+      <input
+        type="password"
+        class="ltr"
+        dir="ltr"
+        name="password"
+        [(ngModel)]="password"
+        autocomplete="current-password"
+        [placeholder]="'AUTH.PASSWORD_PH' | t"
+        required
+      />
+    </label>
+    <div class="login-page__actions">
+      <button type="submit" class="btn btn--primary" [disabled]="busy()">
+        {{ (busy() ? 'AUTH.LOGGING_IN' : 'AUTH.LOGIN') | t }}
+      </button>
+      @if (!gateActive()) {
+        <a routerLink="/calls" class="btn btn--ghost">{{ 'AUTH.SKIP' | t }}</a>
+      }
+    </div>
+  </form>
+</section>

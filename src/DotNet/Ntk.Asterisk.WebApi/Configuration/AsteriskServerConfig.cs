@@ -32,6 +32,29 @@ public sealed class AsteriskServerConfig
     public string? RecordingAsteriskDirectory { get; set; }
     public string RecordingFormat { get; set; } = "wav";
 
+    /// <summary>Full WebSocket SIP URL (ws/wss). When set, preferred over host+port+path.</summary>
+    public string? SipWebsocketUrl { get; set; }
+    /// <summary>Host for SIP WebSocket when SipWebsocketUrl is empty (often same as AMI Host).</summary>
+    public string? SipWebsocketHost { get; set; }
+    public string? SipDomain { get; set; }
+    public string? WebSocketPath { get; set; } = "/ws";
+    public int? WebSocketPort { get; set; } = 8089;
+    public bool SipUseTls { get; set; }
+    /// <summary>JSON array of STUN URLs, e.g. ["stun:stun.l.google.com:19302"].</summary>
+    public string? StunServersJson { get; set; }
+
+    /// <summary>Comma/newline AMI queue names to hide (QPanel hide).</summary>
+    public string? QueueHideList { get; set; }
+    /// <summary>Comma/newline allow-list (QPanel show). When set, hide list is ignored.</summary>
+    public string? QueueShowList { get; set; }
+    /// <summary>Lines realName=Display Name (QPanel rename).</summary>
+    public string? QueueRenameMap { get; set; }
+
+    /// <summary>Staging for .call (same volume as outgoing).</summary>
+    public string? CallFileStagingDirectory { get; set; }
+    /// <summary>UNC/local path mapped to Asterisk outgoing spool.</summary>
+    public string? CallFileOutgoingDirectory { get; set; }
+
     public bool IsConfigured =>
         !string.IsNullOrWhiteSpace(Host)
         && Port is > 0
@@ -59,7 +82,19 @@ public sealed class AsteriskServerConfig
         RecordingLocalDirectory = RecordingLocalDirectory,
         RecordingHttpBaseUrl = RecordingHttpBaseUrl,
         RecordingAsteriskDirectory = RecordingAsteriskDirectory,
-        RecordingFormat = RecordingFormat
+        RecordingFormat = RecordingFormat,
+        SipWebsocketUrl = SipWebsocketUrl,
+        SipWebsocketHost = SipWebsocketHost,
+        SipDomain = SipDomain,
+        WebSocketPath = WebSocketPath,
+        WebSocketPort = WebSocketPort,
+        SipUseTls = SipUseTls,
+        StunServersJson = StunServersJson,
+        QueueHideList = QueueHideList,
+        QueueShowList = QueueShowList,
+        QueueRenameMap = QueueRenameMap,
+        CallFileStagingDirectory = CallFileStagingDirectory,
+        CallFileOutgoingDirectory = CallFileOutgoingDirectory,
     };
 
     public static AsteriskServerConfig FromOptions(
@@ -92,7 +127,19 @@ public sealed class AsteriskServerConfig
         RecordingLocalDirectory = opt.RecordingLocalDirectory,
         RecordingHttpBaseUrl = opt.RecordingHttpBaseUrl,
         RecordingAsteriskDirectory = opt.RecordingAsteriskDirectory,
-        RecordingFormat = opt.RecordingFormat
+        RecordingFormat = opt.RecordingFormat,
+        SipWebsocketUrl = opt.SipWebsocketUrl,
+        SipWebsocketHost = opt.SipWebsocketHost,
+        SipDomain = opt.SipDomain,
+        WebSocketPath = opt.WebSocketPath,
+        WebSocketPort = opt.WebSocketPort,
+        SipUseTls = opt.SipUseTls,
+        StunServersJson = opt.StunServersJson,
+        QueueHideList = opt.QueueHideList,
+        QueueShowList = opt.QueueShowList,
+        QueueRenameMap = opt.QueueRenameMap,
+        CallFileStagingDirectory = opt.CallFileStagingDirectory,
+        CallFileOutgoingDirectory = opt.CallFileOutgoingDirectory,
     };
 }
 

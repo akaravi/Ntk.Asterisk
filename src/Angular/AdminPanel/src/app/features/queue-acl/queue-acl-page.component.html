@@ -1,0 +1,114 @@
+<section class="page">
+  <header class="page__header">
+    <h1>{{ 'QUEUE_ACL.TITLE' | translate }}</h1>
+    <p class="muted">{{ 'QUEUE_ACL.SUBTITLE' | translate }}</p>
+  </header>
+
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+  @if (success(); as ok) {
+    <p class="banner banner--ok" role="status">{{ ok }}</p>
+  }
+
+  <label class="check queue-acl__gate">
+    <input
+      type="checkbox"
+      [checked]="requireLogin()"
+      (change)="toggleRequireLogin($any($event.target).checked)"
+      [disabled]="busy()"
+    />
+    <span>{{ 'QUEUE_ACL.REQUIRE_LOGIN' | translate }}</span>
+  </label>
+
+  <article class="entity-card queue-acl__form">
+    <h2 class="entity-card__title">
+      {{ (form.id ? 'QUEUE_ACL.EDIT_USER' : 'QUEUE_ACL.ADD_USER') | translate }}
+    </h2>
+    <div class="queue-acl__fields">
+      <label class="field">
+        <span>{{ 'AUTH.USERNAME' | translate }}</span>
+        <input class="ltr" dir="ltr" [(ngModel)]="form.username" [placeholder]="'AUTH.USERNAME_PH' | translate" />
+      </label>
+      <label class="field">
+        <span>{{ 'AUTH.PASSWORD' | translate }}</span>
+        <input
+          type="password"
+          class="ltr"
+          dir="ltr"
+          [(ngModel)]="form.password"
+          [placeholder]="(form.id ? 'QUEUE_ACL.PASSWORD_KEEP' : 'AUTH.PASSWORD_PH') | translate"
+        />
+      </label>
+      <label class="field">
+        <span>{{ 'QUEUE_ACL.ROLE' | translate }}</span>
+        <select [(ngModel)]="form.role">
+          <option value="viewer">viewer</option>
+          <option value="admin">admin</option>
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="form.isEnabled" />
+        <span>{{ 'QUEUE_ACL.ENABLED' | translate }}</span>
+      </label>
+      <label class="field field--wide">
+        <span>{{ 'QUEUE_ACL.ALLOWED_QUEUES' | translate }}</span>
+        <input
+          class="ltr"
+          dir="ltr"
+          [(ngModel)]="form.allowedQueuesText"
+          [placeholder]="'QUEUE_ACL.ALLOWED_QUEUES_PH' | translate"
+        />
+      </label>
+    </div>
+    <div class="queue-acl__actions">
+      <button type="button" class="btn btn--primary" (click)="save()" [disabled]="busy()">
+        {{ 'QUEUE_ACL.SAVE' | translate }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="resetForm()">{{ 'QUEUE_ACL.RESET' | translate }}</button>
+    </div>
+  </article>
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+  />
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'AUTH.USERNAME' | translate }}</th>
+          <th>{{ 'QUEUE_ACL.ROLE' | translate }}</th>
+          <th>{{ 'QUEUE_ACL.ENABLED' | translate }}</th>
+          <th>{{ 'QUEUE_ACL.ALLOWED_QUEUES' | translate }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of usersRows(); track u.id) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ u.username }}</td>
+            <td class="ltr" dir="ltr">{{ u.role }}</td>
+            <td>{{ u.isEnabled ? '✓' : '—' }}</td>
+            <td class="ltr" dir="ltr">{{ (u.allowedQueues || []).join(', ') || '—' }}</td>
+            <td class="queue-acl__row-actions">
+              <button type="button" class="btn btn--ghost" (click)="edit(u)">{{ 'QUEUE_ACL.EDIT' | translate }}</button>
+              <button type="button" class="btn btn--ghost" (click)="remove(u)">{{ 'QUEUE_ACL.DELETE' | translate }}</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">{{ 'LIST.EMPTY' | translate }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

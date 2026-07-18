@@ -22,4 +22,5 @@ dotnet build Ntk.Asterisk.sln -c Release --nologo
 ### Skills اجباری VoIP
 
 ورود: `.cursor/skills/asterisk-voip-stack/` · دامنه: `asterisk-dialplan` · `asterisk-agi` · `asterisk-ami` · `asterisk-callfile`  
-Tutorials: `karavi.doc/Learn/voiping_*.pdf` · Rule: `.cursor/rules/asterisk-voip-skills.mdc`
+Tutorials: `karavi.doc/Learn/voiping_*.pdf` · Rule: `.cursor/rules/asterisk-voip-skills.mdc`  
+WebApi API-only (no UI): `.cursor/rules/webapi-api-only-no-ui.mdc` · Softphone: `src/WebPhone/Ntk.Asterisk.WebPhone` (5316)

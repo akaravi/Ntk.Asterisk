@@ -10,14 +10,22 @@ namespace Ntk.Asterisk.WebApi.Ami;
 
 public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
 {
+    private sealed class LiveEndpoint
+    {
+        public required string ServerId { get; init; }
+        public ManagerConnection? Connection { get; set; }
+        public DateTimeOffset? ConnectedAtUtc { get; set; }
+        public string? LastError { get; set; }
+        public bool ReceiveEvents { get; set; }
+        public int Connecting;
+    }
+
     private readonly IAsteriskSettingsService _settings;
     private readonly ILogger<AmiSession> _logger;
     private readonly object _gate = new();
     private readonly SemaphoreSlim _sendLock = new(1, 1);
-    private ManagerConnection? _connection;
-    private DateTimeOffset? _connectedAtUtc;
-    private string? _lastError;
-    private int _connecting;
+    private readonly Dictionary<string, LiveEndpoint> _endpoints =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public event EventHandler<ManagerEvent>? AmiEvent;
     public event EventHandler? ConnectionChanged;
@@ -32,50 +40,24 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
     {
         get
         {
-            lock (_gate) return _connection;
+            lock (_gate)
+            {
+                var ops = ResolveOpsEndpointUnlocked();
+                return ops?.Connection;
+            }
         }
     }
 
     public ConnectionStatusDto GetStatus()
     {
-        var opt = _settings.GetEffective();
         var active = _settings.GetActiveServer();
-        var connected = false;
-        string? version = null;
         lock (_gate)
         {
-            connected = _connection?.IsConnected() == true;
-            version = connected ? _connection?.Version : null;
+            var ep = active is null
+                ? null
+                : GetOrCreateEndpointUnlocked(active.Id, receiveEvents: true);
+            return ToStatusDto(active, ep, isOpsPrimary: true);
         }
-
-        double? uptime = null;
-        if (connected && _connectedAtUtc.HasValue)
-            uptime = (DateTimeOffset.UtcNow - _connectedAtUtc.Value).TotalSeconds;
-
-        return new ConnectionStatusDto
-        {
-            Connected = connected,
-            Configured = opt.IsConfigured,
-            Host = string.IsNullOrWhiteSpace(opt.Host) ? null : opt.Host,
-            Port = opt.Port,
-            LastError = _lastError,
-            ConnectedAtUtc = connected ? _connectedAtUtc : null,
-            UptimeSeconds = uptime,
-            AsteriskVersion = version,
-            ChannelTech = opt.ChannelTech,
-            DefaultTrunk = opt.DefaultTrunk,
-            AmiHostConfigured = !string.IsNullOrWhiteSpace(opt.Host),
-            AmiPortConfigured = opt.Port is > 0,
-            AmiUserConfigured = !string.IsNullOrWhiteSpace(opt.Username),
-            AmiSecretConfigured = !string.IsNullOrWhiteSpace(opt.Secret),
-            TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(opt.TrunkPeerFilter),
-            ServerId = active?.Id,
-            ServerName = active?.Name,
-            Username = active?.Username,
-            IsEnabled = active?.IsEnabled ?? false,
-            IsDefault = active?.IsDefault ?? false,
-            IsLiveSession = true
-        };
     }
 
     public async Task<IReadOnlyList<ConnectionStatusDto>> GetStatusListAsync(
@@ -85,286 +67,156 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
         if (enabled.Count == 0)
             return Array.Empty<ConnectionStatusDto>();
 
-        var live = GetStatus();
-        var liveId = live.ServerId;
-
-        var tasks = enabled.Select(server => Task.Run(() =>
+        var opsId = _settings.GetActiveServer()?.Id;
+        List<ConnectionStatusDto> rows;
+        lock (_gate)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!string.IsNullOrEmpty(liveId)
-                && string.Equals(server.Id, liveId, StringComparison.OrdinalIgnoreCase))
+            rows = enabled.Select(server =>
             {
-                return FromLive(live, server);
-            }
-
-            return ProbeServer(server);
-        }, cancellationToken)).ToArray();
-
-        var rows = await Task.WhenAll(tasks).ConfigureAwait(false);
-        return rows
-            .OrderByDescending(r => r.IsDefault)
-            .ThenByDescending(r => r.IsLiveSession)
-            .ThenBy(r => r.ServerName, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-    }
-
-    private static ConnectionStatusDto FromLive(ConnectionStatusDto live, AsteriskServerConfig server) => new()
-    {
-        Connected = live.Connected,
-        Configured = live.Configured,
-        Host = live.Host,
-        Port = live.Port,
-        LastError = live.LastError,
-        ConnectedAtUtc = live.ConnectedAtUtc,
-        UptimeSeconds = live.UptimeSeconds,
-        AsteriskVersion = live.AsteriskVersion,
-        ChannelTech = server.ChannelTech,
-        DefaultTrunk = server.DefaultTrunk,
-        AmiHostConfigured = live.AmiHostConfigured,
-        AmiPortConfigured = live.AmiPortConfigured,
-        AmiUserConfigured = live.AmiUserConfigured,
-        AmiSecretConfigured = live.AmiSecretConfigured,
-        TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
-        ServerId = server.Id,
-        ServerName = server.Name,
-        Username = server.Username,
-        IsEnabled = server.IsEnabled,
-        IsDefault = server.IsDefault,
-        IsLiveSession = true
-    };
-
-    private ConnectionStatusDto ProbeServer(AsteriskServerConfig server)
-    {
-        if (!server.IsConfigured)
-        {
-            return new ConnectionStatusDto
-            {
-                Connected = false,
-                Configured = false,
-                Host = string.IsNullOrWhiteSpace(server.Host) ? null : server.Host,
-                Port = server.Port,
-                LastError = "AMI not configured. Set Host/Port/Username/Secret.",
-                ChannelTech = server.ChannelTech,
-                DefaultTrunk = server.DefaultTrunk,
-                AmiHostConfigured = !string.IsNullOrWhiteSpace(server.Host),
-                AmiPortConfigured = server.Port is > 0,
-                AmiUserConfigured = !string.IsNullOrWhiteSpace(server.Username),
-                AmiSecretConfigured = !string.IsNullOrWhiteSpace(server.Secret),
-                TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
-                ServerId = server.Id,
-                ServerName = server.Name,
-                Username = server.Username,
-                IsEnabled = server.IsEnabled,
-                IsDefault = server.IsDefault,
-                IsLiveSession = false
-            };
+                cancellationToken.ThrowIfCancellationRequested();
+                var isOps = !string.IsNullOrEmpty(opsId)
+                    && string.Equals(server.Id, opsId, StringComparison.OrdinalIgnoreCase);
+                _endpoints.TryGetValue(server.Id, out var ep);
+                return ToStatusDto(server, ep, isOpsPrimary: isOps);
+            }).ToList();
         }
 
-        ManagerConnection? conn = null;
-        try
-        {
-            conn = new ManagerConnection(server.Host!, server.Port!.Value, server.Username!, server.Secret!)
-            {
-                KeepAlive = false,
-                PingInterval = 0,
-                FireAllEvents = false
-            };
-            conn.Login();
-            return new ConnectionStatusDto
-            {
-                Connected = true,
-                Configured = true,
-                Host = server.Host,
-                Port = server.Port,
-                LastError = null,
-                ConnectedAtUtc = DateTimeOffset.UtcNow,
-                UptimeSeconds = 0,
-                AsteriskVersion = conn.Version,
-                ChannelTech = server.ChannelTech,
-                DefaultTrunk = server.DefaultTrunk,
-                AmiHostConfigured = true,
-                AmiPortConfigured = true,
-                AmiUserConfigured = true,
-                AmiSecretConfigured = true,
-                TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
-                ServerId = server.Id,
-                ServerName = server.Name,
-                Username = server.Username,
-                IsEnabled = server.IsEnabled,
-                IsDefault = server.IsDefault,
-                IsLiveSession = false
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "AMI probe failed for {Name} {Host}:{Port}", server.Name, server.Host, server.Port);
-            return new ConnectionStatusDto
-            {
-                Connected = false,
-                Configured = true,
-                Host = server.Host,
-                Port = server.Port,
-                LastError = ex.Message,
-                ChannelTech = server.ChannelTech,
-                DefaultTrunk = server.DefaultTrunk,
-                AmiHostConfigured = true,
-                AmiPortConfigured = true,
-                AmiUserConfigured = true,
-                AmiSecretConfigured = true,
-                TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
-                ServerId = server.Id,
-                ServerName = server.Name,
-                Username = server.Username,
-                IsEnabled = server.IsEnabled,
-                IsDefault = server.IsDefault,
-                IsLiveSession = false
-            };
-        }
-        finally
-        {
-            if (conn != null)
-            {
-                try { conn.Logoff(); } catch { /* ignore */ }
-            }
-        }
+        return await Task.FromResult(
+            rows
+                .OrderByDescending(r => r.IsDefault)
+                .ThenByDescending(r => r.IsLiveSession)
+                .ThenBy(r => r.ServerName, StringComparer.OrdinalIgnoreCase)
+                .ToList()).ConfigureAwait(false);
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         if (_settings.GetEffective().AutoConnectOnStartup)
-            _ = Task.Run(() => EnsureConnectedAsync(cancellationToken), CancellationToken.None);
+            _ = Task.Run(() => EnsureAllEnabledConnectedAsync(cancellationToken), CancellationToken.None);
         return Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await DisconnectAsync();
+        await DisconnectAllAsync().ConfigureAwait(false);
     }
 
-    public async Task EnsureConnectedAsync(CancellationToken cancellationToken = default)
+    public Task EnsureConnectedAsync(CancellationToken cancellationToken = default) =>
+        EnsureConnectedAsync(null, cancellationToken);
+
+    public async Task EnsureConnectedAsync(string? serverId, CancellationToken cancellationToken = default)
     {
-        var opt = _settings.GetEffective();
-        if (!opt.IsConfigured)
+        var server = ResolveServer(serverId);
+        if (server is null)
         {
-            _lastError = "AMI not configured. Set Host/Port/Username/Secret in Admin Settings.";
+            lock (_gate)
+            {
+                var ops = ResolveOpsEndpointUnlocked();
+                if (ops is not null)
+                    ops.LastError = "AMI not configured. Set Host/Port/Username/Secret in Admin Settings.";
+            }
+
             ConnectionChanged?.Invoke(this, EventArgs.Empty);
             return;
         }
 
+        if (!server.IsConfigured)
+        {
+            lock (_gate)
+            {
+                var ep = GetOrCreateEndpointUnlocked(server.Id, receiveEvents: IsOpsServer(server.Id));
+                ep.LastError = "AMI not configured. Set Host/Port/Username/Secret in Admin Settings.";
+            }
+
+            ConnectionChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        LiveEndpoint endpoint;
         lock (_gate)
         {
-            if (_connection?.IsConnected() == true)
+            endpoint = GetOrCreateEndpointUnlocked(server.Id, receiveEvents: IsOpsServer(server.Id));
+            if (endpoint.Connection?.IsConnected() == true)
                 return;
         }
 
-        if (Interlocked.CompareExchange(ref _connecting, 1, 0) != 0)
+        if (Interlocked.CompareExchange(ref endpoint.Connecting, 1, 0) != 0)
             return;
 
         try
         {
-            await Task.Run(() => ConnectCore(opt), cancellationToken).ConfigureAwait(false);
+            await Task.Run(() => ConnectEndpointCore(server, endpoint), cancellationToken)
+                .ConfigureAwait(false);
         }
         finally
         {
-            Interlocked.Exchange(ref _connecting, 0);
+            Interlocked.Exchange(ref endpoint.Connecting, 0);
+        }
+    }
+
+    public async Task EnsureAllEnabledConnectedAsync(CancellationToken cancellationToken = default)
+    {
+        var enabled = _settings.GetEnabledServerConfigs()
+            .Where(s => s.IsConfigured)
+            .ToList();
+        foreach (var server in enabled)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await EnsureConnectedAsync(server.Id, cancellationToken).ConfigureAwait(false);
         }
     }
 
     public async Task<ConnectionStatusDto> TestConnectionAsync(CancellationToken cancellationToken = default)
     {
-        await DisconnectAsync().ConfigureAwait(false);
+        var opsId = _settings.GetActiveServer()?.Id;
+        await DisconnectAsync(opsId).ConfigureAwait(false);
 
-        // Wait briefly if a background connect is still finishing.
         var spins = 0;
-        while (Interlocked.CompareExchange(ref _connecting, 0, 0) != 0 && spins < 50)
+        while (spins < 50)
         {
+            lock (_gate)
+            {
+                var ep = opsId is null ? null : GetEndpointUnlocked(opsId);
+                if (ep is null || Volatile.Read(ref ep.Connecting) == 0)
+                    break;
+            }
+
             await Task.Delay(100, cancellationToken).ConfigureAwait(false);
             spins++;
         }
 
-        await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureConnectedAsync(opsId, cancellationToken).ConfigureAwait(false);
         return GetStatus();
     }
 
-    private void ConnectCore(AsteriskOptions opt)
+    public Task DisconnectAsync() => DisconnectAsync(null);
+
+    public Task DisconnectAsync(string? serverId)
     {
         lock (_gate)
         {
-            if (_connection?.IsConnected() == true)
-                return;
+            var targetId = string.IsNullOrWhiteSpace(serverId)
+                ? _settings.GetActiveServer()?.Id
+                : serverId.Trim();
+            if (string.IsNullOrWhiteSpace(targetId))
+                return Task.CompletedTask;
 
-            try
-            {
-                _connection?.Logoff();
-            }
-            catch
-            {
-                // ignore dispose of stale connection
-            }
+            if (!_endpoints.TryGetValue(targetId, out var ep))
+                return Task.CompletedTask;
 
-            var conn = new ManagerConnection(opt.Host!, opt.Port!.Value, opt.Username!, opt.Secret!)
-            {
-                KeepAlive = opt.KeepAlive,
-                PingInterval = Math.Max(0, opt.PingIntervalMs),
-                FireAllEvents = true
-            };
-
-            conn.UnhandledEvent += OnUnhandledEvent;
-            conn.ConnectionState += OnConnectionState;
-            conn.OriginateResponse += (_, e) => RaiseAmi(e);
-            conn.Hangup += (_, e) => RaiseAmi(e);
-            conn.NewChannel += (_, e) => RaiseAmi(e);
-            conn.NewState += (_, e) => RaiseAmi(e);
-            conn.Bridge += (_, e) => RaiseAmi(e);
-            conn.PeerStatus += (_, e) => RaiseAmi(e);
-            conn.DialBegin += (_, e) => RaiseAmi(e);
-            conn.DeviceStateChanged += (_, e) => RaiseAmi(e);
-            conn.ExtensionStatus += (_, e) => RaiseAmi(e);
-
-            try
-            {
-                conn.Login();
-                _connection = conn;
-                _connectedAtUtc = DateTimeOffset.UtcNow;
-                _lastError = null;
-                _logger.LogInformation(
-                    "AMI connected to {Host}:{Port} version={Version}",
-                    opt.Host, opt.Port, conn.Version);
-            }
-            catch (Exception ex)
-            {
-                _connection = null;
-                _connectedAtUtc = null;
-                _lastError = ex.Message;
-                _logger.LogWarning(ex, "AMI login failed for {Host}:{Port}", opt.Host, opt.Port);
-                try { conn.Logoff(); } catch { /* ignore */ }
-            }
+            LogoffEndpointUnlocked(ep);
         }
 
         ConnectionChanged?.Invoke(this, EventArgs.Empty);
+        return Task.CompletedTask;
     }
 
-    private void OnConnectionState(object? sender, ConnectionStateEvent e) => RaiseAmi(e);
-
-    private void OnUnhandledEvent(object? sender, ManagerEvent e) => RaiseAmi(e);
-
-    private void RaiseAmi(ManagerEvent e) => AmiEvent?.Invoke(this, e);
-
-    public Task DisconnectAsync()
+    public Task DisconnectAllAsync()
     {
         lock (_gate)
         {
-            try
-            {
-                _connection?.Logoff();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "AMI logoff error");
-            }
-
-            _connection = null;
-            _connectedAtUtc = null;
+            foreach (var ep in _endpoints.Values)
+                LogoffEndpointUnlocked(ep);
         }
 
         ConnectionChanged?.Invoke(this, EventArgs.Empty);
@@ -376,8 +228,9 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
         CancellationToken cancellationToken = default,
         int? timeoutMs = null)
     {
-        await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
-        var conn = Connection ?? throw new InvalidOperationException(_lastError ?? "AMI not connected.");
+        await EnsureConnectedAsync(null, cancellationToken).ConfigureAwait(false);
+        var conn = Connection
+            ?? throw new InvalidOperationException(GetOpsLastError() ?? "AMI not connected.");
         await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -398,8 +251,9 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
         int? timeoutMs = null,
         CancellationToken cancellationToken = default)
     {
-        await EnsureConnectedAsync(cancellationToken).ConfigureAwait(false);
-        var conn = Connection ?? throw new InvalidOperationException(_lastError ?? "AMI not connected.");
+        await EnsureConnectedAsync(null, cancellationToken).ConfigureAwait(false);
+        var conn = Connection
+            ?? throw new InvalidOperationException(GetOpsLastError() ?? "AMI not connected.");
         await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -417,7 +271,202 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
 
     public void Dispose()
     {
-        try { _connection?.Logoff(); } catch { /* ignore */ }
-        _connection = null;
+        lock (_gate)
+        {
+            foreach (var ep in _endpoints.Values)
+                LogoffEndpointUnlocked(ep);
+            _endpoints.Clear();
+        }
     }
+
+    private AsteriskServerConfig? ResolveServer(string? serverId)
+    {
+        if (!string.IsNullOrWhiteSpace(serverId))
+        {
+            return _settings.GetEnabledServerConfigs()
+                .FirstOrDefault(s =>
+                    string.Equals(s.Id, serverId.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        return _settings.GetActiveServer();
+    }
+
+    private bool IsOpsServer(string serverId)
+    {
+        var opsId = _settings.GetActiveServer()?.Id;
+        return !string.IsNullOrEmpty(opsId)
+            && string.Equals(opsId, serverId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private LiveEndpoint? ResolveOpsEndpointUnlocked()
+    {
+        var opsId = _settings.GetActiveServer()?.Id;
+        if (string.IsNullOrEmpty(opsId))
+            return null;
+        return GetOrCreateEndpointUnlocked(opsId, receiveEvents: true);
+    }
+
+    private LiveEndpoint? GetEndpointUnlocked(string serverId) =>
+        _endpoints.TryGetValue(serverId, out var ep) ? ep : null;
+
+    private LiveEndpoint GetOrCreateEndpointUnlocked(string serverId, bool receiveEvents)
+    {
+        if (!_endpoints.TryGetValue(serverId, out var ep))
+        {
+            ep = new LiveEndpoint { ServerId = serverId, ReceiveEvents = receiveEvents };
+            _endpoints[serverId] = ep;
+        }
+        else if (receiveEvents)
+        {
+            ep.ReceiveEvents = true;
+        }
+
+        return ep;
+    }
+
+    private string? GetOpsLastError()
+    {
+        lock (_gate)
+        {
+            return ResolveOpsEndpointUnlocked()?.LastError;
+        }
+    }
+
+    private void ConnectEndpointCore(AsteriskServerConfig server, LiveEndpoint endpoint)
+    {
+        lock (_gate)
+        {
+            if (endpoint.Connection?.IsConnected() == true)
+                return;
+
+            try
+            {
+                endpoint.Connection?.Logoff();
+            }
+            catch
+            {
+                // ignore dispose of stale connection
+            }
+
+            var opt = server.ToOptions();
+            var receiveEvents = IsOpsServer(server.Id);
+            endpoint.ReceiveEvents = receiveEvents;
+
+            var conn = new ManagerConnection(opt.Host!, opt.Port!.Value, opt.Username!, opt.Secret!)
+            {
+                KeepAlive = opt.KeepAlive,
+                PingInterval = Math.Max(0, opt.PingIntervalMs),
+                FireAllEvents = receiveEvents
+            };
+
+            if (receiveEvents)
+            {
+                conn.UnhandledEvent += OnUnhandledEvent;
+                conn.ConnectionState += OnConnectionState;
+                conn.OriginateResponse += (_, e) => RaiseAmi(e);
+                conn.Hangup += (_, e) => RaiseAmi(e);
+                conn.NewChannel += (_, e) => RaiseAmi(e);
+                conn.NewState += (_, e) => RaiseAmi(e);
+                conn.Bridge += (_, e) => RaiseAmi(e);
+                conn.PeerStatus += (_, e) => RaiseAmi(e);
+                conn.DialBegin += (_, e) => RaiseAmi(e);
+                conn.DeviceStateChanged += (_, e) => RaiseAmi(e);
+                conn.ExtensionStatus += (_, e) => RaiseAmi(e);
+                conn.MessageWaiting += (_, e) => RaiseAmi(e);
+            }
+
+            try
+            {
+                conn.Login();
+                endpoint.Connection = conn;
+                endpoint.ConnectedAtUtc = DateTimeOffset.UtcNow;
+                endpoint.LastError = null;
+                _logger.LogInformation(
+                    "AMI live connected ServerId={ServerId} Name={Name} {Host}:{Port} version={Version} events={Events}",
+                    server.Id, server.Name, opt.Host, opt.Port, conn.Version, receiveEvents);
+            }
+            catch (Exception ex)
+            {
+                endpoint.Connection = null;
+                endpoint.ConnectedAtUtc = null;
+                endpoint.LastError = ex.Message;
+                _logger.LogWarning(
+                    ex,
+                    "AMI login failed ServerId={ServerId} {Host}:{Port}",
+                    server.Id, opt.Host, opt.Port);
+                try { conn.Logoff(); } catch { /* ignore */ }
+            }
+        }
+
+        ConnectionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void LogoffEndpointUnlocked(LiveEndpoint ep)
+    {
+        try
+        {
+            ep.Connection?.Logoff();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "AMI logoff error ServerId={ServerId}", ep.ServerId);
+        }
+
+        ep.Connection = null;
+        ep.ConnectedAtUtc = null;
+    }
+
+    private ConnectionStatusDto ToStatusDto(
+        AsteriskServerConfig? server,
+        LiveEndpoint? ep,
+        bool isOpsPrimary)
+    {
+        if (server is null)
+        {
+            return new ConnectionStatusDto
+            {
+                Connected = false,
+                Configured = false,
+                LastError = "No AMI server configured.",
+                IsLiveSession = false
+            };
+        }
+
+        var connected = ep?.Connection?.IsConnected() == true;
+        double? uptime = null;
+        if (connected && ep?.ConnectedAtUtc is { } at)
+            uptime = (DateTimeOffset.UtcNow - at).TotalSeconds;
+
+        return new ConnectionStatusDto
+        {
+            Connected = connected,
+            Configured = server.IsConfigured,
+            Host = string.IsNullOrWhiteSpace(server.Host) ? null : server.Host,
+            Port = server.Port,
+            LastError = ep?.LastError,
+            ConnectedAtUtc = connected ? ep?.ConnectedAtUtc : null,
+            UptimeSeconds = uptime,
+            AsteriskVersion = connected ? ep?.Connection?.Version : null,
+            ChannelTech = server.ChannelTech,
+            DefaultTrunk = server.DefaultTrunk,
+            AmiHostConfigured = !string.IsNullOrWhiteSpace(server.Host),
+            AmiPortConfigured = server.Port is > 0,
+            AmiUserConfigured = !string.IsNullOrWhiteSpace(server.Username),
+            AmiSecretConfigured = !string.IsNullOrWhiteSpace(server.Secret),
+            TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
+            ServerId = server.Id,
+            ServerName = server.Name,
+            Username = server.Username,
+            IsEnabled = server.IsEnabled,
+            IsDefault = server.IsDefault,
+            // Persistent live when connected; ops primary always marked live-capable for hub/UI.
+            IsLiveSession = connected || isOpsPrimary
+        };
+    }
+
+    private void OnConnectionState(object? sender, ConnectionStateEvent e) => RaiseAmi(e);
+
+    private void OnUnhandledEvent(object? sender, ManagerEvent e) => RaiseAmi(e);
+
+    private void RaiseAmi(ManagerEvent e) => AmiEvent?.Invoke(this, e);
 }

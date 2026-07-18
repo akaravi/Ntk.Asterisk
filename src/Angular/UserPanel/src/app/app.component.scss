@@ -90,6 +90,41 @@
   color: var(--warn);
 }
 
+.auth-user {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.auth-link {
+  text-decoration: none;
+  color: var(--signal);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--signal) 35%, var(--line));
+  border-radius: var(--radius-sm);
+  background: var(--signal-soft);
+}
+
+.meta > button {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--ink-soft);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.meta > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .locale {
   display: inline-flex;
   border: 1px solid var(--line);

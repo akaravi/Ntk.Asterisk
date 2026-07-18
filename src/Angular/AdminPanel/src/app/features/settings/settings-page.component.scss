@@ -285,6 +285,10 @@
   max-inline-size: 12rem;
 }
 
+.field--wide {
+  grid-column: 1 / -1;
+}
+
 .field {
   display: grid;
   gap: 0.3rem;
@@ -298,7 +302,8 @@
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--border);
@@ -313,7 +318,8 @@
 }
 
 .field input:disabled,
-.field select:disabled {
+.field select:disabled,
+.field textarea:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

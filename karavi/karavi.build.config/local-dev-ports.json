@@ -4,7 +4,7 @@
     "webapi": {
       "port": 5310,
       "healthPath": "/health",
-      "note": "Ntk.Asterisk.WebApi — AMI control plane"
+      "note": "Ntk.Asterisk.WebApi — AMI control plane (API only; no UI)"
     },
     "admin-panel": {
       "port": 5314,
@@ -15,6 +15,11 @@
       "port": 5312,
       "healthPath": null,
       "note": "Angular UserPanel — call forms + jobs"
+    },
+    "webphone": {
+      "port": 5316,
+      "healthPath": null,
+      "note": "Ntk.Asterisk.WebPhone — SipJS softphone UI (calls WebApi CORS)"
     },
     "ami-lib": {
       "port": null,

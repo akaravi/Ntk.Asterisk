@@ -104,6 +104,61 @@
     }
   </section>
 
+  <section class="spy-strip" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
+    <header class="spy-strip__head">
+      <h2 class="spy-strip__title">{{ 'MONITOR.SPY_LABEL' | translate }}</h2>
+      <p class="spy-strip__hint muted">{{ 'MONITOR.SPY_HINT' | translate }}</p>
+    </header>
+    <label class="spy-strip__field">
+      <span>{{ 'MONITOR.SPY_SUPERVISOR' | translate }}</span>
+      <input
+        type="text"
+        class="input ltr"
+        dir="ltr"
+        name="spySupervisor"
+        autocomplete="off"
+        [placeholder]="'MONITOR.SPY_SUPERVISOR_PH' | translate"
+        [ngModel]="spySupervisor"
+        (ngModelChange)="onSpySupervisorChange($event)"
+      />
+    </label>
+  </section>
+
+  <section class="bridge-strip" [attr.aria-label]="'MONITOR.BRIDGE_LABEL' | translate">
+    <header class="bridge-strip__head">
+      <h2 class="bridge-strip__title">{{ 'MONITOR.BRIDGE_LABEL' | translate }}</h2>
+      <p class="bridge-strip__hint muted">{{ 'MONITOR.BRIDGE_HINT' | translate }}</p>
+    </header>
+    <div class="bridge-strip__body">
+      <p class="bridge-strip__pick ltr" dir="ltr">
+        <span class="muted">{{ 'MONITOR.BRIDGE_CH1' | translate }}:</span>
+        {{ bridgeChannel1() || '—' }}
+      </p>
+      <p class="bridge-strip__pick ltr" dir="ltr">
+        <span class="muted">{{ 'MONITOR.BRIDGE_CH2' | translate }}:</span>
+        {{ bridgeChannel2() || '—' }}
+      </p>
+      <div class="bridge-strip__actions">
+        <button
+          type="button"
+          class="btn btn--primary btn--xs"
+          [disabled]="!canRunBridge()"
+          (click)="runBridge()"
+        >
+          {{ 'MONITOR.BRIDGE_RUN' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn--ghost btn--xs"
+          [disabled]="actionBusy() || (!bridgeChannel1() && !bridgeChannel2())"
+          (click)="clearBridgeSelection()"
+        >
+          {{ 'MONITOR.BRIDGE_CLEAR' | translate }}
+        </button>
+      </div>
+    </div>
+  </section>
+
   @if (tab() === 'all') {
     <div class="tile-board" [attr.aria-busy]="loading()">
       @if (loading()) {
@@ -144,6 +199,29 @@
                 >
                   {{ 'MONITOR.HANGUP' | translate }}
                 </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--xs"
+                  [class.btn--picked]="isBridgeSelected(row.channel)"
+                  [disabled]="actionBusy()"
+                  (click)="selectForBridge(row.channel!)"
+                >
+                  {{ 'MONITOR.BRIDGE_PICK' | translate }}
+                </button>
+              }
+              @if (row.spyTarget && (row.inCall || row.kind === 'channel')) {
+                <div class="spy-actions" role="group" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
+                  @for (m of spyModes; track m.mode) {
+                    <button
+                      type="button"
+                      class="btn btn--ghost btn--xs"
+                      [disabled]="!canSpy(row.spyTarget)"
+                      (click)="spy(row.spyTarget!, m.mode)"
+                    >
+                      {{ m.labelKey | translate }}
+                    </button>
+                  }
+                </div>
               }
             </footer>
           </article>
@@ -182,6 +260,20 @@
                     —
                   }
                 </span>
+                @if (row.inCall) {
+                  <div class="spy-actions" role="group" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
+                    @for (m of spyModes; track m.mode) {
+                      <button
+                        type="button"
+                        class="btn btn--ghost btn--xs"
+                        [disabled]="!canSpy(peerSpyTarget(row))"
+                        (click)="spy(peerSpyTarget(row), m.mode)"
+                      >
+                        {{ m.labelKey | translate }}
+                      </button>
+                    }
+                  </div>
+                }
               </footer>
             </article>
           }
@@ -254,6 +346,29 @@
                 >
                   {{ 'MONITOR.HANGUP' | translate }}
                 </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--xs"
+                  [class.btn--picked]="isBridgeSelected(row.channel)"
+                  [disabled]="actionBusy()"
+                  (click)="selectForBridge(row.channel)"
+                >
+                  {{ 'MONITOR.BRIDGE_PICK' | translate }}
+                </button>
+                @if (channelSpyTarget(row); as target) {
+                  <div class="spy-actions" role="group" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
+                    @for (m of spyModes; track m.mode) {
+                      <button
+                        type="button"
+                        class="btn btn--ghost btn--xs"
+                        [disabled]="!canSpy(target)"
+                        (click)="spy(target, m.mode)"
+                      >
+                        {{ m.labelKey | translate }}
+                      </button>
+                    }
+                  </div>
+                }
               </footer>
             </article>
           }

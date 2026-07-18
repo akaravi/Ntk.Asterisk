@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { CallJob, ListQuery } from '../../core/models/asterisk.models';
@@ -16,7 +17,7 @@ import { ListPagerComponent } from '../../shared/components/list-pager/list-page
 @Component({
   selector: 'app-jobs-page',
   standalone: true,
-  imports: [TranslatePipe, ListToolbarComponent, ListPagerComponent, DatePipe],
+  imports: [TranslatePipe, ListToolbarComponent, ListPagerComponent, DatePipe, ReactiveFormsModule],
   templateUrl: './jobs-page.component.html',
   styleUrl: './jobs-page.component.scss',
 })
@@ -24,9 +25,11 @@ export class JobsPageComponent implements OnInit, OnDestroy {
   private readonly api = inject(AsteriskApiService);
   private readonly hub = inject(AsteriskHubService);
   private readonly i18n = inject(TranslateService);
+  private readonly fb = inject(FormBuilder);
   private sub?: Subscription;
 
   readonly loading = signal(false);
+  readonly callFileBusy = signal(false);
   readonly actionBusyId = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
@@ -35,6 +38,21 @@ export class JobsPageComponent implements OnInit, OnDestroy {
   readonly totalCount = signal(0);
 
   query: ListQuery = { ...defaultListQuery('createdAtUtc'), sortDir: 'desc' };
+
+  readonly callFileForm = this.fb.nonNullable.group({
+    channel: ['', Validators.required],
+    callerId: [''],
+    waitTimeSec: [45],
+    maxRetries: [0],
+    retryTimeSec: [300],
+    archive: ['yes'],
+    mode: ['app' as 'app' | 'ctx'],
+    application: ['Playback'],
+    data: ['hello-world'],
+    context: ['from-internal'],
+    extension: [''],
+    priority: ['1'],
+  });
 
   readonly filters: AdvancedFilterField[] = [
     { key: 'state', labelKey: 'JOBS.FILTER_STATE', placeholderKey: 'JOBS.FILTER_STATE_PH' },
@@ -65,6 +83,63 @@ export class JobsPageComponent implements OnInit, OnDestroy {
   onQueryChange(q: ListQuery): void {
     this.query = q;
     this.repage();
+  }
+
+  submitCallFile(): void {
+    if (this.callFileForm.invalid) {
+      this.callFileForm.markAllAsTouched();
+      return;
+    }
+    const v = this.callFileForm.getRawValue();
+    const channel = v.channel.trim();
+    if (!channel) return;
+
+    this.callFileBusy.set(true);
+    this.error.set(null);
+    this.success.set(null);
+
+    const body =
+      v.mode === 'app'
+        ? {
+            channel,
+            callerId: v.callerId.trim() || null,
+            waitTimeSec: Number(v.waitTimeSec) || null,
+            maxRetries: Number(v.maxRetries) || 0,
+            retryTimeSec: Number(v.retryTimeSec) || null,
+            archive: v.archive,
+            application: v.application.trim(),
+            data: v.data.trim() || null,
+          }
+        : {
+            channel,
+            callerId: v.callerId.trim() || null,
+            waitTimeSec: Number(v.waitTimeSec) || null,
+            maxRetries: Number(v.maxRetries) || 0,
+            retryTimeSec: Number(v.retryTimeSec) || null,
+            archive: v.archive,
+            context: v.context.trim(),
+            extension: v.extension.trim(),
+            priority: v.priority.trim() || '1',
+          };
+
+    this.api.addCallFile(body).subscribe({
+      next: (r) => {
+        this.callFileBusy.set(false);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'CallFile failed');
+          return;
+        }
+        const dto = r.data?.[0];
+        this.success.set('JOBS.CALLFILE_OK');
+        if (dto?.fileName) {
+          this.error.set(null);
+        }
+      },
+      error: (err: Error) => {
+        this.callFileBusy.set(false);
+        this.error.set(err.message);
+      },
+    });
   }
 
   reload(): void {

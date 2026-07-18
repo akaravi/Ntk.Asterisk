@@ -8,10 +8,29 @@
     <nav>
       <a routerLink="/connection" routerLinkActive="active">{{ 'NAV.CONNECTION' | translate }}</a>
       <a routerLink="/monitor" routerLinkActive="active">{{ 'NAV.MONITOR' | translate }}</a>
+      <a routerLink="/queues" routerLinkActive="active">{{ 'NAV.QUEUES' | translate }}</a>
+      <a routerLink="/queue-stats" routerLinkActive="active">{{ 'NAV.QUEUE_STATS' | translate }}</a>
+      @if (!gateActive() || isAdmin()) {
+        <a routerLink="/queue-acl" routerLinkActive="active">{{ 'NAV.QUEUE_ACL' | translate }}</a>
+      }
       <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | translate }}</a>
       <a routerLink="/events" routerLinkActive="active">{{ 'NAV.EVENTS' | translate }}</a>
-      <a routerLink="/settings" routerLinkActive="active">{{ 'NAV.SETTINGS' | translate }}</a>
+      @if (!gateActive() || isAdmin()) {
+        <a routerLink="/settings" routerLinkActive="active">{{ 'NAV.SETTINGS' | translate }}</a>
+      }
     </nav>
+    <div class="shell__auth" aria-live="polite">
+      @if (gateActive() && isAuthenticated()) {
+        <p class="shell__user ltr" dir="ltr">{{ username() || '—' }}</p>
+        <button type="button" class="btn btn--ghost" [disabled]="logoutBusy()" (click)="logout()">
+          {{ logoutBusy() ? ('ACTION.LOADING' | translate) : ('AUTH.LOGOUT' | translate) }}
+        </button>
+      } @else if (gateActive()) {
+        <a routerLink="/login" routerLinkActive="active">{{ 'NAV.LOGIN' | translate }}</a>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active" class="muted">{{ 'NAV.LOGIN' | translate }}</a>
+      }
+    </div>
     <div class="lang" role="group" aria-label="locale">
       <button type="button" class="btn" [class.active]="lang() === 'fa'" (click)="setLang('fa')">FA</button>
       <button type="button" class="btn" [class.active]="lang() === 'en'" (click)="setLang('en')">EN</button>

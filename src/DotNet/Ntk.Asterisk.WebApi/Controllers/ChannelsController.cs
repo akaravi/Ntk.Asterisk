@@ -64,4 +64,23 @@ public sealed class ChannelsController : ControllerBase
             return Ok(ApiResult<CallJobDto>.Fail(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Originate supervisor to ExtenSpy (listen/whisper/barge — ChanSpyPro flag matrix).
+    /// </summary>
+    [HttpPost("ActionChanSpy")]
+    public async Task<ActionResult<ApiResult<CallJobDto>>> ActionChanSpy(
+        [FromBody] ChanSpyRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var job = await _jobs.EnqueueChanSpyAsync(request, cancellationToken);
+            return Ok(ApiResult<CallJobDto>.Ok(job));
+        }
+        catch (Exception ex)
+        {
+            return Ok(ApiResult<CallJobDto>.Fail(ex.Message));
+        }
+    }
 }

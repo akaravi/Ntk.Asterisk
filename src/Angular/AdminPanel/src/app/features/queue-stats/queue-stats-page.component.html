@@ -1,0 +1,71 @@
+<section class="page">
+  <header class="page__header">
+    <h1>{{ 'QUEUE_STATS.TITLE' | translate }}</h1>
+    <p class="muted">{{ 'QUEUE_STATS.SUBTITLE' | translate }}</p>
+  </header>
+
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+
+  <div class="queue-stats__filters">
+    <label class="field">
+      <span>{{ 'QUEUE_STATS.FILTER_QUEUE' | translate }}</span>
+      <input
+        class="ltr"
+        dir="ltr"
+        [(ngModel)]="queueFilter"
+        [placeholder]="'QUEUE_STATS.FILTER_QUEUE_PH' | translate"
+      />
+    </label>
+    <button type="button" class="btn btn--primary" (click)="reload()" [disabled]="loading()">
+      {{ 'ACTION.REFRESH' | translate }}
+    </button>
+  </div>
+
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+    (exportPdf)="exportPdf()"
+    (exportExcel)="exportExcel()"
+  />
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>{{ 'QUEUE_STATS.COL_TIME' | translate }}</th>
+          <th>{{ 'QUEUE_STATS.COL_QUEUE' | translate }}</th>
+          <th>{{ 'QUEUE_STATS.COL_WAITING' | translate }}</th>
+          <th>{{ 'QUEUE_STATS.COL_COMPLETED' | translate }}</th>
+          <th>{{ 'QUEUE_STATS.COL_ABANDONED' | translate }}</th>
+          <th>{{ 'QUEUE_STATS.COL_SL' | translate }}</th>
+          <th>{{ 'QUEUE_STATS.COL_MEMBERS' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of samplesRows(); track s.snapshotUtc + s.realName) {
+          <tr>
+            <td class="ltr" dir="ltr">{{ s.snapshotUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td class="ltr" dir="ltr">{{ s.name }}</td>
+            <td class="ltr" dir="ltr">{{ s.callsWaiting }}</td>
+            <td class="ltr" dir="ltr">{{ s.completed }}</td>
+            <td class="ltr" dir="ltr">{{ s.abandoned }}</td>
+            <td class="ltr" dir="ltr">{{ s.serviceLevelPerf | number: '1.0-1' }}</td>
+            <td class="ltr" dir="ltr">{{ s.memberCount }} ({{ s.pausedMemberCount }} / {{ s.inCallMemberCount }})</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">{{ 'LIST.EMPTY' | translate }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+</section>

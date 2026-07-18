@@ -9,11 +9,13 @@ import {
   LiveEventItem,
   PeerItem,
 } from '../models/asterisk.models';
+import { QueueItem } from '../models/queue.models';
 
 export type AsteriskHubEvent =
   | { kind: 'job'; payload: CallJob }
   | { kind: 'peers'; payload: PeerItem[] }
   | { kind: 'channels'; payload: ChannelItem[] }
+  | { kind: 'queues'; payload: QueueItem[] }
   | { kind: 'connection'; payload: ConnectionStatus }
   | { kind: 'liveEvent'; payload: LiveEventItem }
   | { kind: 'amiHint'; payload: { type?: string; channel?: string | null; at?: string } };
@@ -26,6 +28,7 @@ export class AsteriskHubService implements OnDestroy {
   private eventsSubscribed = false;
   private jobsSubscribed = false;
   private monitorSubscribed = false;
+  private queuesSubscribed = false;
 
   readonly hubEvents$: Observable<AsteriskHubEvent> = this.events$.asObservable();
   readonly hubConnected$: Observable<boolean> = this.connected$.asObservable();
@@ -54,6 +57,8 @@ export class AsteriskHubService implements OnDestroy {
     this.bind('channelsUpdated', (payload: ChannelItem[]) =>
       this.events$.next({ kind: 'channels', payload }),
     );
+    this.bind('QueuesUpdated', (payload: QueueItem[]) => this.events$.next({ kind: 'queues', payload }));
+    this.bind('queuesUpdated', (payload: QueueItem[]) => this.events$.next({ kind: 'queues', payload }));
     this.bind('ConnectionUpdated', (payload: ConnectionStatus) =>
       this.events$.next({ kind: 'connection', payload }),
     );
@@ -103,7 +108,18 @@ export class AsteriskHubService implements OnDestroy {
   async subscribeMonitor(): Promise<void> {
     await this.start();
     this.monitorSubscribed = true;
-    await this.invokeSafe('SubscribeMonitor');
+    const token = localStorage.getItem('ntk.queueAcl.token') || null;
+    await this.invokeSafe('SubscribeMonitor', token);
+  }
+
+  async subscribeQueues(): Promise<void> {
+    await this.start();
+    this.queuesSubscribed = true;
+    const token = localStorage.getItem('ntk.queueAcl.token') || null;
+    await this.invokeSafe('SubscribeQueues', token);
+    // Also join monitor — server pushes queuesUpdated to both groups
+    this.monitorSubscribed = true;
+    await this.invokeSafe('SubscribeMonitor', token);
   }
 
   async subscribeEvents(): Promise<void> {
@@ -127,6 +143,7 @@ export class AsteriskHubService implements OnDestroy {
       this.eventsSubscribed = false;
       this.jobsSubscribed = false;
       this.monitorSubscribed = false;
+      this.queuesSubscribed = false;
       this.connected$.next(false);
     }
   }
@@ -136,11 +153,15 @@ export class AsteriskHubService implements OnDestroy {
   }
 
   private async ensureDefaultGroups(): Promise<void> {
+    const token = localStorage.getItem('ntk.queueAcl.token') || null;
     if (this.jobsSubscribed) {
       await this.invokeSafe('SubscribeJobs');
     }
     if (this.monitorSubscribed) {
-      await this.invokeSafe('SubscribeMonitor');
+      await this.invokeSafe('SubscribeMonitor', token);
+    }
+    if (this.queuesSubscribed) {
+      await this.invokeSafe('SubscribeQueues', token);
     }
     if (this.eventsSubscribed) {
       await this.invokeSafe('SubscribeEvents');
@@ -155,12 +176,12 @@ export class AsteriskHubService implements OnDestroy {
     this.connection?.on(method, handler);
   }
 
-  private async invokeSafe(method: string): Promise<void> {
+  private async invokeSafe(method: string, ...args: unknown[]): Promise<void> {
     if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
       return;
     }
     try {
-      await this.connection.invoke(method);
+      await this.connection.invoke(method, ...args);
     } catch {
       // ignore subscribe races during reconnect
     }

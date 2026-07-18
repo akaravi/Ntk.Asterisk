@@ -1,0 +1,45 @@
+<section class="page login-page">
+  <header class="page__header">
+    <h1>{{ 'AUTH.TITLE' | translate }}</h1>
+    <p class="muted">{{ 'AUTH.SUBTITLE' | translate }}</p>
+  </header>
+
+  @if (error(); as err) {
+    <p class="banner banner--error" role="alert">{{ err }}</p>
+  }
+
+  <form class="entity-card login-page__form" (ngSubmit)="submit()">
+    <label class="field">
+      <span>{{ 'AUTH.USERNAME' | translate }}</span>
+      <input
+        type="text"
+        class="ltr"
+        dir="ltr"
+        name="username"
+        [(ngModel)]="username"
+        autocomplete="username"
+        [placeholder]="'AUTH.USERNAME_PH' | translate"
+        required
+      />
+    </label>
+    <label class="field">
+      <span>{{ 'AUTH.PASSWORD' | translate }}</span>
+      <input
+        type="password"
+        class="ltr"
+        dir="ltr"
+        name="password"
+        [(ngModel)]="password"
+        autocomplete="current-password"
+        [placeholder]="'AUTH.PASSWORD_PH' | translate"
+        required
+      />
+    </label>
+    <div class="login-page__actions">
+      <button type="submit" class="btn btn--primary" [disabled]="busy()">
+        {{ (busy() ? 'ACTION.LOADING' : 'AUTH.LOGIN') | translate }}
+      </button>
+      <a routerLink="/queues" class="btn btn--ghost">{{ 'AUTH.SKIP' | translate }}</a>
+    </div>
+  </form>
+</section>

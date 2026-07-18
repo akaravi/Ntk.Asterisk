@@ -397,6 +397,70 @@
             </fieldset>
 
             <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_QUEUES' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_QUEUES_HINT' | translate }}</p>
+              <div class="settings__fields">
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.QUEUE_HIDE_LIST' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="queueHideList"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.QUEUE_HIDE_LIST_PH' | translate"
+                  />
+                </label>
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.QUEUE_SHOW_LIST' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="queueShowList"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.QUEUE_SHOW_LIST_PH' | translate"
+                  />
+                </label>
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.QUEUE_RENAME_MAP' | translate }}</span>
+                  <textarea
+                    formControlName="queueRenameMap"
+                    class="ltr"
+                    dir="ltr"
+                    rows="3"
+                    [placeholder]="'SETTINGS.QUEUE_RENAME_MAP_PH' | translate"
+                  ></textarea>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_CALLFILE' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_CALLFILE_HINT' | translate }}</p>
+              <div class="settings__fields">
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.CALLFILE_STAGING' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="callFileStagingDirectory"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.CALLFILE_STAGING_PH' | translate"
+                  />
+                </label>
+                <label class="field field--wide">
+                  <span>{{ 'SETTINGS.CALLFILE_OUTGOING' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="callFileOutgoingDirectory"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.CALLFILE_OUTGOING_PH' | translate"
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="settings__section">
               <legend class="settings__legend">{{ 'SETTINGS.SECTION_SESSION' | translate }}</legend>
               <p class="settings__section-hint">{{ 'SETTINGS.SECTION_SESSION_HINT' | translate }}</p>
               <div class="settings__fields settings__fields--session">

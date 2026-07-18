@@ -19,6 +19,7 @@ public interface ICallJobEngine
     Task<CallJobDto?> RedialAsync(string id, CancellationToken cancellationToken = default);
     Task<CallJobDto> EnqueueHangupAsync(string channel, CancellationToken cancellationToken = default);
     Task<CallJobDto> EnqueueBridgeAsync(string channel1, string channel2, string tone, CancellationToken cancellationToken = default);
+    Task<CallJobDto> EnqueueChanSpyAsync(ChanSpyRequest request, CancellationToken cancellationToken = default);
 }
 
 public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
@@ -80,7 +81,8 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
 
     public async Task<CallJobDto> AddAsync(CallJobAddRequest request, CancellationToken cancellationToken = default)
     {
-        if (!TryParseType(request.Type, out var type) || type is CallJobType.CommandHangup or CallJobType.CommandBridge)
+        if (!TryParseType(request.Type, out var type)
+            || type is CallJobType.CommandHangup or CallJobType.CommandBridge or CallJobType.CommandChanSpy)
             throw new ArgumentException("Invalid CallJob type. Use ExtToExt, MobileToExt, or MobileToMobile.");
 
         var opt = _settings.GetEffective();
@@ -149,13 +151,51 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         return _store.ToDto(job);
     }
 
+    public async Task<CallJobDto> EnqueueChanSpyAsync(
+        ChanSpyRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request is null)
+            throw new ArgumentException("Request is required.");
+
+        var supervisor = request.SupervisorExtension?.Trim() ?? string.Empty;
+        var target = request.TargetExtension?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(supervisor))
+            throw new ArgumentException("SupervisorExtension is required.");
+        if (string.IsNullOrWhiteSpace(target))
+            throw new ArgumentException("TargetExtension is required.");
+        if (!TryResolveExtenSpyFlags(request.Mode, out var flags, out var modeKey))
+            throw new ArgumentException(
+                "Invalid Mode. Use listen, quiet, whisper, privateWhisper, barge, or dtmf.");
+
+        var opt = _settings.GetEffective();
+        var job = new CallJob
+        {
+            Type = CallJobType.CommandChanSpy,
+            IsCommandJob = true,
+            From = supervisor,
+            To = target,
+            CallerId = modeKey,
+            OriginateDialData = $"ExtenSpy;Flags={flags};Mode={modeKey}",
+            TimeoutMs = request.TimeoutSec is > 0
+                ? request.TimeoutSec.Value * 1000
+                : Math.Max(5_000, opt.DefaultTimeoutMs),
+            ActionId = $"cmd_chanspy_{Guid.NewGuid():N}",
+            Cts = new CancellationTokenSource()
+        };
+        _store.Add(job);
+        await PublishJobAsync(job).ConfigureAwait(false);
+        await _queue.Writer.WriteAsync(job.Id, cancellationToken).ConfigureAwait(false);
+        return _store.ToDto(job);
+    }
+
     public async Task<CallJobDto?> RedialAsync(string id, CancellationToken cancellationToken = default)
     {
         if (!_store.TryGet(id, out var source) || source is null)
             return null;
 
         if (source.IsCommandJob
-            || source.Type is CallJobType.CommandHangup or CallJobType.CommandBridge)
+            || source.Type is CallJobType.CommandHangup or CallJobType.CommandBridge or CallJobType.CommandChanSpy)
         {
             throw new ArgumentException("Command jobs cannot be redialed. Use ExtToExt, MobileToExt, or MobileToMobile.");
         }
@@ -293,6 +333,12 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             return;
         }
 
+        if (job.Type == CallJobType.CommandChanSpy)
+        {
+            await ExecuteChanSpyAsync(job, ct).ConfigureAwait(false);
+            return;
+        }
+
         var opt = _settings.GetEffective();
         if (IsLocalContext(opt))
         {
@@ -303,6 +349,116 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         }
 
         await ExecuteDirectTechDialAsync(job, opt, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// AMI Originate supervisor channel → Application=ExtenSpy (flags from Voip.AsteriskChanSpyPro).
+    /// </summary>
+    private async Task ExecuteChanSpyAsync(CallJob job, CancellationToken ct)
+    {
+        var opt = _settings.GetEffective();
+        if (!TryResolveExtenSpyFlags(job.CallerId, out var flags, out var modeKey))
+        {
+            SetState(job, CallJobState.Failed, "Invalid ChanSpy mode on job");
+            await PublishJobAsync(job).ConfigureAwait(false);
+            return;
+        }
+
+        var tech = string.IsNullOrWhiteSpace(opt.ChannelTech) ? "PJSIP" : opt.ChannelTech.Trim();
+        var supervisor = job.From!.Trim();
+        var target = job.To!.Trim();
+        var channel = $"{tech}/{supervisor}";
+        var data = $"{target},{flags}";
+        job.Channel = channel;
+        job.OriginateDialData = $"ExtenSpy;Channel={channel};Data={data};Mode={modeKey}";
+
+        SetState(job, CallJobState.DialingLeg1, null, $"ChanSpy {modeKey} → ExtenSpy({target},{flags})");
+        await PublishJobAsync(job).ConfigureAwait(false);
+
+        var originate = new OriginateAction
+        {
+            Channel = channel,
+            Application = "ExtenSpy",
+            Data = data,
+            Timeout = job.TimeoutMs,
+            CallerId = opt.DefaultCallerId ?? "NtkSpy",
+            Async = true,
+            ActionId = job.ActionId
+        };
+
+        _logger.LogInformation(
+            "CallJob {JobId} ChanSpy Originate Channel={Channel} App=ExtenSpy Data={Data}",
+            job.Id, channel, data);
+
+        var resp = await _ami.SendActionAsync(originate, ct).ConfigureAwait(false);
+        if (resp.IsSuccess())
+        {
+            SetState(
+                job,
+                CallJobState.Completed,
+                null,
+                $"ChanSpy {modeKey} originate accepted (supervisor {supervisor} → target {target})");
+        }
+        else
+        {
+            SetState(job, CallJobState.Failed, resp.Message ?? "ChanSpy Originate rejected");
+        }
+
+        await PublishJobAsync(job).ConfigureAwait(false);
+    }
+
+    /// <summary>Maps ChanSpyPro *30–*35 modes to ExtenSpy flags.</summary>
+    internal static bool TryResolveExtenSpyFlags(string? mode, out string flags, out string modeKey)
+    {
+        flags = string.Empty;
+        modeKey = string.Empty;
+        var key = (mode ?? string.Empty).Trim().ToLowerInvariant()
+            .Replace("_", string.Empty)
+            .Replace("-", string.Empty)
+            .Replace(" ", string.Empty);
+
+        switch (key)
+        {
+            case "listen":
+            case "spy":
+            case "eq":
+            case "30":
+                flags = "Eq";
+                modeKey = "listen";
+                return true;
+            case "quiet":
+            case "agentonly":
+            case "eqo":
+            case "31":
+                flags = "Eqo";
+                modeKey = "quiet";
+                return true;
+            case "privatewhisper":
+            case "33":
+                flags = "EqW";
+                modeKey = "privateWhisper";
+                return true;
+            case "whisper":
+            case "coach":
+            case "32":
+                flags = "Eqw";
+                modeKey = "whisper";
+                return true;
+            case "barge":
+            case "eqb":
+            case "34":
+                flags = "EqB";
+                modeKey = "barge";
+                return true;
+            case "dtmf":
+            case "eqd":
+            case "35":
+                flags = "Eqd";
+                modeKey = "dtmf";
+                return true;
+            default:
+                return false;
+        }
     }
 
     /// <summary>

@@ -32,7 +32,10 @@ export class ConnectionPageComponent implements OnInit, OnDestroy {
   readonly rows = signal<ConnectionStatus[]>([]);
   readonly totalCount = signal(0);
   readonly error = signal<string | null>(null);
+  readonly success = signal<string | null>(null);
   readonly loading = signal(false);
+  readonly actionBusy = signal(false);
+  readonly actionBusyServerId = signal<string | null>(null);
   readonly refreshedAt = signal<Date | null>(null);
 
   query: ListQuery = { ...defaultListQuery('serverName'), sortDir: 'asc' };
@@ -86,7 +89,9 @@ export class ConnectionPageComponent implements OnInit, OnDestroy {
           return;
         }
         this.rowsAll.set(r.data || []);
-        this.liveStatus.set(r.data?.find((s) => s.isLiveSession) ?? r.data?.[0] ?? null);
+        this.liveStatus.set(
+          r.data?.find((s) => s.isDefault) ?? r.data?.find((s) => s.isLiveSession) ?? r.data?.[0] ?? null,
+        );
         this.repage();
         this.refreshedAt.set(new Date());
       },
@@ -95,6 +100,103 @@ export class ConnectionPageComponent implements OnInit, OnDestroy {
         this.error.set(err.message);
       },
     });
+  }
+
+  connectLive(serverId?: string | null): void {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.actionBusyServerId.set(serverId ?? null);
+    this.error.set(null);
+    this.success.set(null);
+    this.api.connectAmi(serverId).subscribe({
+      next: (r) => {
+        this.actionBusy.set(false);
+        this.actionBusyServerId.set(null);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Connect failed');
+          return;
+        }
+        const status = r.data?.[0] ?? null;
+        if (status) {
+          if (status.isDefault || !serverId) {
+            this.liveStatus.set(status);
+          }
+          this.mergeLiveIntoRows(status);
+        }
+        this.success.set('CONNECTION.CONNECT_OK');
+        this.reload();
+      },
+      error: (err: Error) => {
+        this.actionBusy.set(false);
+        this.actionBusyServerId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  connectAll(): void {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.actionBusyServerId.set('__all__');
+    this.error.set(null);
+    this.success.set(null);
+    this.api.connectAmiAll().subscribe({
+      next: (r) => {
+        this.actionBusy.set(false);
+        this.actionBusyServerId.set(null);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Connect all failed');
+          return;
+        }
+        this.success.set('CONNECTION.CONNECT_ALL_OK');
+        this.reload();
+      },
+      error: (err: Error) => {
+        this.actionBusy.set(false);
+        this.actionBusyServerId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  disconnectLive(serverId?: string | null): void {
+    if (this.actionBusy()) return;
+    this.actionBusy.set(true);
+    this.actionBusyServerId.set(serverId ?? null);
+    this.error.set(null);
+    this.success.set(null);
+    this.api.disconnectAmi(serverId).subscribe({
+      next: (r) => {
+        this.actionBusy.set(false);
+        this.actionBusyServerId.set(null);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Disconnect failed');
+          return;
+        }
+        const status = r.data?.[0] ?? null;
+        if (status) {
+          if (!serverId || status.isDefault) {
+            this.liveStatus.set(status);
+          }
+          this.mergeLiveIntoRows(status);
+        }
+        this.success.set('CONNECTION.DISCONNECT_OK');
+        this.reload();
+      },
+      error: (err: Error) => {
+        this.actionBusy.set(false);
+        this.actionBusyServerId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  rowBusy(serverId: string | null | undefined): boolean {
+    if (!this.actionBusy()) return false;
+    const busyId = this.actionBusyServerId();
+    if (busyId === '__all__') return true;
+    if (!serverId) return busyId == null;
+    return busyId === serverId || busyId == null;
   }
 
   printTable(): void {

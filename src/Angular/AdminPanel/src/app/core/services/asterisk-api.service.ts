@@ -4,10 +4,15 @@ import {
   AsteriskServer,
   AsteriskServerAddRequest,
   AsteriskServerUpdateRequest,
+  CallFileAddRequest,
+  CallFileResult,
   CallJob,
   ChannelItem,
   ConnectionStatus,
   HangupRequest,
+  ChanSpyRequest,
+  ChanSpyMode,
+  BridgeRequest,
   ListQuery,
   LiveEventItem,
   PeerItem,
@@ -15,6 +20,7 @@ import {
   SiteSettingsUpdateRequest,
   TrunkItem,
 } from '../models/asterisk.models';
+import { QueueItem, QueueMemberPauseRequest } from '../models/queue.models';
 import { ApiResult } from '../models/api-result';
 import { ApiClientService } from './api-client.service';
 
@@ -103,6 +109,31 @@ export class AsteriskApiService {
     return this.api.postAction<CallJob>('/api/v1/Asterisk/Channels/ActionHangup', body);
   }
 
+  connectAmi(serverId?: string | null): Observable<ApiResult<ConnectionStatus>> {
+    return this.api.postAction<ConnectionStatus>('/api/v1/Asterisk/Connection/ActionConnect', {
+      serverId: serverId || null,
+    });
+  }
+
+  connectAmiAll(): Observable<ApiResult<ConnectionStatus>> {
+    return this.api.postAction<ConnectionStatus>('/api/v1/Asterisk/Connection/ActionConnectAll', {});
+  }
+
+  disconnectAmi(serverId?: string | null): Observable<ApiResult<ConnectionStatus>> {
+    return this.api.postAction<ConnectionStatus>('/api/v1/Asterisk/Connection/ActionDisconnect', {
+      serverId: serverId || null,
+    });
+  }
+
+  chanSpy(body: ChanSpyRequest): Observable<ApiResult<CallJob>> {
+    return this.api.postAction<CallJob>('/api/v1/Asterisk/Channels/ActionChanSpy', body);
+  }
+
+  bridgeChannels(channel1: string, channel2: string, tone = 'no'): Observable<ApiResult<CallJob>> {
+    const body: BridgeRequest = { channel1, channel2, tone };
+    return this.api.postAction<CallJob>('/api/v1/Asterisk/Channels/ActionBridge', body);
+  }
+
   getJobs(query?: Partial<ListQuery>): Observable<ApiResult<CallJob>> {
     return this.api.getList<CallJob>('/api/v1/CallJobs/GetList', query);
   }
@@ -123,6 +154,10 @@ export class AsteriskApiService {
     return this.api.getBlob(`/api/v1/CallJobs/ActionDownloadRecording/${encodeURIComponent(id)}`);
   }
 
+  addCallFile(body: CallFileAddRequest): Observable<ApiResult<CallFileResult>> {
+    return this.api.postAction<CallFileResult>('/api/v1/Asterisk/CallFiles/Add', body);
+  }
+
   healthOk(): Observable<boolean> {
     return this.api.getList<unknown>('/api/v1/Health').pipe(
       map((r) => r.isSuccess),
@@ -135,5 +170,27 @@ export class AsteriskApiService {
 
   clearEvents(): Observable<ApiResult<unknown>> {
     return this.api.postAction<unknown>('/api/v1/Events/ActionClear', {});
+  }
+
+  getQueues(query?: Partial<ListQuery>): Observable<ApiResult<QueueItem>> {
+    return this.api.getList<QueueItem>('/api/v1/Asterisk/Queues/GetList', query);
+  }
+
+  getQueue(name: string): Observable<QueueItem | null> {
+    return this.api.getOne<QueueItem>(
+      `/api/v1/Asterisk/Queues/GetOne/${encodeURIComponent(name)}`,
+    );
+  }
+
+  pauseQueueMember(body: QueueMemberPauseRequest): Observable<ApiResult<unknown>> {
+    return this.api.postAction<unknown>('/api/v1/Asterisk/Queues/ActionPauseMember', body);
+  }
+
+  unpauseQueueMember(body: QueueMemberPauseRequest): Observable<ApiResult<unknown>> {
+    return this.api.postAction<unknown>('/api/v1/Asterisk/Queues/ActionUnpauseMember', body);
+  }
+
+  hangupQueueEntry(channel: string): Observable<ApiResult<unknown>> {
+    return this.api.postAction<unknown>('/api/v1/Asterisk/Queues/ActionHangupEntry', { channel });
   }
 }

@@ -213,6 +213,7 @@
 
 .tile__foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.35rem;
@@ -246,4 +247,94 @@
 .status-pill[data-tone='neutral'] {
   background: var(--paper-deep);
   color: var(--ink-soft);
+}
+
+.spy-strip {
+  margin-block: 0 var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.spy-strip__head {
+  margin-block-end: var(--space-2);
+}
+
+.spy-strip__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.spy-strip__hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+}
+
+.spy-strip__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 16rem;
+}
+
+.spy-strip__field .input {
+  width: 100%;
+}
+
+.spy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  inline-size: 100%;
+  margin-block-start: 0.35rem;
+}
+
+.bridge-strip {
+  margin-block: 0 var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.bridge-strip__head {
+  margin-block-end: var(--space-2);
+}
+
+.bridge-strip__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bridge-strip__hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+}
+
+.bridge-strip__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bridge-strip__pick {
+  margin: 0;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  word-break: break-all;
+  max-inline-size: 22rem;
+}
+
+.bridge-strip__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.btn--picked {
+  border-color: var(--signal);
+  color: var(--signal);
+  background: var(--signal-soft);
 }

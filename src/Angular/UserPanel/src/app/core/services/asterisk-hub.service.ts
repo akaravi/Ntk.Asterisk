@@ -33,7 +33,15 @@ export class AsteriskHubService implements OnDestroy {
 
     const hubUrl = `${environment.apiBaseUrl.replace(/\/$/, '')}${environment.hubPath}`;
     this.connection = new HubConnectionBuilder()
-      .withUrl(hubUrl)
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => {
+          try {
+            return localStorage.getItem('ntk.queueAcl.token') ?? '';
+          } catch {
+            return '';
+          }
+        },
+      })
       .withAutomaticReconnect()
       .configureLogging(environment.production ? LogLevel.Warning : LogLevel.Information)
       .build();

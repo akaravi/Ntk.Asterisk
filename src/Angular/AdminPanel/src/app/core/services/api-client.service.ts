@@ -38,6 +38,13 @@ export class ApiClientService {
       .pipe(catchError((err) => this.handleError(err)));
   }
 
+  getListWithParams<T>(
+    path: string,
+    params?: Record<string, string | number | boolean | undefined | null>,
+  ): Observable<ApiResult<T>> {
+    return this.getRaw<T>(path, params);
+  }
+
   private getRaw<T>(
     path: string,
     params?: Record<string, string | number | boolean | undefined | null>
@@ -67,7 +74,16 @@ export class ApiClientService {
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `admin-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    return new HttpHeaders({ 'X-Correlation-Id': id });
+    let headers = new HttpHeaders({ 'X-Correlation-Id': id });
+    try {
+      const token = localStorage.getItem('ntk.queueAcl.token');
+      if (token) {
+        headers = headers.set('X-Queue-Acl-Token', token);
+      }
+    } catch {
+      /* ignore */
+    }
+    return headers;
   }
 
   private handleError(err: unknown): Observable<never> {

@@ -6,7 +6,22 @@
       <p>{{ 'APP.SUBTITLE' | t }}</p>
     </div>
     <div class="meta">
-      <span class="hub" [attr.data-state]="hubState">{{ hubLabelKey() | t }}</span>
+      @if (!isLoginRoute()) {
+        <span class="hub" [attr.data-state]="hubState">{{ hubLabelKey() | t }}</span>
+      }
+      @if (isAuthenticated() && username(); as user) {
+        <span class="auth-user" dir="ltr">{{ user }}</span>
+        <button type="button" (click)="logout()" [disabled]="logoutBusy()">
+          {{ (logoutBusy() ? 'AUTH.LOGGING_OUT' : 'AUTH.LOGOUT') | t }}
+        </button>
+      } @else if (gateActive() || isLoginRoute()) {
+        <a routerLink="/login" class="auth-link">{{ 'NAV.LOGIN' | t }}</a>
+      }
+      <div class="locale" role="group" [attr.aria-label]="'THEME.GROUP' | t">
+        <button type="button" (click)="theme.cycle()" [attr.title]="themeLabelKey() | t">
+          {{ themeLabelKey() | t }}
+        </button>
+      </div>
       <div class="locale" role="group" [attr.aria-label]="'LOCALE.GROUP' | t">
         <button type="button" (click)="setLocale('fa')">{{ 'LOCALE.FA' | t }}</button>
         <button type="button" (click)="setLocale('en')">{{ 'LOCALE.EN' | t }}</button>
@@ -14,10 +29,12 @@
     </div>
   </header>
 
-  <nav class="nav" aria-label="main">
-    <a routerLink="/calls" routerLinkActive="active">{{ 'NAV.CALLS' | t }}</a>
-    <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | t }}</a>
-  </nav>
+  @if (!isLoginRoute()) {
+    <nav class="nav" aria-label="main">
+      <a routerLink="/calls" routerLinkActive="active">{{ 'NAV.CALLS' | t }}</a>
+      <a routerLink="/jobs" routerLinkActive="active">{{ 'NAV.JOBS' | t }}</a>
+    </nav>
+  }
 
   <main class="content">
     <router-outlet />

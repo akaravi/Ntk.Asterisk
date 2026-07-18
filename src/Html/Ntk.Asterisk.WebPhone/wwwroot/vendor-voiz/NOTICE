@@ -1,0 +1,16 @@
+VOIZ-WebPhone / Browser Phone — AGPL-3.0 notice
+================================================
+
+This directory (`wwwroot/webphone`) contains a vendored copy of Voip.VOIZ-WebPhone
+(Browser Phone / Innovate Asterisk lineage), licensed under the GNU Affero General
+Public License v3.0. See `vendor-voiz/LICENSE` for the full license text.
+
+Upstream reference (local vendor source used for this tree):
+  D:/SourceKaravi/GitTest/Voip.VOIZ-WebPhone
+
+NTK .NET code under `src/DotNet/Ntk.Asterisk.WebApi` (controllers, services, AMI)
+is separate product code and is not relicensed by this NOTICE. The softphone UI
+and client scripts under this folder remain AGPL-3.0.
+
+If you modify and serve this AGPL-covered softphone over a network, you must
+offer Corresponding Source to users as required by AGPL §13.

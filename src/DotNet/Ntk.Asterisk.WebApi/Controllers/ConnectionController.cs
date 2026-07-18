@@ -21,7 +21,7 @@ public sealed class ConnectionController : ControllerBase
     public ActionResult<ApiResult<ConnectionStatusDto>> GetStatus() =>
         Ok(ApiResult<ConnectionStatusDto>.Ok(_ami.GetStatus()));
 
-    /// <summary>Status for every enabled AMI server (probe Login for non-live sessions).</summary>
+    /// <summary>Status for every enabled AMI server (live sockets; no probe Login).</summary>
     [HttpGet("GetList")]
     public async Task<ActionResult<object>> GetList(
         [FromQuery] int pageIndex = 0,
@@ -85,13 +85,17 @@ public sealed class ConnectionController : ControllerBase
         }
     }
 
+    /// <summary>Connect live AMI. Optional body.serverId (null → active default).</summary>
     [HttpPost("ActionConnect")]
-    public async Task<ActionResult<ApiResult<ConnectionStatusDto>>> ActionConnect(CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResult<ConnectionStatusDto>>> ActionConnect(
+        [FromBody] ConnectionServerRequest? request,
+        CancellationToken cancellationToken)
     {
         try
         {
-            await _ami.EnsureConnectedAsync(cancellationToken);
-            var status = _ami.GetStatus();
+            var serverId = request?.ServerId;
+            await _ami.EnsureConnectedAsync(serverId, cancellationToken).ConfigureAwait(false);
+            var status = await ResolveStatusAfterActionAsync(serverId, cancellationToken).ConfigureAwait(false);
             if (!status.Connected)
                 return Ok(ApiResult<ConnectionStatusDto>.Fail(status.LastError ?? "AMI not connected."));
             return Ok(ApiResult<ConnectionStatusDto>.Ok(status));
@@ -103,10 +107,45 @@ public sealed class ConnectionController : ControllerBase
         }
     }
 
-    [HttpPost("ActionDisconnect")]
-    public async Task<ActionResult<ApiResult<ConnectionStatusDto>>> ActionDisconnect()
+    /// <summary>Connect live AMI for every enabled configured server.</summary>
+    [HttpPost("ActionConnectAll")]
+    public async Task<ActionResult<ApiResult<ConnectionStatusDto>>> ActionConnectAll(
+        CancellationToken cancellationToken)
     {
-        await _ami.DisconnectAsync();
-        return Ok(ApiResult<ConnectionStatusDto>.Ok(_ami.GetStatus()));
+        try
+        {
+            await _ami.EnsureAllEnabledConnectedAsync(cancellationToken).ConfigureAwait(false);
+            return Ok(ApiResult<ConnectionStatusDto>.Ok(_ami.GetStatus()));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "AMI ActionConnectAll failed");
+            return Ok(ApiResult<ConnectionStatusDto>.Fail(ex.Message));
+        }
+    }
+
+    /// <summary>Disconnect live AMI. Optional body.serverId (null → active default).</summary>
+    [HttpPost("ActionDisconnect")]
+    public async Task<ActionResult<ApiResult<ConnectionStatusDto>>> ActionDisconnect(
+        [FromBody] ConnectionServerRequest? request,
+        CancellationToken cancellationToken)
+    {
+        var serverId = request?.ServerId;
+        await _ami.DisconnectAsync(serverId).ConfigureAwait(false);
+        var status = await ResolveStatusAfterActionAsync(serverId, cancellationToken).ConfigureAwait(false);
+        return Ok(ApiResult<ConnectionStatusDto>.Ok(status));
+    }
+
+    private async Task<ConnectionStatusDto> ResolveStatusAfterActionAsync(
+        string? serverId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(serverId))
+            return _ami.GetStatus();
+
+        var list = await _ami.GetStatusListAsync(cancellationToken).ConfigureAwait(false);
+        return list.FirstOrDefault(s =>
+                   string.Equals(s.ServerId, serverId.Trim(), StringComparison.OrdinalIgnoreCase))
+               ?? _ami.GetStatus();
     }
 }

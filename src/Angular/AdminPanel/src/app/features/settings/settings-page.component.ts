@@ -54,6 +54,11 @@ export class SettingsPageComponent implements OnInit {
     recordingHttpBaseUrl: [''],
     recordingAsteriskDirectory: ['/var/spool/asterisk/monitor'],
     recordingFormat: ['wav'],
+    queueHideList: [''],
+    queueShowList: [''],
+    queueRenameMap: [''],
+    callFileStagingDirectory: [''],
+    callFileOutgoingDirectory: [''],
     reconnectAfterSave: [true],
   });
 
@@ -181,6 +186,11 @@ export class SettingsPageComponent implements OnInit {
       recordingHttpBaseUrl: server.recordingHttpBaseUrl,
       recordingAsteriskDirectory: server.recordingAsteriskDirectory,
       recordingFormat: server.recordingFormat,
+      queueHideList: server.queueHideList,
+      queueShowList: server.queueShowList,
+      queueRenameMap: server.queueRenameMap,
+      callFileStagingDirectory: server.callFileStagingDirectory,
+      callFileOutgoingDirectory: server.callFileOutgoingDirectory,
       persisted: true,
       note: null,
       serverId: server.id,
@@ -211,6 +221,11 @@ export class SettingsPageComponent implements OnInit {
       recordingHttpBaseUrl: server.recordingHttpBaseUrl ?? '',
       recordingAsteriskDirectory: server.recordingAsteriskDirectory ?? '/var/spool/asterisk/monitor',
       recordingFormat: server.recordingFormat || 'wav',
+      queueHideList: server.queueHideList ?? '',
+      queueShowList: server.queueShowList ?? '',
+      queueRenameMap: server.queueRenameMap ?? '',
+      callFileStagingDirectory: server.callFileStagingDirectory ?? '',
+      callFileOutgoingDirectory: server.callFileOutgoingDirectory ?? '',
       reconnectAfterSave: true,
     });
   }
@@ -307,6 +322,11 @@ export class SettingsPageComponent implements OnInit {
         recordingHttpBaseUrl: v.recordingHttpBaseUrl.trim() || null,
         recordingAsteriskDirectory: v.recordingAsteriskDirectory.trim() || null,
         recordingFormat: v.recordingFormat.trim() || 'wav',
+        queueHideList: v.queueHideList.trim() || null,
+        queueShowList: v.queueShowList.trim() || null,
+        queueRenameMap: v.queueRenameMap.trim() || null,
+        callFileStagingDirectory: v.callFileStagingDirectory.trim() || null,
+        callFileOutgoingDirectory: v.callFileOutgoingDirectory.trim() || null,
         reconnectAfterSave: v.reconnectAfterSave,
       })
       .subscribe({

@@ -1,1 +1,47 @@
 /* Jobs list uses shared .entity-card board tokens from styles.scss */
+
+.callfile-card {
+  margin-block-end: var(--space-4);
+}
+
+.callfile-card__hint {
+  margin-block: 0 var(--space-3);
+  padding-inline: var(--space-3);
+}
+
+.callfile-form__grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  padding-inline: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+
+.callfile-form__grid .field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.callfile-form__grid .field span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.callfile-form__grid input,
+.callfile-form__grid select {
+  min-height: 2.25rem;
+  padding-inline: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.callfile-form__grid .field--narrow {
+  max-width: 10rem;
+}
+
+.callfile-form__actions {
+  padding: 0 var(--space-3) var(--space-3);
+}

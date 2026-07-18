@@ -35,6 +35,25 @@
   font-size: 0.85rem;
 }
 
+.stat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-start: var(--space-3);
+}
+
+.entity-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-start: var(--space-3);
+}
+
+.btn--xs {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.7rem;
+}
+
 .stat--ok {
   border-inline-start-color: var(--ok);
 }

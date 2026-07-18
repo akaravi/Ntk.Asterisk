@@ -8,7 +8,9 @@ public enum CallJobType
     MobileToExt,
     MobileToMobile,
     CommandHangup,
-    CommandBridge
+    CommandBridge,
+    /// <summary>AMI Originate → Application=ExtenSpy (ChanSpyPro modes).</summary>
+    CommandChanSpy
 }
 
 public enum CallJobState

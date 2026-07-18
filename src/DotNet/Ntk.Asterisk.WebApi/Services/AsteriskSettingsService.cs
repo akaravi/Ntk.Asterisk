@@ -14,7 +14,7 @@ public interface IAsteriskSettingsService
     /// <summary>Active server record, or null when none enabled/default.</summary>
     AsteriskServerConfig? GetActiveServer();
 
-    /// <summary>Enabled servers with secrets — for connection probes only.</summary>
+    /// <summary>Enabled servers with secrets — for live multi-AMI sessions.</summary>
     IReadOnlyList<AsteriskServerConfig> GetEnabledServerConfigs();
 
     IReadOnlyList<AsteriskServerDto> GetServerList();
@@ -141,7 +141,19 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 RecordingHttpBaseUrl = NullIfWhiteSpace(request.RecordingHttpBaseUrl),
                 RecordingAsteriskDirectory = NullIfWhiteSpace(request.RecordingAsteriskDirectory)
                     ?? "/var/spool/asterisk/monitor",
-                RecordingFormat = string.IsNullOrWhiteSpace(request.RecordingFormat) ? "wav" : request.RecordingFormat.Trim().Trim('.')
+                RecordingFormat = string.IsNullOrWhiteSpace(request.RecordingFormat) ? "wav" : request.RecordingFormat.Trim().Trim('.'),
+                SipWebsocketUrl = NullIfWhiteSpace(request.SipWebsocketUrl),
+                SipWebsocketHost = NullIfWhiteSpace(request.SipWebsocketHost),
+                SipDomain = NullIfWhiteSpace(request.SipDomain),
+                WebSocketPath = string.IsNullOrWhiteSpace(request.WebSocketPath) ? "/ws" : request.WebSocketPath.Trim(),
+                WebSocketPort = request.WebSocketPort is > 0 ? request.WebSocketPort : 8089,
+                SipUseTls = request.SipUseTls ?? false,
+                StunServersJson = NullIfWhiteSpace(request.StunServersJson),
+                QueueHideList = NullIfWhiteSpace(request.QueueHideList),
+                QueueShowList = NullIfWhiteSpace(request.QueueShowList),
+                QueueRenameMap = NullIfWhiteSpace(request.QueueRenameMap),
+                CallFileStagingDirectory = NullIfWhiteSpace(request.CallFileStagingDirectory),
+                CallFileOutgoingDirectory = NullIfWhiteSpace(request.CallFileOutgoingDirectory),
             };
 
             NormalizeServer(created);
@@ -194,6 +206,27 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 request.RecordingHttpBaseUrl,
                 request.RecordingAsteriskDirectory,
                 request.RecordingFormat);
+
+            ApplySipFields(
+                target,
+                request.SipWebsocketUrl,
+                request.SipWebsocketHost,
+                request.SipDomain,
+                request.WebSocketPath,
+                request.WebSocketPort,
+                request.SipUseTls,
+                request.StunServersJson);
+
+            ApplyQueueDisplayFields(
+                target,
+                request.QueueHideList,
+                request.QueueShowList,
+                request.QueueRenameMap);
+
+            ApplyCallFileFields(
+                target,
+                request.CallFileStagingDirectory,
+                request.CallFileOutgoingDirectory);
 
             if (request.Name != null)
                 target.Name = string.IsNullOrWhiteSpace(request.Name) ? target.Name : request.Name.Trim();
@@ -336,6 +369,17 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 request.RecordingHttpBaseUrl,
                 request.RecordingAsteriskDirectory,
                 request.RecordingFormat);
+
+            ApplyQueueDisplayFields(
+                target,
+                request.QueueHideList,
+                request.QueueShowList,
+                request.QueueRenameMap);
+
+            ApplyCallFileFields(
+                target,
+                request.CallFileStagingDirectory,
+                request.CallFileOutgoingDirectory);
 
             NormalizeServer(target);
             EnsureDefaultInvariantUnlocked();
@@ -554,6 +598,57 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 : recordingFormat.Trim().Trim('.');
     }
 
+    private static void ApplySipFields(
+        AsteriskServerConfig target,
+        string? sipWebsocketUrl,
+        string? sipWebsocketHost,
+        string? sipDomain,
+        string? webSocketPath,
+        int? webSocketPort,
+        bool? sipUseTls,
+        string? stunServersJson)
+    {
+        if (sipWebsocketUrl != null)
+            target.SipWebsocketUrl = NullIfWhiteSpace(sipWebsocketUrl);
+        if (sipWebsocketHost != null)
+            target.SipWebsocketHost = NullIfWhiteSpace(sipWebsocketHost);
+        if (sipDomain != null)
+            target.SipDomain = NullIfWhiteSpace(sipDomain);
+        if (webSocketPath != null)
+            target.WebSocketPath = string.IsNullOrWhiteSpace(webSocketPath) ? "/ws" : webSocketPath.Trim();
+        if (webSocketPort.HasValue)
+            target.WebSocketPort = webSocketPort.Value <= 0 ? 8089 : webSocketPort.Value;
+        if (sipUseTls.HasValue)
+            target.SipUseTls = sipUseTls.Value;
+        if (stunServersJson != null)
+            target.StunServersJson = NullIfWhiteSpace(stunServersJson);
+    }
+
+    private static void ApplyQueueDisplayFields(
+        AsteriskServerConfig target,
+        string? queueHideList,
+        string? queueShowList,
+        string? queueRenameMap)
+    {
+        if (queueHideList != null)
+            target.QueueHideList = NullIfWhiteSpace(queueHideList);
+        if (queueShowList != null)
+            target.QueueShowList = NullIfWhiteSpace(queueShowList);
+        if (queueRenameMap != null)
+            target.QueueRenameMap = NullIfWhiteSpace(queueRenameMap);
+    }
+
+    private static void ApplyCallFileFields(
+        AsteriskServerConfig target,
+        string? callFileStagingDirectory,
+        string? callFileOutgoingDirectory)
+    {
+        if (callFileStagingDirectory != null)
+            target.CallFileStagingDirectory = NullIfWhiteSpace(callFileStagingDirectory);
+        if (callFileOutgoingDirectory != null)
+            target.CallFileOutgoingDirectory = NullIfWhiteSpace(callFileOutgoingDirectory);
+    }
+
     private static ConfigVisibilityDto ToVisibilityDto(AsteriskServerConfig opt, bool persisted) => new()
     {
         AmiConfigured = opt.IsConfigured,
@@ -583,6 +678,11 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         ServerName = opt.Name,
         IsEnabled = opt.IsEnabled,
         IsDefault = opt.IsDefault,
+        QueueHideList = opt.QueueHideList,
+        QueueShowList = opt.QueueShowList,
+        QueueRenameMap = opt.QueueRenameMap,
+        CallFileStagingDirectory = opt.CallFileStagingDirectory,
+        CallFileOutgoingDirectory = opt.CallFileOutgoingDirectory,
         Note = "Managed via Admin Settings. Secret is never returned; leave blank to keep existing."
     };
 
@@ -612,7 +712,19 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         RecordingLocalDirectory = opt.RecordingLocalDirectory,
         RecordingHttpBaseUrl = opt.RecordingHttpBaseUrl,
         RecordingAsteriskDirectory = opt.RecordingAsteriskDirectory,
-        RecordingFormat = opt.RecordingFormat
+        RecordingFormat = opt.RecordingFormat,
+        SipWebsocketUrl = opt.SipWebsocketUrl,
+        SipWebsocketHost = opt.SipWebsocketHost,
+        SipDomain = opt.SipDomain,
+        WebSocketPath = opt.WebSocketPath,
+        WebSocketPort = opt.WebSocketPort,
+        SipUseTls = opt.SipUseTls,
+        StunServersJson = opt.StunServersJson,
+        QueueHideList = opt.QueueHideList,
+        QueueShowList = opt.QueueShowList,
+        QueueRenameMap = opt.QueueRenameMap,
+        CallFileStagingDirectory = opt.CallFileStagingDirectory,
+        CallFileOutgoingDirectory = opt.CallFileOutgoingDirectory,
     };
 
     private static AsteriskServerConfig CloneServer(AsteriskServerConfig src) => new()
@@ -640,7 +752,19 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         RecordingLocalDirectory = src.RecordingLocalDirectory,
         RecordingHttpBaseUrl = src.RecordingHttpBaseUrl,
         RecordingAsteriskDirectory = src.RecordingAsteriskDirectory,
-        RecordingFormat = src.RecordingFormat
+        RecordingFormat = src.RecordingFormat,
+        SipWebsocketUrl = src.SipWebsocketUrl,
+        SipWebsocketHost = src.SipWebsocketHost,
+        SipDomain = src.SipDomain,
+        WebSocketPath = src.WebSocketPath,
+        WebSocketPort = src.WebSocketPort,
+        SipUseTls = src.SipUseTls,
+        StunServersJson = src.StunServersJson,
+        QueueHideList = src.QueueHideList,
+        QueueShowList = src.QueueShowList,
+        QueueRenameMap = src.QueueRenameMap,
+        CallFileStagingDirectory = src.CallFileStagingDirectory,
+        CallFileOutgoingDirectory = src.CallFileOutgoingDirectory,
     };
 
     private static AsteriskOptions CloneOptions(AsteriskOptions src) => new()
@@ -664,7 +788,19 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         RecordingLocalDirectory = src.RecordingLocalDirectory,
         RecordingHttpBaseUrl = src.RecordingHttpBaseUrl,
         RecordingAsteriskDirectory = src.RecordingAsteriskDirectory,
-        RecordingFormat = src.RecordingFormat
+        RecordingFormat = src.RecordingFormat,
+        SipWebsocketUrl = src.SipWebsocketUrl,
+        SipWebsocketHost = src.SipWebsocketHost,
+        SipDomain = src.SipDomain,
+        WebSocketPath = src.WebSocketPath,
+        WebSocketPort = src.WebSocketPort,
+        SipUseTls = src.SipUseTls,
+        StunServersJson = src.StunServersJson,
+        QueueHideList = src.QueueHideList,
+        QueueShowList = src.QueueShowList,
+        QueueRenameMap = src.QueueRenameMap,
+        CallFileStagingDirectory = src.CallFileStagingDirectory,
+        CallFileOutgoingDirectory = src.CallFileOutgoingDirectory,
     };
 
     private static void NormalizeServer(AsteriskServerConfig opt)
@@ -688,6 +824,10 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
             : opt.RecordingFormat.Trim().Trim('.');
         if (string.IsNullOrWhiteSpace(opt.RecordingAsteriskDirectory))
             opt.RecordingAsteriskDirectory = "/var/spool/asterisk/monitor";
+        if (string.IsNullOrWhiteSpace(opt.WebSocketPath))
+            opt.WebSocketPath = "/ws";
+        if (opt.WebSocketPort is null or <= 0)
+            opt.WebSocketPort = 8089;
     }
 
     private static AsteriskOptions NormalizeOptions(AsteriskOptions opt)

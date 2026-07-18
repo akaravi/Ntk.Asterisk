@@ -21,6 +21,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DotNet", "DotNet", "{204ECC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ntk.Asterisk.WebApi", "src\DotNet\Ntk.Asterisk.WebApi\Ntk.Asterisk.WebApi.csproj", "{92A9304B-8F71-4EF3-AF1B-283434F78DDF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebPhone", "WebPhone", "{4065407E-BDD1-CAFB-5329-7C785894C498}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ntk.Asterisk.WebPhone", "src\WebPhone\Ntk.Asterisk.WebPhone\Ntk.Asterisk.WebPhone.csproj", "{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,6 +119,18 @@ Global
 		{92A9304B-8F71-4EF3-AF1B-283434F78DDF}.Release|x64.Build.0 = Release|Any CPU
 		{92A9304B-8F71-4EF3-AF1B-283434F78DDF}.Release|x86.ActiveCfg = Release|Any CPU
 		{92A9304B-8F71-4EF3-AF1B-283434F78DDF}.Release|x86.Build.0 = Release|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Debug|x64.Build.0 = Debug|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Debug|x86.Build.0 = Debug|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Release|Any CPU.Build.0 = Release|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Release|x64.ActiveCfg = Release|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Release|x64.Build.0 = Release|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Release|x86.ActiveCfg = Release|Any CPU
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,6 +138,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{204ECC8A-4C8C-06A8-7EEC-D568B118FA74} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{92A9304B-8F71-4EF3-AF1B-283434F78DDF} = {204ECC8A-4C8C-06A8-7EEC-D568B118FA74}
+		{4065407E-BDD1-CAFB-5329-7C785894C498} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{091B8AB4-CA64-4709-ADD6-B6B15DC4B618} = {4065407E-BDD1-CAFB-5329-7C785894C498}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D7E15869-7AC3-41B0-89A9-B7F86E55A705}

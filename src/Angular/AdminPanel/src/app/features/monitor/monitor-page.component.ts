@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import {
   ChannelItem,
+  ChanSpyMode,
   ConnectionStatus,
   ListQuery,
   MonitorUnifiedItem,
@@ -43,6 +44,22 @@ export class MonitorPageComponent implements OnInit, OnDestroy {
   readonly serverBusy = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+
+  /** Supervisor extension for ExtenSpy originate (persisted). */
+  spySupervisor = '';
+
+  readonly spyModes: { mode: ChanSpyMode; labelKey: string }[] = [
+    { mode: 'listen', labelKey: 'MONITOR.SPY_LISTEN' },
+    { mode: 'quiet', labelKey: 'MONITOR.SPY_QUIET' },
+    { mode: 'whisper', labelKey: 'MONITOR.SPY_WHISPER' },
+    { mode: 'privateWhisper', labelKey: 'MONITOR.SPY_PRIVATE_WHISPER' },
+    { mode: 'barge', labelKey: 'MONITOR.SPY_BARGE' },
+    { mode: 'dtmf', labelKey: 'MONITOR.SPY_DTMF' },
+  ];
+
+  /** Two-channel AMI Bridge selection (ActionBridge). */
+  readonly bridgeChannel1 = signal<string | null>(null);
+  readonly bridgeChannel2 = signal<string | null>(null);
 
   readonly servers = signal<ConnectionStatus[]>([]);
   readonly activeServerId = signal<string | null>(null);
@@ -83,6 +100,7 @@ export class MonitorPageComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    this.spySupervisor = localStorage.getItem('ntk.monitor.spySupervisor') || '';
     this.reloadServers();
     this.reload();
     void this.hub.subscribeMonitor();
@@ -239,6 +257,136 @@ export class MonitorPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  onSpySupervisorChange(value: string): void {
+    this.spySupervisor = (value || '').trim();
+    localStorage.setItem('ntk.monitor.spySupervisor', this.spySupervisor);
+  }
+
+  canSpy(targetExtension: string | null | undefined): boolean {
+    return !!this.spySupervisor?.trim() && !!targetExtension?.trim() && !this.actionBusy();
+  }
+
+  spy(targetExtension: string, mode: ChanSpyMode): void {
+    const supervisor = this.spySupervisor?.trim();
+    const target = (targetExtension || '').trim();
+    if (!supervisor || !target || this.actionBusy()) {
+      this.error.set(this.i18n.instant('MONITOR.SPY_NEED_SUPERVISOR'));
+      return;
+    }
+    this.actionBusy.set(true);
+    this.success.set(null);
+    this.error.set(null);
+    this.api
+      .chanSpy({
+        supervisorExtension: supervisor,
+        targetExtension: target,
+        mode,
+      })
+      .subscribe({
+        next: (r) => {
+          this.actionBusy.set(false);
+          if (!r.isSuccess) {
+            this.error.set(r.errorMessage || 'ChanSpy failed');
+            return;
+          }
+          this.success.set('MONITOR.SPY_OK');
+        },
+        error: (err: Error) => {
+          this.actionBusy.set(false);
+          this.error.set(err.message);
+        },
+      });
+  }
+
+  /** Peer id is usually the extension; strip tech prefix if present. */
+  peerSpyTarget(peer: PeerItem): string {
+    return this.normalizeExtension(peer.id);
+  }
+
+  channelSpyTarget(row: ChannelItem): string | null {
+    return this.extensionFromChannel(row.channel);
+  }
+
+  extensionFromChannel(channel: string | null | undefined): string | null {
+    if (!channel) return null;
+    const m = /^(?:PJSIP|SIP|IAX2)\/([^@\-\/]+)/i.exec(channel.trim());
+    return m?.[1] ? this.normalizeExtension(m[1]) : null;
+  }
+
+  private normalizeExtension(raw: string): string {
+    return raw.trim().replace(/^exten[_-]?/i, '');
+  }
+
+  selectForBridge(channel: string): void {
+    const ch = (channel || '').trim();
+    if (!ch || this.actionBusy()) return;
+    const a = this.bridgeChannel1();
+    const b = this.bridgeChannel2();
+    if (a === ch) {
+      this.bridgeChannel1.set(null);
+      return;
+    }
+    if (b === ch) {
+      this.bridgeChannel2.set(null);
+      return;
+    }
+    if (!a) {
+      this.bridgeChannel1.set(ch);
+      return;
+    }
+    if (!b) {
+      if (a === ch) return;
+      this.bridgeChannel2.set(ch);
+      return;
+    }
+    // Both set — replace second
+    this.bridgeChannel2.set(ch);
+  }
+
+  clearBridgeSelection(): void {
+    this.bridgeChannel1.set(null);
+    this.bridgeChannel2.set(null);
+  }
+
+  isBridgeSelected(channel: string | null | undefined): boolean {
+    if (!channel) return false;
+    return this.bridgeChannel1() === channel || this.bridgeChannel2() === channel;
+  }
+
+  canRunBridge(): boolean {
+    const a = this.bridgeChannel1();
+    const b = this.bridgeChannel2();
+    return !!a && !!b && a !== b && !this.actionBusy();
+  }
+
+  runBridge(): void {
+    const a = this.bridgeChannel1();
+    const b = this.bridgeChannel2();
+    if (!a || !b || a === b || this.actionBusy()) {
+      this.error.set(this.i18n.instant('MONITOR.BRIDGE_NEED_TWO'));
+      return;
+    }
+    this.actionBusy.set(true);
+    this.success.set(null);
+    this.error.set(null);
+    this.api.bridgeChannels(a, b, 'no').subscribe({
+      next: (r) => {
+        this.actionBusy.set(false);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Bridge failed');
+          return;
+        }
+        this.success.set('MONITOR.BRIDGE_OK');
+        this.clearBridgeSelection();
+        this.reload();
+      },
+      error: (err: Error) => {
+        this.actionBusy.set(false);
+        this.error.set(err.message);
+      },
+    });
+  }
+
   printTable(): void {
     window.print();
   }
@@ -381,6 +529,8 @@ export class MonitorPageComponent implements OnInit, OnDestroy {
         lastActivityUtc: p.lastActivityUtc ?? null,
         durationSec: this.peerDuration(p),
         channel: p.channel ?? null,
+        inCall: !!p.inCall,
+        spyTarget: isTrunk ? null : this.normalizeExtension(p.id),
       });
     }
 
@@ -397,6 +547,8 @@ export class MonitorPageComponent implements OnInit, OnDestroy {
         lastActivityUtc: c.lastActivityUtc ?? null,
         durationSec: this.channelDuration(c),
         channel: c.channel,
+        inCall: true,
+        spyTarget: this.extensionFromChannel(c.channel),
       });
     }
 
