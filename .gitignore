@@ -382,3 +382,6 @@ src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-ae76f3a5116f479cbc0c8709d
 **/App_Data/queue-stats-snapshots.json
 **/App_Data/queue-stats-snapshots.json.tmp
 
+
+**/.DS_Store
+
