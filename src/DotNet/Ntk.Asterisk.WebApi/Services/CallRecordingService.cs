@@ -9,6 +9,14 @@ namespace Ntk.Asterisk.WebApi.Services;
 
 public interface ICallRecordingService
 {
+    /// <summary>
+    /// Display / PBX basename:
+    /// <c>ntk-{yyyyMMdd}-{HHmmss}-from-{from}-to-{to}.{ext}</c>
+    /// </summary>
+    string BuildRecordingFileName(CallJob job, string? format = null, DateTimeOffset? stampUtc = null);
+
+    string BuildAsteriskFilePath(CallJob job, AsteriskOptions opt);
+    /// <summary>Legacy path by job id (also tried when locating older files).</summary>
     string BuildAsteriskFilePath(string jobId, AsteriskOptions opt);
     string CacheFilePath(string jobId, string extension);
     Task<bool> TryRefreshAvailabilityAsync(CallJob job, CancellationToken ct = default);
@@ -109,6 +117,32 @@ public sealed class CallRecordingService : ICallRecordingService
             " | base64 -d > /var/lib/asterisk/agi-bin/ntk-enc.sh && chmod 755 /var/lib/asterisk/agi-bin/ntk-enc.sh'");
     }
 
+    public string BuildRecordingFileName(CallJob job, string? format = null, DateTimeOffset? stampUtc = null)
+    {
+        var ext = string.IsNullOrWhiteSpace(format)
+            ? (string.IsNullOrWhiteSpace(_settings.GetEffective().RecordingFormat)
+                ? "wav"
+                : _settings.GetEffective().RecordingFormat.Trim().Trim('.'))
+            : format.Trim().Trim('.');
+
+        var from = SanitizeParty(job.From, job.Mobile1);
+        var to = SanitizeParty(job.To, job.Mobile2);
+        var at = (stampUtc ?? job.StartedAtUtc ?? job.CreatedAtUtc).ToUniversalTime();
+        return $"ntk-{at:yyyyMMdd}-{at:HHmmss}-from-{from}-to-{to}.{ext}";
+    }
+
+    public string BuildAsteriskFilePath(CallJob job, AsteriskOptions opt)
+    {
+        var format = string.IsNullOrWhiteSpace(opt.RecordingFormat) ? "wav" : opt.RecordingFormat.Trim().Trim('.');
+        var withExt = string.IsNullOrWhiteSpace(job.RecordingFileName)
+            ? BuildRecordingFileName(job, format)
+            : EnsureExtension(job.RecordingFileName!, format);
+        var dir = string.IsNullOrWhiteSpace(opt.RecordingAsteriskDirectory)
+            ? "/var/spool/asterisk/monitor"
+            : opt.RecordingAsteriskDirectory.Trim();
+        return Path.Combine(dir.TrimEnd('/', '\\'), withExt).Replace('\\', '/');
+    }
+
     public string BuildAsteriskFilePath(string jobId, AsteriskOptions opt)
     {
         var format = string.IsNullOrWhiteSpace(opt.RecordingFormat) ? "wav" : opt.RecordingFormat.Trim().Trim('.');
@@ -127,6 +161,35 @@ public sealed class CallRecordingService : ICallRecordingService
         return Path.Combine(dir, $"ntk-{jobId}.{ext}");
     }
 
+    private static string SanitizeParty(string? primary, string? fallback)
+    {
+        var raw = !string.IsNullOrWhiteSpace(primary) ? primary : fallback;
+        if (string.IsNullOrWhiteSpace(raw))
+            return "unknown";
+        var digits = new string(raw.Where(char.IsDigit).ToArray());
+        return string.IsNullOrEmpty(digits) ? "unknown" : digits;
+    }
+
+    private static string EnsureExtension(string fileName, string format)
+    {
+        if (fileName.Contains('.', StringComparison.Ordinal))
+            return Path.GetFileName(fileName);
+        return $"{Path.GetFileName(fileName)}.{format}";
+    }
+
+    private void EnsureFriendlyRecordingName(CallJob job, string format)
+    {
+        if (string.IsNullOrWhiteSpace(job.RecordingFileName)
+            || job.RecordingFileName.StartsWith($"ntk-{job.Id}", StringComparison.OrdinalIgnoreCase))
+        {
+            job.RecordingFileName = BuildRecordingFileName(job, format);
+        }
+        else
+        {
+            job.RecordingFileName = EnsureExtension(job.RecordingFileName, format);
+        }
+    }
+
     public async Task<bool> TryRefreshAvailabilityAsync(CallJob job, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(job.RecordingFileName) && !job.RecordingStarted)
@@ -134,14 +197,11 @@ public sealed class CallRecordingService : ICallRecordingService
 
         var opt = _settings.GetEffective();
         var format = string.IsNullOrWhiteSpace(opt.RecordingFormat) ? "wav" : opt.RecordingFormat.Trim().Trim('.');
-        var fileName = job.RecordingFileName ?? $"ntk-{job.Id}.{format}";
-        if (!fileName.Contains('.', StringComparison.Ordinal))
-            fileName = $"{fileName}.{format}";
-
+        EnsureFriendlyRecordingName(job, format);
+        var fileName = job.RecordingFileName!;
         var cachePath = CacheFilePath(job.Id, format);
         if (File.Exists(cachePath) && new FileInfo(cachePath).Length >= MinRecordingBytes)
         {
-            job.RecordingFileName = Path.GetFileName(cachePath);
             job.RecordingAvailable = true;
             return true;
         }
@@ -153,7 +213,6 @@ public sealed class CallRecordingService : ICallRecordingService
             try
             {
                 File.Copy(candidate, cachePath, overwrite: true);
-                job.RecordingFileName = Path.GetFileName(cachePath);
                 job.RecordingAvailable = true;
                 _logger.LogInformation("Recording cached from {Src} → {Dst}", candidate, cachePath);
                 return true;
@@ -165,28 +224,32 @@ public sealed class CallRecordingService : ICallRecordingService
         }
 
         var httpBase = opt.RecordingHttpBaseUrl?.Trim();
-        foreach (var url in EnumerateHttpRecordingUrls(opt, fileName, httpBase))
+        var httpNames = new[] { fileName, $"ntk-{job.Id}.{format}" }
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        foreach (var httpName in httpNames)
         {
-            try
+            foreach (var url in EnumerateHttpRecordingUrls(opt, httpName, httpBase))
             {
-                var client = _httpClientFactory.CreateClient("recording-fetch");
-                using var resp = await client.GetAsync(url, ct).ConfigureAwait(false);
-                if (!resp.IsSuccessStatusCode)
-                    continue;
-
-                await using var fs = File.Create(cachePath);
-                await resp.Content.CopyToAsync(fs, ct).ConfigureAwait(false);
-                if (fs.Length >= MinRecordingBytes)
+                try
                 {
-                    job.RecordingFileName = Path.GetFileName(cachePath);
-                    job.RecordingAvailable = true;
-                    _logger.LogInformation("Recording pulled via HTTP {Url} ({Bytes} bytes)", url, fs.Length);
-                    return true;
+                    var client = _httpClientFactory.CreateClient("recording-fetch");
+                    using var resp = await client.GetAsync(url, ct).ConfigureAwait(false);
+                    if (!resp.IsSuccessStatusCode)
+                        continue;
+
+                    await using var fs = File.Create(cachePath);
+                    await resp.Content.CopyToAsync(fs, ct).ConfigureAwait(false);
+                    if (fs.Length >= MinRecordingBytes)
+                    {
+                        job.RecordingAvailable = true;
+                        _logger.LogInformation("Recording pulled via HTTP {Url} ({Bytes} bytes)", url, fs.Length);
+                        return true;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "HTTP recording fetch failed for {Url}", url);
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "HTTP recording fetch failed for {Url}", url);
+                }
             }
         }
 
@@ -222,7 +285,9 @@ public sealed class CallRecordingService : ICallRecordingService
         var contentType = format.Equals("mp3", StringComparison.OrdinalIgnoreCase)
             ? "audio/mpeg"
             : "audio/wav";
-        var name = job.RecordingFileName ?? Path.GetFileName(cachePath);
+        var name = string.IsNullOrWhiteSpace(job.RecordingFileName)
+            ? BuildRecordingFileName(job, format)
+            : EnsureExtension(job.RecordingFileName!, format);
         return (stream, contentType, name);
     }
 
@@ -250,9 +315,8 @@ public sealed class CallRecordingService : ICallRecordingService
                     var format = string.IsNullOrWhiteSpace(opt.RecordingFormat)
                         ? "wav"
                         : opt.RecordingFormat.Trim().Trim('.');
-                    var fileName = job.RecordingFileName ?? $"ntk-{job.Id}.{format}";
-                    if (!fileName.Contains('.', StringComparison.Ordinal))
-                        fileName = $"{fileName}.{format}";
+                    EnsureFriendlyRecordingName(job, format);
+                    var fileName = job.RecordingFileName!;
 
                     foreach (var url in EnumerateHttpRecordingUrls(opt, fileName, opt.RecordingHttpBaseUrl))
                     {
@@ -266,7 +330,6 @@ public sealed class CallRecordingService : ICallRecordingService
                             await resp.Content.CopyToAsync(fs, ct).ConfigureAwait(false);
                             if (fs.Length >= MinRecordingBytes)
                             {
-                                job.RecordingFileName = Path.GetFileName(cachePath);
                                 job.RecordingAvailable = true;
                                 lock (_encodeGate)
                                     _encodeTriggered.Remove(job.Id);
@@ -426,7 +489,7 @@ public sealed class CallRecordingService : ICallRecordingService
                 }
 
                 await File.WriteAllBytesAsync(cachePath, bytes, ct).ConfigureAwait(false);
-                job.RecordingFileName = Path.GetFileName(cachePath);
+                EnsureFriendlyRecordingName(job, string.IsNullOrWhiteSpace(opt.RecordingFormat) ? "wav" : opt.RecordingFormat.Trim().Trim('.'));
                 job.RecordingAvailable = true;
                 lock (_encodeGate)
                     _encodeTriggered.Remove(job.Id);
@@ -484,7 +547,9 @@ public sealed class CallRecordingService : ICallRecordingService
                 _encodeTriggered.Add(job.Id);
         }
 
-        var remote = BuildAsteriskFilePath(job.Id, opt);
+        var format = string.IsNullOrWhiteSpace(opt.RecordingFormat) ? "wav" : opt.RecordingFormat.Trim().Trim('.');
+        EnsureFriendlyRecordingName(job, format);
+        var remote = BuildAsteriskFilePath(job, opt);
         var family = AstDbFamilyForJob(job.Id);
         try
         {

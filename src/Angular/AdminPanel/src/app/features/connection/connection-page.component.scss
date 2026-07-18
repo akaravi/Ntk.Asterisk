@@ -30,6 +30,11 @@
   font-weight: 650;
 }
 
+.stat .muted {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+}
+
 .stat--ok {
   border-inline-start-color: var(--ok);
 }
@@ -44,4 +49,13 @@
 
 .stat--bad .stat__value {
   color: var(--danger);
+}
+
+.entity-card[data-live='true'] {
+  outline: 1px solid color-mix(in srgb, var(--signal) 35%, var(--line));
+}
+
+.connection__row-error {
+  margin-block-start: var(--space-2);
+  margin-block-end: 0;
 }

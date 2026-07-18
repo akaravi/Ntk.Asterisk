@@ -45,12 +45,14 @@ export class JobsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    void this.hub.subscribeJobs();
     this.sub = this.hub.hubEvents$.subscribe((ev) => {
       if (ev.kind !== 'job') return;
+      const incoming = this.normalizeJob(ev.payload);
       const next = [...this.jobsAll()];
-      const idx = next.findIndex((j) => j.id === ev.payload.id);
-      if (idx >= 0) next[idx] = ev.payload;
-      else next.unshift(ev.payload);
+      const idx = next.findIndex((j) => j.id === incoming.id);
+      if (idx >= 0) next[idx] = { ...next[idx], ...incoming };
+      else next.unshift(incoming);
       this.jobsAll.set(next);
       this.repage();
     });
@@ -103,6 +105,12 @@ export class JobsPageComponent implements OnInit, OnDestroy {
   }
 
   canRedial(job: CallJob): boolean {
+    const state = String(job.state || '').toLowerCase();
+    const terminal = ['completed', 'failed', 'cancelled'];
+    const ended = !!job.endedAtUtc || terminal.includes(state);
+    if (!ended) {
+      return false;
+    }
     const type = String(job.type || '');
     if (type === 'CommandHangup' || type === 'CommandBridge') {
       return false;
@@ -121,6 +129,25 @@ export class JobsPageComponent implements OnInit, OnDestroy {
 
   canDownloadRecording(job: CallJob): boolean {
     return !!(job.hasRecording || job.recordingFileName || job.recordingAvailable);
+  }
+
+  /** ntk-{yyyyMMdd}-{HHmmss}-from-{from}-to-{to}.wav */
+  recordingDownloadName(job: CallJob): string {
+    if (job.recordingFileName && !job.recordingFileName.startsWith(`ntk-${job.id}`)) {
+      return job.recordingFileName;
+    }
+    const digits = (v: string | null | undefined) => {
+      const d = String(v || '').replace(/\D/g, '');
+      return d || 'unknown';
+    };
+    const from = digits(job.from || job.mobile1);
+    const to = digits(job.to || job.mobile2);
+    const raw = job.startedAtUtc || job.callTimeUtc || job.createdAtUtc || new Date().toISOString();
+    const d = new Date(raw);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const date = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
+    const time = `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+    return `ntk-${date}-${time}-from-${from}-to-${to}.wav`;
   }
 
   downloadRecording(job: CallJob): void {
@@ -142,7 +169,7 @@ export class JobsPageComponent implements OnInit, OnDestroy {
           });
           return;
         }
-        const name = job.recordingFileName || `ntk-${job.id}.wav`;
+        const name = this.recordingDownloadName(job);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -330,5 +357,10 @@ export class JobsPageComponent implements OnInit, OnDestroy {
     );
     this.jobsRows.set(rows as unknown as CallJob[]);
     this.totalCount.set(totalCount);
+  }
+
+  private normalizeJob(job: CallJob): CallJob {
+    const state = (job.state || (job as CallJob & { status?: string }).status || '') as CallJob['state'];
+    return { ...job, state };
   }
 }

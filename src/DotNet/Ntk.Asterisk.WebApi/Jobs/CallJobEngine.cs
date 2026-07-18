@@ -160,6 +160,13 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             throw new ArgumentException("Command jobs cannot be redialed. Use ExtToExt, MobileToExt, or MobileToMobile.");
         }
 
+        if (source.State is not (CallJobState.Completed or CallJobState.Failed or CallJobState.Cancelled)
+            && source.EndedAtUtc is null)
+        {
+            throw new InvalidOperationException(
+                "Redial is only allowed after the call has ended or been stopped (completed, failed, or cancelled).");
+        }
+
         var request = new CallJobAddRequest
         {
             Type = source.Type.ToString(),
@@ -1552,8 +1559,9 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             return;
 
         var format = string.IsNullOrWhiteSpace(opt.RecordingFormat) ? "wav" : opt.RecordingFormat.Trim().Trim('.');
-        var amiFile = _recording.BuildAsteriskFilePath(job.Id, opt);
-        var baseName = $"ntk-{job.Id}.{format}";
+        var baseName = _recording.BuildRecordingFileName(job, format);
+        job.RecordingFileName = baseName;
+        var amiFile = _recording.BuildAsteriskFilePath(job, opt);
 
         try
         {
@@ -1572,6 +1580,7 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
 
             if (!resp.IsSuccess())
             {
+                job.RecordingFileName = null;
                 _logger.LogWarning(
                     "CallJob {JobId} MixMonitor failed on {Channel}: {Msg}",
                     job.Id, channel, resp.Message);
@@ -1579,7 +1588,6 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
             }
 
             job.RecordingChannel = channel;
-            job.RecordingFileName = baseName;
             job.RecordingStarted = true;
             _store.Update(job);
             _logger.LogInformation(
@@ -1634,8 +1642,12 @@ public sealed class CallJobEngine : ICallJobEngine, IHostedService, IDisposable
         }
     }
 
-    private Task PublishJobAsync(CallJob job) =>
-        _hub.Clients.Group("jobs").SendAsync("jobUpdated", _store.ToDto(job));
+    private Task PublishJobAsync(CallJob job)
+    {
+        var dto = _store.ToDto(job);
+        // Group "jobs" — clients must SubscribeJobs (Admin + User dashboards).
+        return _hub.Clients.Group("jobs").SendAsync("jobUpdated", dto);
+    }
 
     public void Dispose()
     {

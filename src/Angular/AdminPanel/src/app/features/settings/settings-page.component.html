@@ -9,15 +9,23 @@
         type="button"
         class="btn btn--ghost"
         (click)="reload()"
-        [disabled]="loading() || saving() || testing()"
+        [disabled]="loading() || saving() || testing() || serverBusy()"
       >
         {{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
       </button>
       <button
         type="button"
         class="btn btn--ghost"
+        (click)="addServer()"
+        [disabled]="loading() || saving() || testing() || serverBusy()"
+      >
+        {{ 'SETTINGS.SERVER_ADD' | translate }}
+      </button>
+      <button
+        type="button"
+        class="btn btn--ghost"
         (click)="testConnection()"
-        [disabled]="loading() || saving() || testing()"
+        [disabled]="loading() || saving() || testing() || serverBusy()"
       >
         {{ testing() ? ('ACTION.LOADING' | translate) : ('SETTINGS.TEST' | translate) }}
       </button>
@@ -25,7 +33,7 @@
         type="button"
         class="btn"
         (click)="save()"
-        [disabled]="loading() || saving() || testing() || form.invalid"
+        [disabled]="loading() || saving() || testing() || serverBusy() || form.invalid || !selectedServerId()"
       >
         {{ saving() ? ('ACTION.LOADING' | translate) : ('SETTINGS.SAVE' | translate) }}
       </button>
@@ -33,7 +41,7 @@
   </header>
 
   @if (error()) {
-    <p class="banner banner--error" role="alert">{{ error() }}</p>
+    <p class="banner banner--error" role="alert">{{ error()! | translate }}</p>
   }
   @if (success()) {
     <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
@@ -48,6 +56,12 @@
         </span>
         <span class="status-pill" [attr.data-tone]="s.secretConfigured ? 'ok' : 'fail'">
           {{ (s.secretConfigured ? 'SETTINGS.SECRET_SET' : 'SETTINGS.SECRET_MISSING') | translate }}
+        </span>
+        <span class="status-pill" [attr.data-tone]="s.isDefault ? 'ok' : 'warn'">
+          {{ (s.isDefault ? 'SETTINGS.SERVER_IS_DEFAULT' : 'SETTINGS.SERVER_NOT_DEFAULT') | translate }}
+        </span>
+        <span class="status-pill" [attr.data-tone]="s.isEnabled ? 'ok' : 'fail'">
+          {{ (s.isEnabled ? 'SETTINGS.SERVER_ENABLED' : 'SETTINGS.SERVER_DISABLED') | translate }}
         </span>
         <span class="status-pill" [attr.data-tone]="s.persisted ? 'ok' : 'warn'">
           {{ (s.persisted ? 'SETTINGS.PERSISTED' : 'SETTINGS.FROM_APPSETTINGS') | translate }}
@@ -69,225 +83,353 @@
     </dl>
   </div>
 
-  <form class="settings__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
-    <fieldset class="settings__section">
-      <legend class="settings__legend">{{ 'SETTINGS.SECTION_CONNECTION' | translate }}</legend>
-      <p class="settings__section-hint">{{ 'SETTINGS.SECTION_CONNECTION_HINT' | translate }}</p>
-      <div class="settings__fields settings__fields--creds">
-        <label class="field">
-          <span>{{ 'SETTINGS.HOST' | translate }}</span>
-          <input
-            type="text"
-            formControlName="host"
-            class="ltr"
-            autocomplete="off"
-            [placeholder]="'SETTINGS.HOST_PH' | translate"
-          />
-        </label>
-        <label class="field field--narrow">
-          <span>{{ 'SETTINGS.PORT' | translate }}</span>
-          <input
-            type="number"
-            formControlName="port"
-            class="ltr"
-            [placeholder]="'SETTINGS.PORT_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.USER' | translate }}</span>
-          <input
-            type="text"
-            formControlName="username"
-            class="ltr"
-            autocomplete="username"
-            [placeholder]="'SETTINGS.USER_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.SECRET' | translate }}</span>
-          <input
-            type="password"
-            formControlName="secret"
-            class="ltr"
-            autocomplete="new-password"
-            [placeholder]="'SETTINGS.SECRET_PH' | translate"
-          />
-        </label>
-        <label class="check check--span">
-          <input type="checkbox" formControlName="clearSecret" />
-          <span>{{ 'SETTINGS.CLEAR_SECRET' | translate }}</span>
-        </label>
-      </div>
-    </fieldset>
+  <section class="settings__servers" aria-labelledby="servers-title">
+    <div class="settings__servers-head">
+      <h2 id="servers-title" class="settings__legend">{{ 'SETTINGS.SERVERS_TITLE' | translate }}</h2>
+      <p class="settings__section-hint">{{ 'SETTINGS.SERVERS_HINT' | translate }}</p>
+      <label class="field settings__server-search">
+        <span>{{ 'LIST.QUICK_SEARCH' | translate }}</span>
+        <input
+          type="search"
+          class="ltr"
+          [value]="serverQuickSearch()"
+          (input)="onServerSearch($any($event.target).value)"
+          [placeholder]="'LIST.QUICK_SEARCH_PLACEHOLDER' | translate"
+        />
+      </label>
+    </div>
 
-    <fieldset class="settings__section">
-      <legend class="settings__legend">{{ 'SETTINGS.SECTION_ORIGINATE' | translate }}</legend>
-      <p class="settings__section-hint">{{ 'SETTINGS.SECTION_ORIGINATE_HINT' | translate }}</p>
-      <div class="settings__fields">
-        <label class="field">
-          <span>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</span>
-          <input
-            type="text"
-            formControlName="channelTech"
-            class="ltr"
-            [placeholder]="'SETTINGS.CHANNEL_TECH_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.ORIGINATE_VIA' | translate }}</span>
-          <select formControlName="originateVia" class="ltr">
-            <option value="LocalContext">LocalContext (FreePBX)</option>
-            <option value="DirectTech">DirectTech (PJSIP/SIP trunk)</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.ORIGINATE_CONTEXT' | translate }}</span>
-          <input
-            type="text"
-            formControlName="originateContext"
-            class="ltr"
-            [placeholder]="'SETTINGS.ORIGINATE_CONTEXT_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.MOH_CLASS' | translate }}</span>
-          <input
-            type="text"
-            formControlName="musicOnHoldClass"
-            class="ltr"
-            [placeholder]="'SETTINGS.MOH_CLASS_PH' | translate"
-          />
-        </label>
+    @if (filteredServers().length === 0) {
+      <p class="muted">{{ 'LIST.EMPTY' | translate }}</p>
+    } @else {
+      <div
+        class="tabs settings__server-tabs"
+        role="tablist"
+        [attr.aria-label]="'SETTINGS.SERVERS_TITLE' | translate"
+        (keydown)="onServerTabKeydown($event)"
+      >
+        @for (server of filteredServers(); track server.id) {
+          <button
+            type="button"
+            role="tab"
+            class="tab settings__server-tab"
+            [class.tab--active]="server.id === selectedServerId()"
+            [attr.data-enabled]="server.isEnabled ? 'true' : 'false'"
+            [attr.data-default]="server.isDefault ? 'true' : null"
+            [attr.aria-selected]="server.id === selectedServerId()"
+            [attr.id]="'server-tab-' + server.id"
+            [attr.aria-controls]="'server-panel-' + server.id"
+            (click)="selectServer(server)"
+          >
+            <span class="settings__server-tab-name">{{ server.name }}</span>
+            <span class="settings__server-tab-host ltr">{{ serverEndpoint(server) }}</span>
+            <span class="settings__server-tab-flags">
+              @if (server.isDefault) {
+                <span class="settings__server-tab-badge" data-tone="ok">{{
+                  'SETTINGS.SERVER_IS_DEFAULT' | translate
+                }}</span>
+              }
+              <span
+                class="settings__server-tab-badge"
+                [attr.data-tone]="server.isEnabled ? 'ok' : 'fail'"
+              >
+                {{
+                  (server.isEnabled ? 'SETTINGS.SERVER_ENABLED' : 'SETTINGS.SERVER_DISABLED')
+                    | translate
+                }}
+              </span>
+            </span>
+          </button>
+        }
       </div>
-    </fieldset>
 
-    <fieldset class="settings__section">
-      <legend class="settings__legend">{{ 'SETTINGS.SECTION_TRUNK' | translate }}</legend>
-      <p class="settings__section-hint">{{ 'SETTINGS.SECTION_TRUNK_HINT' | translate }}</p>
-      <div class="settings__fields">
-        <label class="field">
-          <span>{{ 'SETTINGS.DEFAULT_TRUNK' | translate }}</span>
-          <input
-            type="text"
-            formControlName="defaultTrunk"
-            class="ltr"
-            [placeholder]="'SETTINGS.DEFAULT_TRUNK_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.TRUNK_FILTER' | translate }}</span>
-          <input
-            type="text"
-            formControlName="trunkPeerFilter"
-            class="ltr"
-            [placeholder]="'SETTINGS.TRUNK_FILTER_PH' | translate"
-          />
-        </label>
-        <label class="field field--narrow">
-          <span>{{ 'SETTINGS.TIMEOUT_MS' | translate }}</span>
-          <input
-            type="number"
-            formControlName="defaultTimeoutMs"
-            class="ltr"
-            [placeholder]="'SETTINGS.TIMEOUT_MS_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.CALLER_ID' | translate }}</span>
-          <input
-            type="text"
-            formControlName="defaultCallerId"
-            class="ltr"
-            [placeholder]="'SETTINGS.CALLER_ID_PH' | translate"
-          />
-        </label>
-      </div>
-    </fieldset>
+      @if (selectedServer(); as active) {
+        <div
+          class="settings__server-panel"
+          role="tabpanel"
+          [attr.id]="'server-panel-' + active.id"
+          [attr.aria-labelledby]="'server-tab-' + active.id"
+        >
+          <div class="settings__server-panel-head">
+            <div class="settings__server-panel-title">
+              <h3>{{ 'SETTINGS.SERVER_EDITING' | translate }}: {{ active.name }}</h3>
+              <p class="settings__section-hint ltr">{{ serverEndpoint(active) }}</p>
+            </div>
+            <div
+              class="settings__server-actions"
+              role="group"
+              [attr.aria-label]="'SETTINGS.SERVER_ACTIONS' | translate"
+            >
+              @if (active.isEnabled) {
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--sm"
+                  (click)="disableServer(active)"
+                  [disabled]="serverBusy()"
+                >
+                  {{ 'SETTINGS.SERVER_DISABLE' | translate }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--sm"
+                  (click)="enableServer(active)"
+                  [disabled]="serverBusy()"
+                >
+                  {{ 'SETTINGS.SERVER_ENABLE' | translate }}
+                </button>
+              }
+              <button
+                type="button"
+                class="btn btn--ghost btn--sm"
+                (click)="setDefaultServer(active)"
+                [disabled]="serverBusy() || active.isDefault || !active.isEnabled"
+              >
+                {{ 'SETTINGS.SERVER_SET_DEFAULT' | translate }}
+              </button>
+              <button
+                type="button"
+                class="btn btn--ghost btn--sm"
+                (click)="deleteServer(active)"
+                [disabled]="serverBusy() || servers().length <= 1"
+              >
+                {{ 'SETTINGS.SERVER_DELETE' | translate }}
+              </button>
+            </div>
+          </div>
 
-    <fieldset class="settings__section">
-      <legend class="settings__legend">{{ 'SETTINGS.SECTION_RECORDING' | translate }}</legend>
-      <p class="settings__section-hint">{{ 'SETTINGS.SECTION_RECORDING_HINT' | translate }}</p>
-      <div class="settings__fields">
-        <label class="check">
-          <input type="checkbox" formControlName="recordingEnabled" />
-          <span>{{ 'SETTINGS.RECORDING_ENABLED' | translate }}</span>
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.RECORDING_ASTERISK_DIR' | translate }}</span>
-          <input
-            type="text"
-            formControlName="recordingAsteriskDirectory"
-            class="ltr"
-            dir="ltr"
-            autocomplete="off"
-            [placeholder]="'SETTINGS.RECORDING_ASTERISK_DIR_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.RECORDING_LOCAL_DIR' | translate }}</span>
-          <input
-            type="text"
-            formControlName="recordingLocalDirectory"
-            class="ltr"
-            dir="ltr"
-            autocomplete="off"
-            [placeholder]="'SETTINGS.RECORDING_LOCAL_DIR_PH' | translate"
-          />
-        </label>
-        <label class="field">
-          <span>{{ 'SETTINGS.RECORDING_HTTP_BASE' | translate }}</span>
-          <input
-            type="url"
-            formControlName="recordingHttpBaseUrl"
-            class="ltr"
-            dir="ltr"
-            autocomplete="off"
-            [placeholder]="'SETTINGS.RECORDING_HTTP_BASE_PH' | translate"
-          />
-        </label>
-        <label class="field field--narrow">
-          <span>{{ 'SETTINGS.RECORDING_FORMAT' | translate }}</span>
-          <input
-            type="text"
-            formControlName="recordingFormat"
-            class="ltr"
-            dir="ltr"
-            [placeholder]="'SETTINGS.RECORDING_FORMAT_PH' | translate"
-          />
-        </label>
-      </div>
-    </fieldset>
+          <form class="settings__form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+            <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_CONNECTION' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_CONNECTION_HINT' | translate }}</p>
+              <div class="settings__fields settings__fields--creds">
+                <label class="field">
+                  <span>{{ 'SETTINGS.SERVER_NAME' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="name"
+                    autocomplete="off"
+                    [placeholder]="'SETTINGS.SERVER_NAME_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.HOST' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="host"
+                    class="ltr"
+                    autocomplete="off"
+                    [placeholder]="'SETTINGS.HOST_PH' | translate"
+                  />
+                </label>
+                <label class="field field--narrow">
+                  <span>{{ 'SETTINGS.PORT' | translate }}</span>
+                  <input
+                    type="number"
+                    formControlName="port"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.PORT_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.USER' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="username"
+                    class="ltr"
+                    autocomplete="username"
+                    [placeholder]="'SETTINGS.USER_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.SECRET' | translate }}</span>
+                  <input
+                    type="password"
+                    formControlName="secret"
+                    class="ltr"
+                    autocomplete="new-password"
+                    [placeholder]="'SETTINGS.SECRET_PH' | translate"
+                  />
+                </label>
+                <label class="check check--span">
+                  <input type="checkbox" formControlName="clearSecret" />
+                  <span>{{ 'SETTINGS.CLEAR_SECRET' | translate }}</span>
+                </label>
+              </div>
+            </fieldset>
 
-    <fieldset class="settings__section">
-      <legend class="settings__legend">{{ 'SETTINGS.SECTION_SESSION' | translate }}</legend>
-      <p class="settings__section-hint">{{ 'SETTINGS.SECTION_SESSION_HINT' | translate }}</p>
-      <div class="settings__fields settings__fields--session">
-        <label class="field field--narrow">
-          <span>{{ 'SETTINGS.PING_MS' | translate }}</span>
-          <input
-            type="number"
-            formControlName="pingIntervalMs"
-            class="ltr"
-            [placeholder]="'SETTINGS.PING_MS_PH' | translate"
-          />
-        </label>
-        <div class="settings__toggles" role="group" [attr.aria-label]="'SETTINGS.SECTION_SESSION' | translate">
-          <label class="check">
-            <input type="checkbox" formControlName="keepAlive" />
-            <span>{{ 'SETTINGS.KEEP_ALIVE' | translate }}</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" formControlName="autoConnectOnStartup" />
-            <span>{{ 'SETTINGS.AUTO_CONNECT' | translate }}</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" formControlName="reconnectAfterSave" />
-            <span>{{ 'SETTINGS.RECONNECT_AFTER_SAVE' | translate }}</span>
-          </label>
+            <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_ORIGINATE' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_ORIGINATE_HINT' | translate }}</p>
+              <div class="settings__fields">
+                <label class="field">
+                  <span>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="channelTech"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.CHANNEL_TECH_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.ORIGINATE_VIA' | translate }}</span>
+                  <select formControlName="originateVia" class="ltr">
+                    <option value="LocalContext">LocalContext (FreePBX)</option>
+                    <option value="DirectTech">DirectTech (PJSIP/SIP trunk)</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.ORIGINATE_CONTEXT' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="originateContext"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.ORIGINATE_CONTEXT_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.MOH_CLASS' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="musicOnHoldClass"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.MOH_CLASS_PH' | translate"
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_TRUNK' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_TRUNK_HINT' | translate }}</p>
+              <div class="settings__fields">
+                <label class="field">
+                  <span>{{ 'SETTINGS.DEFAULT_TRUNK' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="defaultTrunk"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.DEFAULT_TRUNK_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.TRUNK_FILTER' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="trunkPeerFilter"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.TRUNK_FILTER_PH' | translate"
+                  />
+                </label>
+                <label class="field field--narrow">
+                  <span>{{ 'SETTINGS.TIMEOUT_MS' | translate }}</span>
+                  <input
+                    type="number"
+                    formControlName="defaultTimeoutMs"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.TIMEOUT_MS_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.CALLER_ID' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="defaultCallerId"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.CALLER_ID_PH' | translate"
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_RECORDING' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_RECORDING_HINT' | translate }}</p>
+              <div class="settings__fields">
+                <label class="check">
+                  <input type="checkbox" formControlName="recordingEnabled" />
+                  <span>{{ 'SETTINGS.RECORDING_ENABLED' | translate }}</span>
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.RECORDING_ASTERISK_DIR' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="recordingAsteriskDirectory"
+                    class="ltr"
+                    dir="ltr"
+                    autocomplete="off"
+                    [placeholder]="'SETTINGS.RECORDING_ASTERISK_DIR_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.RECORDING_LOCAL_DIR' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="recordingLocalDirectory"
+                    class="ltr"
+                    dir="ltr"
+                    autocomplete="off"
+                    [placeholder]="'SETTINGS.RECORDING_LOCAL_DIR_PH' | translate"
+                  />
+                </label>
+                <label class="field">
+                  <span>{{ 'SETTINGS.RECORDING_HTTP_BASE' | translate }}</span>
+                  <input
+                    type="url"
+                    formControlName="recordingHttpBaseUrl"
+                    class="ltr"
+                    dir="ltr"
+                    autocomplete="off"
+                    [placeholder]="'SETTINGS.RECORDING_HTTP_BASE_PH' | translate"
+                  />
+                </label>
+                <label class="field field--narrow">
+                  <span>{{ 'SETTINGS.RECORDING_FORMAT' | translate }}</span>
+                  <input
+                    type="text"
+                    formControlName="recordingFormat"
+                    class="ltr"
+                    dir="ltr"
+                    [placeholder]="'SETTINGS.RECORDING_FORMAT_PH' | translate"
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="settings__section">
+              <legend class="settings__legend">{{ 'SETTINGS.SECTION_SESSION' | translate }}</legend>
+              <p class="settings__section-hint">{{ 'SETTINGS.SECTION_SESSION_HINT' | translate }}</p>
+              <div class="settings__fields settings__fields--session">
+                <label class="field field--narrow">
+                  <span>{{ 'SETTINGS.PING_MS' | translate }}</span>
+                  <input
+                    type="number"
+                    formControlName="pingIntervalMs"
+                    class="ltr"
+                    [placeholder]="'SETTINGS.PING_MS_PH' | translate"
+                  />
+                </label>
+                <div class="settings__toggles" role="group" [attr.aria-label]="'SETTINGS.SECTION_SESSION' | translate">
+                  <label class="check">
+                    <input type="checkbox" formControlName="keepAlive" />
+                    <span>{{ 'SETTINGS.KEEP_ALIVE' | translate }}</span>
+                  </label>
+                  <label class="check">
+                    <input type="checkbox" formControlName="autoConnectOnStartup" />
+                    <span>{{ 'SETTINGS.AUTO_CONNECT' | translate }}</span>
+                  </label>
+                  <label class="check">
+                    <input type="checkbox" formControlName="reconnectAfterSave" />
+                    <span>{{ 'SETTINGS.RECONNECT_AFTER_SAVE' | translate }}</span>
+                  </label>
+                </div>
+              </div>
+            </fieldset>
+          </form>
         </div>
-      </div>
-    </fieldset>
-  </form>
+      }
+    }
+  </section>
 
   @if (testResult(); as t) {
     <article
@@ -310,6 +452,12 @@
           <div>
             <dt>{{ 'SETTINGS.TEST_VERSION' | translate }}</dt>
             <dd class="ltr">{{ t.asteriskVersion }}</dd>
+          </div>
+        }
+        @if (t.serverName) {
+          <div>
+            <dt>{{ 'SETTINGS.SERVER_NAME' | translate }}</dt>
+            <dd>{{ t.serverName }}</dd>
           </div>
         }
         @if (t.lastError) {

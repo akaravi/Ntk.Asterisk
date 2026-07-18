@@ -1,47 +1,121 @@
-<section class="page">
+<section class="page connection">
   <header class="page__header">
-    <h1>{{ 'NAV.CONNECTION' | translate }}</h1>
-    <button type="button" class="btn" (click)="reload()" [disabled]="loading()">
-      {{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}
-    </button>
+    <div>
+      <h1>{{ 'NAV.CONNECTION' | translate }}</h1>
+      <p class="page__header-sub">{{ 'CONNECTION.SUBTITLE' | translate }}</p>
+    </div>
   </header>
 
   @if (error()) {
     <p class="banner banner--error" role="alert">{{ error() }}</p>
   }
 
-  @if (status(); as s) {
-    <div class="status-grid">
-      <article class="stat" [class.stat--ok]="s.connected" [class.stat--bad]="!s.connected">
-        <h2>{{ 'CONNECTION.AMI' | translate }}</h2>
-        <p class="stat__value">
-          {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
-        </p>
-      </article>
-      <article class="stat" [class.stat--ok]="hubConnected()" [class.stat--bad]="!hubConnected()">
-        <h2>{{ 'CONNECTION.SIGNALR' | translate }}</h2>
-        <p class="stat__value">
-          {{ (hubConnected() ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
-        </p>
-      </article>
-      <article class="stat">
-        <h2>{{ 'CONNECTION.UPTIME' | translate }}</h2>
-        <p class="stat__value" dir="ltr">
-          {{ s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
-        </p>
-      </article>
-      <article class="stat">
-        <h2>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</h2>
-        <p class="stat__value" dir="ltr">{{ s.channelTech || '—' }}</p>
-      </article>
-    </div>
+  <div class="status-grid" aria-live="polite">
+    <article class="stat" [class.stat--ok]="hubConnected()" [class.stat--bad]="!hubConnected()">
+      <h2>{{ 'CONNECTION.SIGNALR' | translate }}</h2>
+      <p class="stat__value">
+        {{ (hubConnected() ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
+      </p>
+    </article>
+    <article
+      class="stat"
+      [class.stat--ok]="liveStatus()?.connected"
+      [class.stat--bad]="liveStatus() && !liveStatus()?.connected"
+    >
+      <h2>{{ 'CONNECTION.LIVE_SESSION' | translate }}</h2>
+      <p class="stat__value">
+        {{
+          liveStatus()
+            ? ((liveStatus()!.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED')
+              | translate)
+            : '—'
+        }}
+      </p>
+      @if (liveStatus()?.serverName) {
+        <p class="muted">{{ liveStatus()!.serverName }}</p>
+      }
+    </article>
+    <article class="stat">
+      <h2>{{ 'CONNECTION.ENABLED_COUNT' | translate }}</h2>
+      <p class="stat__value ltr">{{ rowsAll().length }}</p>
+    </article>
+  </div>
 
-    @if (s.lastError) {
-      <p class="banner banner--warn" role="status">{{ s.lastError }}</p>
+  <app-list-toolbar
+    [query]="query"
+    [totalCount]="totalCount()"
+    [busy]="loading()"
+    [advancedFields]="filters"
+    (queryChange)="onQueryChange($event)"
+    (refresh)="reload()"
+    (print)="printTable()"
+    (exportPdf)="exportPdf()"
+    (exportExcel)="exportExcel()"
+  />
+
+  <div class="entity-board" [attr.aria-busy]="loading()">
+    @if (loading()) {
+      <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+    } @else if (rows().length === 0) {
+      <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+    } @else {
+      @for (s of rows(); track s.serverId || endpoint(s)) {
+        <article
+          class="entity-card"
+          [attr.data-tone]="s.connected ? 'ok' : 'fail'"
+          [attr.data-live]="s.isLiveSession ? 'true' : null"
+        >
+          <header class="entity-card__head">
+            <div class="entity-card__identity">
+              <span class="entity-card__title">{{ s.serverName || '—' }}</span>
+              <span class="status-pill" [attr.data-tone]="s.connected ? 'ok' : 'fail'">
+                {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
+              </span>
+              @if (s.isDefault) {
+                <span class="status-pill" data-tone="ok">{{ 'CONNECTION.DEFAULT' | translate }}</span>
+              }
+              @if (s.isLiveSession) {
+                <span class="status-pill" data-tone="ok">{{ 'CONNECTION.LIVE' | translate }}</span>
+              }
+            </div>
+          </header>
+
+          <dl class="entity-card__meta">
+            <div>
+              <dt>{{ 'CONNECTION.COL_HOST' | translate }}</dt>
+              <dd class="ltr">{{ endpoint(s) }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'CONNECTION.COL_USER' | translate }}</dt>
+              <dd class="ltr">{{ s.username || '—' }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</dt>
+              <dd class="ltr">{{ s.channelTech || '—' }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'CONNECTION.UPTIME' | translate }}</dt>
+              <dd class="ltr">
+                {{ s.isLiveSession && s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
+              </dd>
+            </div>
+            @if (s.asteriskVersion) {
+              <div>
+                <dt>{{ 'CONNECTION.COL_VERSION' | translate }}</dt>
+                <dd class="ltr">{{ s.asteriskVersion }}</dd>
+              </div>
+            }
+          </dl>
+
+          @if (s.lastError) {
+            <p class="banner banner--warn connection__row-error" role="status">{{ s.lastError }}</p>
+          }
+        </article>
+      }
     }
-  } @else if (!loading()) {
-    <p class="muted">{{ 'CONNECTION.NO_DATA' | translate }}</p>
-  }
+  </div>
+
+  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
 
   @if (refreshedAt(); as t) {
     <p class="muted" dir="ltr">{{ t | date: 'yyyy-MM-dd HH:mm:ss' }} UTC display</p>

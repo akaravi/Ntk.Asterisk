@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Ntk.Asterisk.WebApi.Jobs;
 
 public enum CallJobType
@@ -41,12 +43,13 @@ public sealed class CallJob
     public string? MediaChannel1 { get; set; }
     public string? MediaChannel2 { get; set; }
     /// <summary>SIP/PJSIP channels observed via BridgeEnter/Newchannel for this call tree.</summary>
+    [JsonIgnore]
     public HashSet<string> ObservedSipChannels { get; } = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>CHANNEL(linkedid) / Originate UniqueId for correlating trunk channels.</summary>
     public string? LinkedId { get; set; }
     /// <summary>Channel MixMonitor was started on.</summary>
     public string? RecordingChannel { get; set; }
-    /// <summary>Basename without path, e.g. ntk-{jobId}.wav</summary>
+    /// <summary>Basename without path, e.g. ntk-20260718-093215-from-0912…-to-0913….wav</summary>
     public string? RecordingFileName { get; set; }
     public bool RecordingStarted { get; set; }
     public bool RecordingAvailable { get; set; }
@@ -66,5 +69,6 @@ public sealed class CallJob
     public DateTimeOffset? EndedAtUtc { get; set; }
     /// <summary>Wall-clock seconds from start to end when both are known.</summary>
     public int? DurationSeconds { get; set; }
+    [JsonIgnore]
     public CancellationTokenSource? Cts { get; set; }
 }

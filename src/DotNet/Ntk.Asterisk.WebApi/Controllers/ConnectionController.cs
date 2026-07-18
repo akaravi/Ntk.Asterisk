@@ -21,6 +21,70 @@ public sealed class ConnectionController : ControllerBase
     public ActionResult<ApiResult<ConnectionStatusDto>> GetStatus() =>
         Ok(ApiResult<ConnectionStatusDto>.Ok(_ami.GetStatus()));
 
+    /// <summary>Status for every enabled AMI server (probe Login for non-live sessions).</summary>
+    [HttpGet("GetList")]
+    public async Task<ActionResult<object>> GetList(
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageSize = 50,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortDir = null,
+        [FromQuery] string? quickSearch = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var items = (await _ami.GetStatusListAsync(cancellationToken).ConfigureAwait(false))
+                .AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(quickSearch))
+            {
+                var q = quickSearch.Trim();
+                items = items.Where(s =>
+                    (s.ServerName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (s.Host?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (s.Username?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (s.ServerId?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (s.LastError?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            var sort = (sortBy ?? "name").Trim().ToLowerInvariant();
+            var desc = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+            items = sort switch
+            {
+                "host" => desc ? items.OrderByDescending(s => s.Host) : items.OrderBy(s => s.Host),
+                "connected" => desc
+                    ? items.OrderByDescending(s => s.Connected)
+                    : items.OrderBy(s => s.Connected),
+                "isdefault" or "default" => desc
+                    ? items.OrderByDescending(s => s.IsDefault)
+                    : items.OrderBy(s => s.IsDefault),
+                _ => desc
+                    ? items.OrderByDescending(s => s.ServerName)
+                    : items.OrderBy(s => s.ServerName)
+            };
+
+            var list = items.ToList();
+            var size = pageSize <= 0 ? 50 : Math.Min(pageSize, 200);
+            var index = pageIndex < 0 ? 0 : pageIndex;
+            var page = list.Skip(index * size).Take(size).ToList();
+
+            return Ok(new
+            {
+                isSuccess = true,
+                data = page,
+                errorMessage = (string?)null,
+                totalCount = list.Count,
+                pageIndex = index,
+                pageSize = size
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Connection GetList failed");
+            return Ok(ApiResult<ConnectionStatusDto>.Fail(ex.Message));
+        }
+    }
+
     [HttpPost("ActionConnect")]
     public async Task<ActionResult<ApiResult<ConnectionStatusDto>>> ActionConnect(CancellationToken cancellationToken)
     {

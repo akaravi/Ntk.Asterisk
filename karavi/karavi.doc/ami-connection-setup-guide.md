@@ -163,8 +163,11 @@ write = system,call,originate
 کمبود `originate` باعث می‌شود اتصال Login موفق باشد ولی Originate در Jobs شکست بخورد؛ بنابراین بخش ۴ و صفحه Jobs را بعد از Login موفق جداگانه تأیید کنید.
 
 پس از ویرایش حتماً `manager reload` و سپس دستورات بخش ۲.۳.
+مرجع کامل reload / restart / اثر روی کلاینت AMI: [`asterisk-manager-reload.md`](asterisk-manager-reload.md).
 
 ### ۲.۳ اعمال، CLI و تست شبکه
+
+جزئیات و ماتریس «کی reload کافی نیست»: [`asterisk-manager-reload.md`](asterisk-manager-reload.md).
 
 ```bash
 asterisk -rx "manager reload"
@@ -534,6 +537,7 @@ http://localhost:5310/api/v1/Config/ActionTestConnection
 | [`asterisk-dialplan-contract.md`](asterisk-dialplan-contract.md) | Originate، کلاس Manager، Tech/Trunk | ۲ · ۴ · ۷ · ۸ |
 | [`admin-panel.md`](admin-panel.md) | سطوح Admin و API Settings/Test | ۶ · ۷ |
 | [`onboarding.md`](onboarding.md) | پورت‌ها و hosts | ۱ · ۵ |
+| [`asterisk-manager-reload.md`](asterisk-manager-reload.md) | Reload / restart پس از `manager.conf` | ۲ · ۸ |
 | `.cursor/skills/asterisk-ami/SKILL.md` | پروتکل Action/Event | ۰ · ۲ |
 | `karavi.doc/Learn/voiping_ami_programing_tutorial.pdf` | آموزش عمیق AMI | همه |
 

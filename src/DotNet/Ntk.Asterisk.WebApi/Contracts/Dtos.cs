@@ -19,16 +19,36 @@ public sealed class ConnectionStatusDto
     public bool AmiUserConfigured { get; init; }
     public bool AmiSecretConfigured { get; init; }
     public bool TrunkPeerFilterConfigured { get; init; }
+    /// <summary>Active (default enabled) server id — additive for multi-server clients.</summary>
+    public string? ServerId { get; init; }
+    public string? ServerName { get; init; }
+    /// <summary>AMI username (not secret) — additive for connection list.</summary>
+    public string? Username { get; init; }
+    public bool IsEnabled { get; init; } = true;
+    public bool IsDefault { get; init; }
+    /// <summary>True when this row is the live AmiSession target.</summary>
+    public bool IsLiveSession { get; init; }
 }
 
 public sealed class PeerDto
 {
     public string Id { get; init; } = string.Empty;
     public string Tech { get; init; } = string.Empty;
+    /// <summary>Qualify / registration status, or live call label when in a call (Ringing / In Use).</summary>
     public string Status { get; init; } = string.Empty;
     public string? Ip { get; init; }
     public string? Channel { get; init; }
     public bool IsTrunk { get; init; }
+    /// <summary>UTC of last meaningful activity (register / call state change) — additive.</summary>
+    public DateTimeOffset? LastActivityUtc { get; init; }
+    /// <summary>Idle / Ringing / InUse / Busy / Unavailable — additive live call overlay.</summary>
+    public string? CallState { get; init; }
+    /// <summary>Active channel age seconds when in a call — additive.</summary>
+    public int? CallDurationSeconds { get; init; }
+    /// <summary>Caller on the matched live channel — additive.</summary>
+    public string? CallerId { get; init; }
+    /// <summary>True when peer has an active/ringing channel — additive.</summary>
+    public bool InCall { get; init; }
 }
 
 public sealed class ChannelDto
@@ -40,6 +60,10 @@ public sealed class ChannelDto
     public string? Exten { get; init; }
     public string? Context { get; init; }
     public string? Application { get; init; }
+    /// <summary>Channel age in seconds from AMI Status — additive.</summary>
+    public int? DurationSeconds { get; init; }
+    /// <summary>When this snapshot was taken (live channel) — additive.</summary>
+    public DateTimeOffset? LastActivityUtc { get; init; }
 }
 
 public sealed class HangupRequest
@@ -93,7 +117,7 @@ public sealed class CallJobDto
     public bool IsCommandJob { get; init; }
     /// <summary>MixMonitor was started for this job.</summary>
     public bool HasRecording { get; init; }
-    /// <summary>Basename e.g. ntk-{id}.wav — download when RecordingAvailable.</summary>
+    /// <summary>Basename e.g. ntk-{yyyyMMdd}-{HHmmss}-from-{from}-to-{to}.wav — download when RecordingAvailable.</summary>
     public string? RecordingFileName { get; init; }
     /// <summary>True when WebApi can serve the audio file now.</summary>
     public bool RecordingAvailable { get; init; }
@@ -127,6 +151,105 @@ public sealed class ConfigVisibilityDto
     public string RecordingFormat { get; init; } = "wav";
     public bool Persisted { get; init; }
     public string Note { get; init; } = "Managed via Admin Settings. Secrets never returned.";
+    /// <summary>Active server meta — additive for multi-server clients.</summary>
+    public string? ServerId { get; init; }
+    public string? ServerName { get; init; }
+    public bool IsEnabled { get; init; } = true;
+    public bool IsDefault { get; init; } = true;
+}
+
+/// <summary>List/detail DTO for multi-server Admin management (secret never returned).</summary>
+public sealed class AsteriskServerDto
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public bool IsEnabled { get; init; }
+    public bool IsDefault { get; init; }
+    public bool AmiConfigured { get; init; }
+    public string? Host { get; init; }
+    public int? Port { get; init; }
+    public string? Username { get; init; }
+    public bool SecretConfigured { get; init; }
+    public string ChannelTech { get; init; } = "PJSIP";
+    public string? DefaultTrunk { get; init; }
+    public string? TrunkPeerFilter { get; init; }
+    public string OriginateVia { get; init; } = "LocalContext";
+    public string OriginateContext { get; init; } = "from-internal";
+    public string MusicOnHoldClass { get; init; } = "default";
+    public int DefaultTimeoutMs { get; init; }
+    public string? DefaultCallerId { get; init; }
+    public bool KeepAlive { get; init; } = true;
+    public int PingIntervalMs { get; init; } = 10000;
+    public bool AutoConnectOnStartup { get; init; } = true;
+    public bool RecordingEnabled { get; init; } = true;
+    public string? RecordingLocalDirectory { get; init; }
+    public string? RecordingHttpBaseUrl { get; init; }
+    public string? RecordingAsteriskDirectory { get; init; }
+    public string RecordingFormat { get; init; } = "wav";
+}
+
+public sealed class AsteriskServerAddRequest
+{
+    public string? Name { get; set; }
+    public bool? IsEnabled { get; set; } = true;
+    public bool? IsDefault { get; set; }
+    public string? Host { get; set; }
+    public int? Port { get; set; }
+    public string? Username { get; set; }
+    public string? Secret { get; set; }
+    public string? ChannelTech { get; set; }
+    public string? DefaultTrunk { get; set; }
+    public string? TrunkPeerFilter { get; set; }
+    public string? OriginateVia { get; set; }
+    public string? OriginateContext { get; set; }
+    public string? MusicOnHoldClass { get; set; }
+    public int? DefaultTimeoutMs { get; set; }
+    public string? DefaultCallerId { get; set; }
+    public bool? KeepAlive { get; set; }
+    public int? PingIntervalMs { get; set; }
+    public bool? AutoConnectOnStartup { get; set; }
+    public bool? RecordingEnabled { get; set; }
+    public string? RecordingLocalDirectory { get; set; }
+    public string? RecordingHttpBaseUrl { get; set; }
+    public string? RecordingAsteriskDirectory { get; set; }
+    public string? RecordingFormat { get; set; }
+    public bool? ReconnectAfterSave { get; set; } = true;
+}
+
+public sealed class AsteriskServerUpdateRequest
+{
+    public string Id { get; set; } = string.Empty;
+    public string? Name { get; set; }
+    public bool? IsEnabled { get; set; }
+    public bool? IsDefault { get; set; }
+    public string? Host { get; set; }
+    public int? Port { get; set; }
+    public string? Username { get; set; }
+    public string? Secret { get; set; }
+    public bool ClearSecret { get; set; }
+    public string? ChannelTech { get; set; }
+    public string? DefaultTrunk { get; set; }
+    public string? TrunkPeerFilter { get; set; }
+    public string? OriginateVia { get; set; }
+    public string? OriginateContext { get; set; }
+    public string? MusicOnHoldClass { get; set; }
+    public int? DefaultTimeoutMs { get; set; }
+    public string? DefaultCallerId { get; set; }
+    public bool? KeepAlive { get; set; }
+    public int? PingIntervalMs { get; set; }
+    public bool? AutoConnectOnStartup { get; set; }
+    public bool? RecordingEnabled { get; set; }
+    public string? RecordingLocalDirectory { get; set; }
+    public string? RecordingHttpBaseUrl { get; set; }
+    public string? RecordingAsteriskDirectory { get; set; }
+    public string? RecordingFormat { get; set; }
+    public bool? ReconnectAfterSave { get; set; } = true;
+}
+
+public sealed class AsteriskServerIdRequest
+{
+    public string Id { get; set; } = string.Empty;
+    public bool? ReconnectAfterSave { get; set; } = true;
 }
 
 public sealed class LiveEventDto
@@ -148,6 +271,8 @@ public sealed class LiveEventDto
 
 public sealed class AsteriskSiteSettingsUpdateRequest
 {
+    /// <summary>Optional target server; null → active default enabled server.</summary>
+    public string? ServerId { get; set; }
     public string? Host { get; set; }
     public int? Port { get; set; }
     public string? Username { get; set; }

@@ -32,6 +32,8 @@ export class AppComponent implements OnInit {
     this.hub.connectionState$.subscribe((state) => {
       this.hubState = state;
     });
+    // Live job status on User dashboard (group "jobs")
+    void this.hub.subscribeJobs();
   }
 
   setLocale(locale: AppLocale): void {

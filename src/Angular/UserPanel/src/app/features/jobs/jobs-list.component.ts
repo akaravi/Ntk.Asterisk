@@ -46,10 +46,11 @@ export class JobsListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    void this.hub.subscribeJobs();
     this.subs.add(
       this.hub.jobUpdated$.subscribe((job) => {
         this.mergeJob(job);
-      })
+      }),
     );
   }
 
@@ -134,6 +135,11 @@ export class JobsListComponent implements OnInit, OnDestroy {
   }
 
   canRedial(job: CallJob): boolean {
+    const status = resolveJobStatus(job);
+    const ended = !!job.endedAtUtc || (!!status && TERMINAL.includes(status));
+    if (!ended) {
+      return false;
+    }
     const from = this.displayFrom(job);
     const to = this.displayTo(job);
     if (from === '—' || to === '—') {
@@ -156,6 +162,25 @@ export class JobsListComponent implements OnInit, OnDestroy {
     return !!(job.hasRecording || job.recordingFileName || job.recordingAvailable);
   }
 
+  /** ntk-{yyyyMMdd}-{HHmmss}-from-{from}-to-{to}.wav */
+  recordingDownloadName(job: CallJob): string {
+    if (job.recordingFileName && !job.recordingFileName.startsWith(`ntk-${job.id}`)) {
+      return job.recordingFileName;
+    }
+    const digits = (v: string | null | undefined) => {
+      const d = String(v || '').replace(/\D/g, '');
+      return d || 'unknown';
+    };
+    const from = digits(job.from || job.mobile1);
+    const to = digits(job.to || job.mobile2);
+    const raw = job.startedAtUtc || job.callTimeUtc || job.createdAtUtc || new Date().toISOString();
+    const d = new Date(raw);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const date = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
+    const time = `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+    return `ntk-${date}-${time}-from-${from}-to-${to}.wav`;
+  }
+
   downloadRecording(job: CallJob): void {
     if (!this.canDownloadRecording(job) || this.downloadingId()) {
       return;
@@ -176,7 +201,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
           });
           return;
         }
-        const name = job.recordingFileName || `ntk-${job.id}.wav`;
+        const name = this.recordingDownloadName(job);
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -333,15 +358,19 @@ export class JobsListComponent implements OnInit, OnDestroy {
   }
 
   private mergeJob(job: CallJob): void {
+    const status = resolveJobStatus(job);
+    const incoming: CallJob = status
+      ? { ...job, status, state: job.state ?? status }
+      : job;
     const list = [...this.jobs()];
-    const idx = list.findIndex((j) => j.id === job.id);
+    const idx = list.findIndex((j) => j.id === incoming.id);
     if (idx >= 0) {
-      list[idx] = { ...list[idx], ...job };
+      list[idx] = { ...list[idx], ...incoming };
       this.jobs.set(list);
       return;
     }
     if (this.pageIndex === 0) {
-      this.jobs.set([job, ...list].slice(0, this.pageSize));
+      this.jobs.set([incoming, ...list].slice(0, this.pageSize));
       this.totalCount.update((n) => n + 1);
     }
   }

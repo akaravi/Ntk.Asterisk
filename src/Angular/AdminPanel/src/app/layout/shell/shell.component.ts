@@ -18,12 +18,12 @@ export class ShellComponent implements OnInit {
   readonly hubOk = signal(false);
 
   ngOnInit(): void {
+    void this.hub.start();
+    this.hub.hubConnected$.subscribe((v) => this.hubOk.set(v));
     const current = this.translate.getCurrentLang() || 'fa';
     this.lang.set(current);
     document.documentElement.lang = current;
     document.documentElement.dir = current === 'fa' ? 'rtl' : 'ltr';
-    void this.hub.start();
-    this.hub.hubConnected$.subscribe((v) => this.hubOk.set(v));
   }
 
   setLang(code: 'fa' | 'en'): void {

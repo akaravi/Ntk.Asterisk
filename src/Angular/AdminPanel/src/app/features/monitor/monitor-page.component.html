@@ -1,4 +1,4 @@
-<section class="page">
+<section class="page monitor">
   <header class="page__header">
     <div>
       <h1>{{ 'NAV.MONITOR' | translate }}</h1>
@@ -7,6 +7,15 @@
   </header>
 
   <div class="tabs" role="tablist">
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [class.tab--active]="tab() === 'all'"
+      (click)="setTab('all')"
+    >
+      {{ 'MONITOR.ALL' | translate }}
+    </button>
     <button
       type="button"
       role="tab"
@@ -46,8 +55,8 @@
   <app-list-toolbar
     [query]="query"
     [totalCount]="totalCount()"
-    [busy]="loading()"
-    [advancedFields]="tab() === 'channels' ? channelFilters : peerFilters"
+    [busy]="loading() || serverBusy()"
+    [advancedFields]="advancedFields()"
     (queryChange)="onQueryChange($event)"
     (refresh)="reload()"
     (print)="printTable()"
@@ -55,117 +64,203 @@
     (exportExcel)="exportExcel()"
   />
 
-  <div class="entity-board" [attr.aria-busy]="loading()">
-    @if (loading()) {
-      <p class="entity-empty muted">…</p>
-    } @else if (tab() === 'extensions') {
-      @if (peersRows().length === 0) {
-        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-      } @else {
-        @for (row of peersRows(); track row.id) {
-          <article class="entity-card" [attr.data-status]="row.status">
-            <header class="entity-card__head">
-              <div class="entity-card__identity">
-                <span class="entity-card__title ltr" dir="ltr">{{ row.id }}</span>
-                <span class="status-pill" [attr.data-status]="row.status">{{ row.status || '—' }}</span>
-              </div>
-              <div class="entity-card__route ltr" dir="ltr">{{ row.tech || '—' }}</div>
-            </header>
-            <dl class="entity-card__meta">
-              <div>
-                <dt>{{ 'MONITOR.COL_IP' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.ip || '—' }}</dd>
-              </div>
-              <div>
-                <dt>{{ 'MONITOR.COL_CHANNEL' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.channel || '—' }}</dd>
-              </div>
-              <div>
-                <dt>{{ 'MONITOR.COL_TECH' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.tech || '—' }}</dd>
-              </div>
-              <div class="entity-card__id">
-                <dt>{{ 'MONITOR.COL_ID' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.id }}</dd>
-              </div>
-            </dl>
-          </article>
-        }
-      }
-    } @else if (tab() === 'trunks') {
-      @if (trunksRows().length === 0) {
-        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-      } @else {
-        @for (row of trunksRows(); track row.id) {
-          <article class="entity-card" [attr.data-status]="row.status">
-            <header class="entity-card__head">
-              <div class="entity-card__identity">
-                <span class="entity-card__title ltr" dir="ltr">{{ row.id }}</span>
-                <span class="status-pill" [attr.data-status]="row.status">{{ row.status || '—' }}</span>
-              </div>
-              <div class="entity-card__route ltr" dir="ltr">{{ row.tech || '—' }}</div>
-            </header>
-            <dl class="entity-card__meta">
-              <div>
-                <dt>{{ 'MONITOR.COL_IP' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.ip || '—' }}</dd>
-              </div>
-              <div>
-                <dt>{{ 'MONITOR.COL_TECH' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.tech || '—' }}</dd>
-              </div>
-              <div class="entity-card__id">
-                <dt>{{ 'MONITOR.COL_ID' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.id }}</dd>
-              </div>
-            </dl>
-          </article>
-        }
-      }
+  <section
+    class="server-strip"
+    [attr.aria-label]="'MONITOR.SERVERS_LABEL' | translate"
+    [attr.aria-busy]="serverBusy()"
+  >
+    <header class="server-strip__head">
+      <h2 class="server-strip__title">{{ 'MONITOR.SERVERS_LABEL' | translate }}</h2>
+      <p class="server-strip__hint muted">{{ 'MONITOR.SERVERS_HINT' | translate }}</p>
+    </header>
+    @if (servers().length === 0) {
+      <p class="server-strip__empty muted">{{ 'MONITOR.SERVERS_EMPTY' | translate }}</p>
     } @else {
-      @if (channelsRows().length === 0) {
+      <div class="server-strip__list" role="listbox" [attr.aria-label]="'MONITOR.SERVERS_LABEL' | translate">
+        @for (s of servers(); track s.serverId || serverEndpoint(s)) {
+          <button
+            type="button"
+            role="option"
+            class="server-chip"
+            [class.server-chip--active]="isMonitoring(s)"
+            [attr.data-tone]="s.connected ? 'ok' : 'fail'"
+            [attr.aria-selected]="isMonitoring(s)"
+            [disabled]="serverBusy() || !s.serverId"
+            (click)="selectMonitorServer(s)"
+          >
+            <span class="server-chip__name">{{ s.serverName || '—' }}</span>
+            <span class="server-chip__host ltr" dir="ltr">{{ serverEndpoint(s) }}</span>
+            <span class="server-chip__meta">
+              <span class="status-pill" [attr.data-tone]="s.connected ? 'ok' : 'fail'">
+                {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
+              </span>
+              @if (isMonitoring(s)) {
+                <span class="status-pill" data-tone="active">{{ 'MONITOR.MONITORING' | translate }}</span>
+              }
+            </span>
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  @if (tab() === 'all') {
+    <div class="tile-board" [attr.aria-busy]="loading()">
+      @if (loading()) {
+        <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+      } @else if (unifiedRows().length === 0) {
         <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
       } @else {
-        @for (row of channelsRows(); track row.channel) {
-          <article class="entity-card" [attr.data-status]="row.state" data-tone="active">
-            <header class="entity-card__head">
-              <div class="entity-card__identity">
-                <span class="entity-card__title ltr" dir="ltr">{{ row.channel }}</span>
-                <span class="status-pill" [attr.data-status]="row.state">{{ row.state || '—' }}</span>
-              </div>
-              <div class="entity-card__route ltr" dir="ltr">{{ row.callerId || '—' }}</div>
-              <button
-                type="button"
-                class="btn btn--danger"
-                [disabled]="actionBusy()"
-                (click)="hangup(row.channel)"
-              >
-                {{ actionBusy() ? ('ACTION.LOADING' | translate) : ('MONITOR.HANGUP' | translate) }}
-              </button>
+        @for (row of unifiedRows(); track row.key) {
+          <article class="tile" [attr.data-tone]="row.tone" [attr.data-kind]="row.kind">
+            <header class="tile__head">
+              <span class="tile__kind">{{ kindLabel(row.kind) }}</span>
+              <span class="status-pill" [attr.data-tone]="row.tone">{{ row.status }}</span>
             </header>
-            <dl class="entity-card__meta">
-              <div>
-                <dt>{{ 'MONITOR.COL_UNIQUE' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.uniqueId || '—' }}</dd>
-              </div>
-              <div>
-                <dt>{{ 'MONITOR.COL_CALLER' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.callerId || '—' }}</dd>
-              </div>
-              <div>
-                <dt>{{ 'MONITOR.COL_APP' | translate }}</dt>
-                <dd class="ltr" dir="ltr">{{ row.application || '—' }}</dd>
-              </div>
-              <div>
-                <dt>{{ 'MONITOR.COL_STATE' | translate }}</dt>
-                <dd>{{ row.state || '—' }}</dd>
-              </div>
-            </dl>
+            <p class="tile__title ltr" dir="ltr">{{ row.title }}</p>
+            @if (row.detail) {
+              <p class="tile__meta ltr" dir="ltr">{{ row.detail }}</p>
+            } @else if (row.ip) {
+              <p class="tile__meta ltr" dir="ltr">{{ row.ip }}</p>
+            } @else if (row.tech) {
+              <p class="tile__meta ltr" dir="ltr">{{ row.tech }}</p>
+            }
+            <footer class="tile__foot">
+              <span class="tile__activity">
+                @if (row.durationSec != null) {
+                  {{ 'MONITOR.DURATION_SEC' | translate: { sec: row.durationSec } }}
+                } @else if (row.lastActivityUtc) {
+                  {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
+                } @else {
+                  —
+                }
+              </span>
+              @if (row.kind === 'channel' && row.channel) {
+                <button
+                  type="button"
+                  class="btn btn--danger btn--xs"
+                  [disabled]="actionBusy()"
+                  (click)="hangup(row.channel!)"
+                >
+                  {{ 'MONITOR.HANGUP' | translate }}
+                </button>
+              }
+            </footer>
           </article>
         }
       }
-    }
-  </div>
+    </div>
+  } @else {
+    <div class="tile-board" [attr.aria-busy]="loading()">
+      @if (loading()) {
+        <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+      } @else if (tab() === 'extensions') {
+        @if (peersRows().length === 0) {
+          <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+        } @else {
+          @for (row of peersRows(); track row.id) {
+            <article class="tile" [attr.data-tone]="peerTone(row)" data-kind="extension">
+              <header class="tile__head">
+                <span class="tile__kind">{{ row.tech || '—' }}</span>
+                <span class="status-pill" [attr.data-tone]="peerTone(row)">{{
+                  row.status || '—'
+                }}</span>
+              </header>
+              <p class="tile__title ltr" dir="ltr">{{ row.id }}</p>
+              @if (row.callerId || row.channel) {
+                <p class="tile__meta ltr" dir="ltr">{{ row.callerId || row.channel }}</p>
+              } @else if (row.ip) {
+                <p class="tile__meta ltr" dir="ltr">{{ row.ip }}</p>
+              }
+              <footer class="tile__foot">
+                <span class="tile__activity">
+                  @if (peerDuration(row) != null) {
+                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: peerDuration(row) } }}
+                  } @else if (row.lastActivityUtc) {
+                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
+                  } @else {
+                    —
+                  }
+                </span>
+              </footer>
+            </article>
+          }
+        }
+      } @else if (tab() === 'trunks') {
+        @if (trunksRows().length === 0) {
+          <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+        } @else {
+          @for (row of trunksRows(); track row.id) {
+            <article class="tile" [attr.data-tone]="peerTone(row)" data-kind="trunk">
+              <header class="tile__head">
+                <span class="tile__kind">{{ row.tech || '—' }}</span>
+                <span class="status-pill" [attr.data-tone]="peerTone(row)">{{
+                  row.status || '—'
+                }}</span>
+              </header>
+              <p class="tile__title ltr" dir="ltr">{{ row.id }}</p>
+              @if (row.callerId || row.channel) {
+                <p class="tile__meta ltr" dir="ltr">{{ row.callerId || row.channel }}</p>
+              } @else if (row.ip) {
+                <p class="tile__meta ltr" dir="ltr">{{ row.ip }}</p>
+              }
+              <footer class="tile__foot">
+                <span class="tile__activity">
+                  @if (peerDuration(row) != null) {
+                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: peerDuration(row) } }}
+                  } @else if (row.lastActivityUtc) {
+                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
+                  } @else {
+                    —
+                  }
+                </span>
+              </footer>
+            </article>
+          }
+        }
+      } @else {
+        @if (channelsRows().length === 0) {
+          <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+        } @else {
+          @for (row of channelsRows(); track row.channel) {
+            <article class="tile" [attr.data-tone]="statusTone(row.state)" data-kind="channel">
+              <header class="tile__head">
+                <span class="tile__kind">{{ kindLabel('channel') }}</span>
+                <span class="status-pill" [attr.data-tone]="statusTone(row.state)">{{
+                  row.state || '—'
+                }}</span>
+              </header>
+              <p class="tile__title ltr" dir="ltr">{{ row.channel }}</p>
+              @if (row.callerId) {
+                <p class="tile__meta ltr" dir="ltr">{{ row.callerId }}</p>
+              } @else if (row.application) {
+                <p class="tile__meta ltr" dir="ltr">{{ row.application }}</p>
+              }
+              <footer class="tile__foot">
+                <span class="tile__activity">
+                  @if (channelDuration(row) != null) {
+                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: channelDuration(row) } }}
+                  } @else if (row.lastActivityUtc) {
+                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
+                  } @else {
+                    —
+                  }
+                </span>
+                <button
+                  type="button"
+                  class="btn btn--danger btn--xs"
+                  [disabled]="actionBusy()"
+                  (click)="hangup(row.channel)"
+                >
+                  {{ 'MONITOR.HANGUP' | translate }}
+                </button>
+              </footer>
+            </article>
+          }
+        }
+      }
+    </div>
+  }
 
   <app-list-pager
     [query]="query"

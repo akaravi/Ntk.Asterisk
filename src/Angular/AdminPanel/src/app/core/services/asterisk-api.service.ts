@@ -1,6 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import {
+  AsteriskServer,
+  AsteriskServerAddRequest,
+  AsteriskServerUpdateRequest,
   CallJob,
   ChannelItem,
   ConnectionStatus,
@@ -23,6 +26,10 @@ export class AsteriskApiService {
     return this.api.getOne<ConnectionStatus>('/api/v1/Asterisk/Connection/GetStatus');
   }
 
+  getConnectionStatusList(query?: Partial<ListQuery>): Observable<ApiResult<ConnectionStatus>> {
+    return this.api.getList<ConnectionStatus>('/api/v1/Asterisk/Connection/GetList', query);
+  }
+
   getSiteSettings(): Observable<SiteSettings | null> {
     return this.api.getOne<SiteSettings>('/api/v1/Config/GetSiteSettings');
   }
@@ -33,6 +40,50 @@ export class AsteriskApiService {
 
   testConnection(): Observable<ApiResult<ConnectionStatus>> {
     return this.api.postAction<ConnectionStatus>('/api/v1/Config/ActionTestConnection', {});
+  }
+
+  getServers(query?: Partial<ListQuery>): Observable<ApiResult<AsteriskServer>> {
+    return this.api.getList<AsteriskServer>('/api/v1/AsteriskServers/GetList', query);
+  }
+
+  getServer(id: string): Observable<AsteriskServer | null> {
+    return this.api.getOne<AsteriskServer>(`/api/v1/AsteriskServers/GetOne/${encodeURIComponent(id)}`);
+  }
+
+  addServer(body: AsteriskServerAddRequest): Observable<ApiResult<AsteriskServer>> {
+    return this.api.postAction<AsteriskServer>('/api/v1/AsteriskServers/Add', body);
+  }
+
+  updateServer(body: AsteriskServerUpdateRequest): Observable<ApiResult<AsteriskServer>> {
+    return this.api.postAction<AsteriskServer>('/api/v1/AsteriskServers/Update', body);
+  }
+
+  enableServer(id: string, reconnectAfterSave = true): Observable<ApiResult<AsteriskServer>> {
+    return this.api.postAction<AsteriskServer>('/api/v1/AsteriskServers/ActionEnable', {
+      id,
+      reconnectAfterSave,
+    });
+  }
+
+  disableServer(id: string, reconnectAfterSave = true): Observable<ApiResult<AsteriskServer>> {
+    return this.api.postAction<AsteriskServer>('/api/v1/AsteriskServers/ActionDisable', {
+      id,
+      reconnectAfterSave,
+    });
+  }
+
+  setDefaultServer(id: string, reconnectAfterSave = true): Observable<ApiResult<AsteriskServer>> {
+    return this.api.postAction<AsteriskServer>('/api/v1/AsteriskServers/ActionSetDefault', {
+      id,
+      reconnectAfterSave,
+    });
+  }
+
+  deleteServer(id: string, reconnectAfterSave = true): Observable<ApiResult<AsteriskServer>> {
+    return this.api.postAction<AsteriskServer>('/api/v1/AsteriskServers/ActionDelete', {
+      id,
+      reconnectAfterSave,
+    });
   }
 
   getPeers(query?: Partial<ListQuery>): Observable<ApiResult<PeerItem>> {

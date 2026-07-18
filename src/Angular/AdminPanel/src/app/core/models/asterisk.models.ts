@@ -13,6 +13,12 @@ export interface ConnectionStatus {
   channelTech: string | null;
   defaultTrunk?: string | null;
   trunkPeerFilterConfigured: boolean;
+  serverId?: string | null;
+  serverName?: string | null;
+  username?: string | null;
+  isEnabled?: boolean;
+  isDefault?: boolean;
+  isLiveSession?: boolean;
 }
 
 export interface PeerItem {
@@ -21,6 +27,12 @@ export interface PeerItem {
   status: string;
   ip: string | null;
   channel: string | null;
+  isTrunk?: boolean;
+  lastActivityUtc?: string | null;
+  callState?: string | null;
+  callDurationSeconds?: number | null;
+  callerId?: string | null;
+  inCall?: boolean;
 }
 
 export interface ChannelItem {
@@ -29,7 +41,9 @@ export interface ChannelItem {
   callerId: string | null;
   state: string | null;
   application: string | null;
-  durationSec: number | null;
+  durationSec?: number | null;
+  durationSeconds?: number | null;
+  lastActivityUtc?: string | null;
 }
 
 export interface TrunkItem {
@@ -37,6 +51,27 @@ export interface TrunkItem {
   tech: string;
   status: string;
   ip: string | null;
+  lastActivityUtc?: string | null;
+  callState?: string | null;
+  callDurationSeconds?: number | null;
+  callerId?: string | null;
+  inCall?: boolean;
+  channel?: string | null;
+}
+
+/** Unified monitor tile (All tab). */
+export interface MonitorUnifiedItem {
+  key: string;
+  kind: 'extension' | 'trunk' | 'channel';
+  title: string;
+  status: string;
+  tone: 'ok' | 'fail' | 'active' | 'warn' | 'neutral';
+  tech?: string | null;
+  ip?: string | null;
+  detail?: string | null;
+  lastActivityUtc?: string | null;
+  durationSec?: number | null;
+  channel?: string | null;
 }
 
 export interface HangupRequest {
@@ -126,14 +161,82 @@ export interface SiteSettings {
   recordingFormat?: string;
   persisted: boolean;
   note: string | null;
+  serverId?: string | null;
+  serverName?: string | null;
+  isEnabled?: boolean;
+  isDefault?: boolean;
+}
+
+/** One Asterisk AMI server in the multi-server registry. */
+export interface AsteriskServer {
+  id: string;
+  name: string;
+  isEnabled: boolean;
+  isDefault: boolean;
+  amiConfigured: boolean;
+  host: string | null;
+  port: number | null;
+  username: string | null;
+  secretConfigured: boolean;
+  channelTech: string;
+  originateVia: string;
+  originateContext: string;
+  musicOnHoldClass: string;
+  defaultTrunk: string | null;
+  trunkPeerFilter: string | null;
+  defaultTimeoutMs: number;
+  defaultCallerId: string | null;
+  keepAlive: boolean;
+  pingIntervalMs: number;
+  autoConnectOnStartup: boolean;
+  recordingEnabled?: boolean;
+  recordingLocalDirectory?: string | null;
+  recordingHttpBaseUrl?: string | null;
+  recordingAsteriskDirectory?: string | null;
+  recordingFormat?: string;
 }
 
 export interface SiteSettingsUpdateRequest {
+  serverId?: string | null;
   host?: string | null;
   port?: number | null;
   username?: string | null;
   secret?: string | null;
   clearSecret?: boolean;
+  channelTech?: string | null;
+  originateVia?: string | null;
+  originateContext?: string | null;
+  musicOnHoldClass?: string | null;
+  defaultTrunk?: string | null;
+  trunkPeerFilter?: string | null;
+  defaultTimeoutMs?: number | null;
+  defaultCallerId?: string | null;
+  keepAlive?: boolean | null;
+  pingIntervalMs?: number | null;
+  autoConnectOnStartup?: boolean | null;
+  recordingEnabled?: boolean | null;
+  recordingLocalDirectory?: string | null;
+  recordingHttpBaseUrl?: string | null;
+  recordingAsteriskDirectory?: string | null;
+  recordingFormat?: string | null;
+  reconnectAfterSave?: boolean;
+}
+
+export interface AsteriskServerUpdateRequest extends SiteSettingsUpdateRequest {
+  id: string;
+  name?: string | null;
+  isEnabled?: boolean | null;
+  isDefault?: boolean | null;
+}
+
+export interface AsteriskServerAddRequest {
+  name?: string | null;
+  isEnabled?: boolean;
+  isDefault?: boolean;
+  host?: string | null;
+  port?: number | null;
+  username?: string | null;
+  secret?: string | null;
   channelTech?: string | null;
   originateVia?: string | null;
   originateContext?: string | null;

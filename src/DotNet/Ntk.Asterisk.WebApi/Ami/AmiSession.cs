@@ -39,6 +39,7 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
     public ConnectionStatusDto GetStatus()
     {
         var opt = _settings.GetEffective();
+        var active = _settings.GetActiveServer();
         var connected = false;
         string? version = null;
         lock (_gate)
@@ -67,8 +68,165 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
             AmiPortConfigured = opt.Port is > 0,
             AmiUserConfigured = !string.IsNullOrWhiteSpace(opt.Username),
             AmiSecretConfigured = !string.IsNullOrWhiteSpace(opt.Secret),
-            TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(opt.TrunkPeerFilter)
+            TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(opt.TrunkPeerFilter),
+            ServerId = active?.Id,
+            ServerName = active?.Name,
+            Username = active?.Username,
+            IsEnabled = active?.IsEnabled ?? false,
+            IsDefault = active?.IsDefault ?? false,
+            IsLiveSession = true
         };
+    }
+
+    public async Task<IReadOnlyList<ConnectionStatusDto>> GetStatusListAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var enabled = _settings.GetEnabledServerConfigs();
+        if (enabled.Count == 0)
+            return Array.Empty<ConnectionStatusDto>();
+
+        var live = GetStatus();
+        var liveId = live.ServerId;
+
+        var tasks = enabled.Select(server => Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!string.IsNullOrEmpty(liveId)
+                && string.Equals(server.Id, liveId, StringComparison.OrdinalIgnoreCase))
+            {
+                return FromLive(live, server);
+            }
+
+            return ProbeServer(server);
+        }, cancellationToken)).ToArray();
+
+        var rows = await Task.WhenAll(tasks).ConfigureAwait(false);
+        return rows
+            .OrderByDescending(r => r.IsDefault)
+            .ThenByDescending(r => r.IsLiveSession)
+            .ThenBy(r => r.ServerName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static ConnectionStatusDto FromLive(ConnectionStatusDto live, AsteriskServerConfig server) => new()
+    {
+        Connected = live.Connected,
+        Configured = live.Configured,
+        Host = live.Host,
+        Port = live.Port,
+        LastError = live.LastError,
+        ConnectedAtUtc = live.ConnectedAtUtc,
+        UptimeSeconds = live.UptimeSeconds,
+        AsteriskVersion = live.AsteriskVersion,
+        ChannelTech = server.ChannelTech,
+        DefaultTrunk = server.DefaultTrunk,
+        AmiHostConfigured = live.AmiHostConfigured,
+        AmiPortConfigured = live.AmiPortConfigured,
+        AmiUserConfigured = live.AmiUserConfigured,
+        AmiSecretConfigured = live.AmiSecretConfigured,
+        TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
+        ServerId = server.Id,
+        ServerName = server.Name,
+        Username = server.Username,
+        IsEnabled = server.IsEnabled,
+        IsDefault = server.IsDefault,
+        IsLiveSession = true
+    };
+
+    private ConnectionStatusDto ProbeServer(AsteriskServerConfig server)
+    {
+        if (!server.IsConfigured)
+        {
+            return new ConnectionStatusDto
+            {
+                Connected = false,
+                Configured = false,
+                Host = string.IsNullOrWhiteSpace(server.Host) ? null : server.Host,
+                Port = server.Port,
+                LastError = "AMI not configured. Set Host/Port/Username/Secret.",
+                ChannelTech = server.ChannelTech,
+                DefaultTrunk = server.DefaultTrunk,
+                AmiHostConfigured = !string.IsNullOrWhiteSpace(server.Host),
+                AmiPortConfigured = server.Port is > 0,
+                AmiUserConfigured = !string.IsNullOrWhiteSpace(server.Username),
+                AmiSecretConfigured = !string.IsNullOrWhiteSpace(server.Secret),
+                TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
+                ServerId = server.Id,
+                ServerName = server.Name,
+                Username = server.Username,
+                IsEnabled = server.IsEnabled,
+                IsDefault = server.IsDefault,
+                IsLiveSession = false
+            };
+        }
+
+        ManagerConnection? conn = null;
+        try
+        {
+            conn = new ManagerConnection(server.Host!, server.Port!.Value, server.Username!, server.Secret!)
+            {
+                KeepAlive = false,
+                PingInterval = 0,
+                FireAllEvents = false
+            };
+            conn.Login();
+            return new ConnectionStatusDto
+            {
+                Connected = true,
+                Configured = true,
+                Host = server.Host,
+                Port = server.Port,
+                LastError = null,
+                ConnectedAtUtc = DateTimeOffset.UtcNow,
+                UptimeSeconds = 0,
+                AsteriskVersion = conn.Version,
+                ChannelTech = server.ChannelTech,
+                DefaultTrunk = server.DefaultTrunk,
+                AmiHostConfigured = true,
+                AmiPortConfigured = true,
+                AmiUserConfigured = true,
+                AmiSecretConfigured = true,
+                TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
+                ServerId = server.Id,
+                ServerName = server.Name,
+                Username = server.Username,
+                IsEnabled = server.IsEnabled,
+                IsDefault = server.IsDefault,
+                IsLiveSession = false
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "AMI probe failed for {Name} {Host}:{Port}", server.Name, server.Host, server.Port);
+            return new ConnectionStatusDto
+            {
+                Connected = false,
+                Configured = true,
+                Host = server.Host,
+                Port = server.Port,
+                LastError = ex.Message,
+                ChannelTech = server.ChannelTech,
+                DefaultTrunk = server.DefaultTrunk,
+                AmiHostConfigured = true,
+                AmiPortConfigured = true,
+                AmiUserConfigured = true,
+                AmiSecretConfigured = true,
+                TrunkPeerFilterConfigured = !string.IsNullOrWhiteSpace(server.TrunkPeerFilter),
+                ServerId = server.Id,
+                ServerName = server.Name,
+                Username = server.Username,
+                IsEnabled = server.IsEnabled,
+                IsDefault = server.IsDefault,
+                IsLiveSession = false
+            };
+        }
+        finally
+        {
+            if (conn != null)
+            {
+                try { conn.Logoff(); } catch { /* ignore */ }
+            }
+        }
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -156,8 +314,12 @@ public sealed class AmiSession : IAmiSession, IHostedService, IDisposable
             conn.OriginateResponse += (_, e) => RaiseAmi(e);
             conn.Hangup += (_, e) => RaiseAmi(e);
             conn.NewChannel += (_, e) => RaiseAmi(e);
+            conn.NewState += (_, e) => RaiseAmi(e);
             conn.Bridge += (_, e) => RaiseAmi(e);
             conn.PeerStatus += (_, e) => RaiseAmi(e);
+            conn.DialBegin += (_, e) => RaiseAmi(e);
+            conn.DeviceStateChanged += (_, e) => RaiseAmi(e);
+            conn.ExtensionStatus += (_, e) => RaiseAmi(e);
 
             try
             {

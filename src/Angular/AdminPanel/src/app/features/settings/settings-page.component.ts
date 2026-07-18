@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
-import { ConnectionStatus, SiteSettings } from '../../core/models/asterisk.models';
+import { AsteriskServer, ConnectionStatus, SiteSettings } from '../../core/models/asterisk.models';
 import { AsteriskApiService } from '../../core/services/asterisk-api.service';
 
 @Component({
@@ -19,6 +19,8 @@ export class SettingsPageComponent implements OnInit {
   readonly apiBaseUrl = environment.apiBaseUrl;
   readonly hubUrl = `${environment.apiBaseUrl.replace(/\/$/, '')}${environment.hubPath}`;
 
+  readonly servers = signal<AsteriskServer[]>([]);
+  readonly selectedServerId = signal<string | null>(null);
   readonly settings = signal<SiteSettings | null>(null);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
@@ -26,8 +28,11 @@ export class SettingsPageComponent implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly testing = signal(false);
+  readonly serverBusy = signal(false);
+  readonly serverQuickSearch = signal('');
 
   readonly form = this.fb.nonNullable.group({
+    name: ['Default', Validators.required],
     host: ['', Validators.required],
     port: [5038, [Validators.required, Validators.min(1), Validators.max(65535)]],
     username: ['', Validators.required],
@@ -56,39 +61,91 @@ export class SettingsPageComponent implements OnInit {
     this.reload();
   }
 
-  reload(): void {
+  filteredServers(): AsteriskServer[] {
+    const q = this.serverQuickSearch().trim().toLowerCase();
+    const list = this.servers();
+    if (!q) return list;
+    return list.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        (s.host ?? '').toLowerCase().includes(q) ||
+        (s.username ?? '').toLowerCase().includes(q) ||
+        s.id.toLowerCase().includes(q),
+    );
+  }
+
+  selectedServer(): AsteriskServer | null {
+    const id = this.selectedServerId();
+    if (!id) return null;
+    return this.servers().find((s) => s.id === id) ?? null;
+  }
+
+  serverEndpoint(server: AsteriskServer): string {
+    const host = server.host?.trim() || '—';
+    const port = server.port && server.port > 0 ? String(server.port) : '—';
+    return `${host}:${port}`;
+  }
+
+  onServerSearch(value: string): void {
+    this.serverQuickSearch.set(value);
+  }
+
+  onServerTabKeydown(event: KeyboardEvent): void {
+    const tabs = this.filteredServers();
+    if (tabs.length === 0) return;
+
+    const currentId = this.selectedServerId();
+    const index = Math.max(
+      0,
+      tabs.findIndex((s) => s.id === currentId),
+    );
+    // RTL: ArrowRight moves to previous visual tab (index-1), ArrowLeft to next.
+    let next = index;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+      next = (index - 1 + tabs.length) % tabs.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+      next = (index + 1) % tabs.length;
+    } else if (event.key === 'Home') {
+      next = 0;
+    } else if (event.key === 'End') {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    this.selectServer(tabs[next]);
+    queueMicrotask(() => {
+      document.getElementById(`server-tab-${tabs[next].id}`)?.focus();
+    });
+  }
+
+  reload(preferServerId?: string | null): void {
     this.loading.set(true);
     this.error.set(null);
     this.success.set(null);
     this.testResult.set(null);
-    this.api.getSiteSettings().subscribe({
-      next: (s) => {
-        this.settings.set(s);
-        if (s) {
-          this.form.patchValue({
-            host: s.host ?? '',
-            port: s.port && s.port > 0 ? s.port : 5038,
-            username: s.username ?? '',
-            secret: '',
-            clearSecret: false,
-            channelTech: s.channelTech || 'PJSIP',
-            originateVia: s.originateVia || 'LocalContext',
-            originateContext: s.originateContext || 'from-internal',
-            musicOnHoldClass: s.musicOnHoldClass || 'default',
-            defaultTrunk: s.defaultTrunk ?? '',
-            trunkPeerFilter: s.trunkPeerFilter ?? '',
-            defaultTimeoutMs: s.defaultTimeoutMs || 30000,
-            defaultCallerId: s.defaultCallerId ?? '',
-            keepAlive: s.keepAlive,
-            pingIntervalMs: s.pingIntervalMs || 10000,
-            autoConnectOnStartup: s.autoConnectOnStartup,
-            recordingEnabled: s.recordingEnabled ?? true,
-            recordingLocalDirectory: s.recordingLocalDirectory ?? '',
-            recordingHttpBaseUrl: s.recordingHttpBaseUrl ?? '',
-            recordingAsteriskDirectory: s.recordingAsteriskDirectory ?? '/var/spool/asterisk/monitor',
-            recordingFormat: s.recordingFormat || 'wav',
-            reconnectAfterSave: true,
-          });
+    this.api.getServers({ pageIndex: 0, pageSize: 100, sortBy: 'name', sortDir: 'asc' }).subscribe({
+      next: (r) => {
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Load failed');
+          this.loading.set(false);
+          return;
+        }
+        const list = r.data ?? [];
+        this.servers.set(list);
+        const targetId = preferServerId ?? this.selectedServerId();
+        const preferred =
+          (targetId ? list.find((s) => s.id === targetId) : null) ||
+          list.find((s) => s.isDefault && s.isEnabled) ||
+          list.find((s) => s.isDefault) ||
+          list[0] ||
+          null;
+        if (preferred) {
+          this.selectServer(preferred);
+        } else {
+          this.selectedServerId.set(null);
+          this.settings.set(null);
         }
         this.loading.set(false);
       },
@@ -99,7 +156,123 @@ export class SettingsPageComponent implements OnInit {
     });
   }
 
+  selectServer(server: AsteriskServer): void {
+    this.selectedServerId.set(server.id);
+    this.settings.set({
+      amiConfigured: server.amiConfigured,
+      host: server.host,
+      port: server.port,
+      username: server.username,
+      usernameConfigured: server.username,
+      secretConfigured: server.secretConfigured,
+      channelTech: server.channelTech,
+      originateVia: server.originateVia,
+      originateContext: server.originateContext,
+      musicOnHoldClass: server.musicOnHoldClass,
+      defaultTrunk: server.defaultTrunk,
+      trunkPeerFilter: server.trunkPeerFilter,
+      defaultTimeoutMs: server.defaultTimeoutMs,
+      defaultCallerId: server.defaultCallerId,
+      keepAlive: server.keepAlive,
+      pingIntervalMs: server.pingIntervalMs,
+      autoConnectOnStartup: server.autoConnectOnStartup,
+      recordingEnabled: server.recordingEnabled,
+      recordingLocalDirectory: server.recordingLocalDirectory,
+      recordingHttpBaseUrl: server.recordingHttpBaseUrl,
+      recordingAsteriskDirectory: server.recordingAsteriskDirectory,
+      recordingFormat: server.recordingFormat,
+      persisted: true,
+      note: null,
+      serverId: server.id,
+      serverName: server.name,
+      isEnabled: server.isEnabled,
+      isDefault: server.isDefault,
+    });
+    this.form.patchValue({
+      name: server.name || 'Default',
+      host: server.host ?? '',
+      port: server.port && server.port > 0 ? server.port : 5038,
+      username: server.username ?? '',
+      secret: '',
+      clearSecret: false,
+      channelTech: server.channelTech || 'PJSIP',
+      originateVia: server.originateVia || 'LocalContext',
+      originateContext: server.originateContext || 'from-internal',
+      musicOnHoldClass: server.musicOnHoldClass || 'default',
+      defaultTrunk: server.defaultTrunk ?? '',
+      trunkPeerFilter: server.trunkPeerFilter ?? '',
+      defaultTimeoutMs: server.defaultTimeoutMs || 30000,
+      defaultCallerId: server.defaultCallerId ?? '',
+      keepAlive: server.keepAlive,
+      pingIntervalMs: server.pingIntervalMs || 10000,
+      autoConnectOnStartup: server.autoConnectOnStartup,
+      recordingEnabled: server.recordingEnabled ?? true,
+      recordingLocalDirectory: server.recordingLocalDirectory ?? '',
+      recordingHttpBaseUrl: server.recordingHttpBaseUrl ?? '',
+      recordingAsteriskDirectory: server.recordingAsteriskDirectory ?? '/var/spool/asterisk/monitor',
+      recordingFormat: server.recordingFormat || 'wav',
+      reconnectAfterSave: true,
+    });
+  }
+
+  addServer(): void {
+    this.serverBusy.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    this.api
+      .addServer({
+        name: `Server ${this.servers().length + 1}`,
+        isEnabled: true,
+        isDefault: this.servers().length === 0,
+        host: '',
+        port: 5038,
+        username: '',
+        channelTech: 'PJSIP',
+        originateVia: 'LocalContext',
+        originateContext: 'from-internal',
+        musicOnHoldClass: 'default',
+        reconnectAfterSave: false,
+      })
+      .subscribe({
+        next: (r) => {
+          this.serverBusy.set(false);
+          if (!r.isSuccess) {
+            this.error.set(r.errorMessage || 'Add failed');
+            return;
+          }
+          const createdId = r.data?.[0]?.id ?? null;
+          this.success.set('SETTINGS.SERVER_ADD_OK');
+          this.reload(createdId);
+        },
+        error: (err: Error) => {
+          this.serverBusy.set(false);
+          this.error.set(err.message);
+        },
+      });
+  }
+
+  enableServer(server: AsteriskServer): void {
+    this.runServerAction(() => this.api.enableServer(server.id), 'SETTINGS.SERVER_ENABLE_OK');
+  }
+
+  disableServer(server: AsteriskServer): void {
+    this.runServerAction(() => this.api.disableServer(server.id), 'SETTINGS.SERVER_DISABLE_OK');
+  }
+
+  setDefaultServer(server: AsteriskServer): void {
+    this.runServerAction(() => this.api.setDefaultServer(server.id), 'SETTINGS.SERVER_DEFAULT_OK');
+  }
+
+  deleteServer(server: AsteriskServer): void {
+    this.runServerAction(() => this.api.deleteServer(server.id), 'SETTINGS.SERVER_DELETE_OK');
+  }
+
   save(): void {
+    const id = this.selectedServerId();
+    if (!id) {
+      this.error.set('SETTINGS.SERVER_SELECT_FIRST');
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -110,7 +283,9 @@ export class SettingsPageComponent implements OnInit {
     this.success.set(null);
     this.testResult.set(null);
     this.api
-      .updateSiteSettings({
+      .updateServer({
+        id,
+        name: v.name.trim(),
         host: v.host.trim(),
         port: Number(v.port),
         username: v.username.trim(),
@@ -141,10 +316,9 @@ export class SettingsPageComponent implements OnInit {
             this.error.set(r.errorMessage || 'Save failed');
             return;
           }
-          const saved = r.data?.[0] ?? null;
-          this.settings.set(saved);
           this.success.set('SETTINGS.SAVE_OK');
           this.form.patchValue({ secret: '', clearSecret: false });
+          this.reload();
         },
         error: (err: Error) => {
           this.saving.set(false);
@@ -171,6 +345,30 @@ export class SettingsPageComponent implements OnInit {
       },
       error: (err: Error) => {
         this.testing.set(false);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  private runServerAction(
+    action: () => ReturnType<AsteriskApiService['enableServer']>,
+    okKey: string,
+  ): void {
+    this.serverBusy.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    action().subscribe({
+      next: (r) => {
+        this.serverBusy.set(false);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'Action failed');
+          return;
+        }
+        this.success.set(okKey);
+        this.reload();
+      },
+      error: (err: Error) => {
+        this.serverBusy.set(false);
         this.error.set(err.message);
       },
     });

@@ -162,6 +162,24 @@ Ports, build-profiles, version-manifest, verify-gates, onboarding, history
 
 ---
 
+## Part 13 — Multi-server AMI registry
+
+### Request
+Multiple Asterisk servers: Add / Enable / Disable / SetDefault / Delete; live AMI uses default enabled server; legacy GetSiteSettings/UpdateSiteSettings kept additive.
+
+### Result 13
+- **status:** complete
+- **verification:**
+  - `dotnet build Ntk.Asterisk.WebApi -c Release` green
+  - API: `/api/v1/AsteriskServers/GetList|GetOne|Add|Update|ActionEnable|ActionDisable|ActionSetDefault|ActionDelete`
+  - Persist: `App_Data/asterisk-servers.json` + migrate legacy `asterisk-settings.json`
+  - Admin Settings: server list + form; Connection shows active server name
+  - skills: asterisk-voip-stack + asterisk-ami
+- **hosts:** webapi, admin-panel
+- **notes:** one live AMI session at a time (default enabled); disabled default auto-promotes next enabled
+
+---
+
 ## Deferred (Wave 2+)
 
-D20 Auth · D21 Persist jobs · D22 ARI · D23 CallFile · D24 PDF/Excel · D25 Role tokens
+D20 Auth · D21 Persist jobs · D22 ARI · D23 CallFile · D24 PDF/Excel · D25 Role tokens · D26 Concurrent multi-AMI sessions

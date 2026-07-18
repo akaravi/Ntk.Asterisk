@@ -12,6 +12,8 @@ public interface IAmiSession
     event EventHandler? ConnectionChanged;
 
     ConnectionStatusDto GetStatus();
+    /// <summary>Probe status for every enabled AMI server (live session reused; others Login/Logoff).</summary>
+    Task<IReadOnlyList<ConnectionStatusDto>> GetStatusListAsync(CancellationToken cancellationToken = default);
     Task EnsureConnectedAsync(CancellationToken cancellationToken = default);
     /// <summary>Disconnect then reconnect using persisted Admin Settings; returns final status.</summary>
     Task<ConnectionStatusDto> TestConnectionAsync(CancellationToken cancellationToken = default);
