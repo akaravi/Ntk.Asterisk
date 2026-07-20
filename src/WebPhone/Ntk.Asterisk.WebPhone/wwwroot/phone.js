@@ -138,7 +138,14 @@ async function loadSipConfigFromServer() {
       ? envelope.data[0]
       : envelope;
     if (config.error) throw new Error(config.error);
+    applySipConfigDto(config);
+  } catch (err) {
+    console.error("NTK WebPhone: failed to load SIP config", err);
+  }
+}
 
+function applySipConfigDto(config) {
+    if (!config) return;
     wssServer = config.serverIP || config.wssServer || config.wssUrl || wssServer;
     WebSocketPort = String(config.WebSocketPort || config.webSocketPort || WebSocketPort || "8089");
     ServerPath = config.ServerPath || config.webSocketPath || ServerPath || "/ws";
@@ -177,10 +184,8 @@ async function loadSipConfigFromServer() {
         localDB.setItem("RecordAllCalls", "1");
       }
     }
-  } catch (err) {
-    console.error("NTK WebPhone: failed to load SIP config", err);
-  }
 }
+window.applySipConfigDto = applySipConfigDto;
 
 // VOIPIRAN: تعریف توابع کمکی قبل از استفاده در منوها
 function getAudioSrcID(){
@@ -367,45 +372,47 @@ let CallQosDataIndexDb = null;
 // VOIPIRAN: سیستم نهایی — 100% تضمینی — هرگز 149 نمیاد!
 // ===================================================
 window.addEventListener("DOMContentLoaded", async () => {
-    console.log("VOIPIRAN: DOM لود شد — پاکسازی کامل localStorage...");
+    console.log("NTK WebPhone: DOM loaded — setup bootstrap...");
 
-    // 1. پاکسازی کامل تنظیمات قدیمی (فقط یک بار!)
-    localStorage.removeItem("wssServer");
-    localStorage.removeItem("SipDomain");
-    localStorage.removeItem("WssInTransport");
-    localStorage.removeItem("SipUsername");
-    localStorage.removeItem("SipPassword");
+    const setup = (typeof window.ntkWebPhoneSetupPrepare === "function")
+        ? await window.ntkWebPhoneSetupPrepare()
+        : { mode: "auto", provisioned: false, skipClear: false };
 
-    // 2. لود تنظیمات از PHP (اولویت 100%)
-    await loadSipConfigFromServer();
+    if (!setup.skipClear) {
+        localStorage.removeItem("wssServer");
+        localStorage.removeItem("SipDomain");
+        localStorage.removeItem("WssInTransport");
+        localStorage.removeItem("SipUsername");
+        localStorage.removeItem("SipPassword");
+    }
 
-    // 3. اجبار دائمی ws:// و IP درست
-    localDB.setItem("WssInTransport", "0");
-    WssInTransport = false;
-	
+    if (!setup.provisioned && setup.mode !== "manual") {
+        await loadSipConfigFromServer();
+    }
 
-    // 4. توابع صوتی
+    if (setup.mode !== "manual") {
+        localDB.setItem("WssInTransport", WssInTransport ? "1" : "0");
+    }
+
     window.getAudioSrcID = () => localDB.getItem("AudioSrcId") || "default";
     window.getAudioOutputID = () => localDB.getItem("RingOutputId") || "default";
     window.getVideoSrcID = () => localDB.getItem("VideoSrcId") || "default";
     window.getRingerOutputID = () => localDB.getItem("RingOutputId") || "default";
 
-    // 5. ر — فقط با 167!
-    setTimeout(() => {
-        console.log("VOIPIRAN: رجیستر خودکار با IP صحیح شروع شد:", wssServer);
-        CreateUserAgent();
-        Register();
+    const canRegister = SipUsername && SipPassword && wssServer;
+    if (canRegister && setup.mode !== "manual") {
+        setTimeout(() => {
+            console.log("NTK WebPhone: auto register", { wssServer, SipUsername });
+            CreateUserAgent();
+            Register();
+        }, 1000);
+    } else if (setup.mode === "manual") {
+        console.log("NTK WebPhone: manual mode — configure via Settings menu");
+    } else {
+        console.warn("NTK WebPhone: SIP credentials incomplete; open Settings or use provision token");
+    }
 
-        console.log("AUTO_REGISTER set & stored:", {
-            wssServer: wssServer,
-            WebSocketPort: WebSocketPort,
-            ServerPath: ServerPath,
-            SipDomain: SipDomain,
-            SipUsername: SipUsername
-        });
-    }, 1000);
-
-    console.log("VOIPIRAN: آماده اتصال");
+    console.log("NTK WebPhone: ready");
 });
 
 

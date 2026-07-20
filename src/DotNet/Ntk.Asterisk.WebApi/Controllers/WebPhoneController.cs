@@ -15,6 +15,7 @@ namespace Ntk.Asterisk.WebApi.Controllers;
 public sealed class WebPhoneController : ControllerBase
 {
     private readonly IWebPhoneExtensionStore _extensions;
+    private readonly IWebPhoneProvisionTokenStore _provisionTokens;
     private readonly IWebPhoneBuddyStore _buddies;
     private readonly IWebPhoneCdrStore _cdr;
     private readonly IWebPhoneRecordingStore _recordings;
@@ -22,10 +23,12 @@ public sealed class WebPhoneController : ControllerBase
     private readonly IWebPhonePresenceService _presence;
     private readonly IAsteriskSettingsService _settings;
     private readonly IOptionsMonitor<WebPhoneOptions> _webPhoneOptions;
+    private readonly IQueueAclSessionService _aclSessions;
     private readonly ILogger<WebPhoneController> _logger;
 
     public WebPhoneController(
         IWebPhoneExtensionStore extensions,
+        IWebPhoneProvisionTokenStore provisionTokens,
         IWebPhoneBuddyStore buddies,
         IWebPhoneCdrStore cdr,
         IWebPhoneRecordingStore recordings,
@@ -33,9 +36,11 @@ public sealed class WebPhoneController : ControllerBase
         IWebPhonePresenceService presence,
         IAsteriskSettingsService settings,
         IOptionsMonitor<WebPhoneOptions> webPhoneOptions,
+        IQueueAclSessionService aclSessions,
         ILogger<WebPhoneController> logger)
     {
         _extensions = extensions;
+        _provisionTokens = provisionTokens;
         _buddies = buddies;
         _cdr = cdr;
         _recordings = recordings;
@@ -43,6 +48,7 @@ public sealed class WebPhoneController : ControllerBase
         _presence = presence;
         _settings = settings;
         _webPhoneOptions = webPhoneOptions;
+        _aclSessions = aclSessions;
         _logger = logger;
     }
 
@@ -87,6 +93,109 @@ public sealed class WebPhoneController : ControllerBase
         {
             _logger.LogWarning(ex, "GetSipConfig failed");
             return Ok(ApiResult<SipConfigDto>.Fail(ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Redeem admin-issued provision token — returns SIP config, buddies, and feature flags.
+    /// No WebPhone API key required; the token is the credential.
+    /// </summary>
+    [HttpPost("GetProvisionByToken")]
+    public ActionResult<ApiResult<WebPhoneProvisionBundleDto>> GetProvisionByToken(
+        [FromBody] WebPhoneProvisionByTokenRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request?.Token))
+                return Ok(ApiResult<WebPhoneProvisionBundleDto>.Fail("Provision token is required."));
+
+            var tokenRecord = _provisionTokens.FindByToken(request.Token);
+            if (tokenRecord is null)
+                return Ok(ApiResult<WebPhoneProvisionBundleDto>.Fail("Invalid or expired provision token."));
+
+            var ext = _extensions.FindById(tokenRecord.ExtensionId);
+            if (ext is null || !ext.IsEnabled || string.IsNullOrWhiteSpace(ext.SipPassword))
+                return Ok(ApiResult<WebPhoneProvisionBundleDto>.Fail(
+                    "Extension for this token is missing, disabled, or has no SIP secret."));
+
+            var server = ResolveServer(ext.ServerId);
+            var sip = BuildSipConfig(ext, server);
+            var buddies = _buddies.GetList();
+            var opts = _webPhoneOptions.CurrentValue;
+            _provisionTokens.TouchLastUsed(tokenRecord.Id);
+
+            var bundle = new WebPhoneProvisionBundleDto
+            {
+                SipConfig = sip,
+                Buddies = buddies,
+                Options = new WebPhoneOptionsDto
+                {
+                    EnableTransfer = opts.EnableTransfer,
+                    EnableConference = opts.EnableConference,
+                    EnableRecordAll = opts.EnableRecordAll,
+                    EnableVideo = opts.EnableVideo,
+                    EnablePresence = opts.EnablePresence,
+                    EnableMwi = opts.EnableMwi,
+                    RequireApiKey = opts.IsApiKeyGateActive
+                }
+            };
+
+            _logger.LogInformation(
+                "GetProvisionByToken served extension={Username} tokenId={TokenId}",
+                ext.SipUsername,
+                tokenRecord.Id);
+            return Ok(ApiResult<WebPhoneProvisionBundleDto>.Ok(bundle));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "GetProvisionByToken failed");
+            return Ok(ApiResult<WebPhoneProvisionBundleDto>.Fail(ex.Message));
+        }
+    }
+
+    [HttpGet("ProvisionTokens/GetList")]
+    public ActionResult<ApiResult<WebPhoneProvisionTokenDto>> ProvisionTokensGetList()
+    {
+        if (!TryAuthorizeProvisioner(out var authFail))
+            return Ok(ApiResult<WebPhoneProvisionTokenDto>.Fail(authFail!));
+        return Ok(ApiResult<WebPhoneProvisionTokenDto>.Ok(_provisionTokens.GetList()));
+    }
+
+    [HttpPost("ProvisionTokens/Add")]
+    public ActionResult<ApiResult<WebPhoneProvisionTokenCreatedDto>> ProvisionTokensAdd(
+        [FromBody] WebPhoneProvisionTokenCreateRequest request)
+    {
+        try
+        {
+            if (!TryAuthorizeProvisioner(out var authFail))
+                return Ok(ApiResult<WebPhoneProvisionTokenCreatedDto>.Fail(authFail!));
+
+            var ext = _extensions.FindById(request.ExtensionId);
+            if (ext is null)
+                return Ok(ApiResult<WebPhoneProvisionTokenCreatedDto>.Fail("Extension not found."));
+
+            return Ok(ApiResult<WebPhoneProvisionTokenCreatedDto>.Ok(_provisionTokens.Create(request)));
+        }
+        catch (Exception ex)
+        {
+            return Ok(ApiResult<WebPhoneProvisionTokenCreatedDto>.Fail(ex.Message));
+        }
+    }
+
+    [HttpPost("ProvisionTokens/ActionDelete")]
+    public ActionResult<ApiResult<object>> ProvisionTokensDelete([FromBody] WebPhoneProvisionTokenIdRequest request)
+    {
+        try
+        {
+            if (!TryAuthorizeProvisioner(out var authFail))
+                return Ok(ApiResult.Fail(authFail!));
+            if (!_provisionTokens.Delete(request.Id))
+                return Ok(ApiResult.Fail("Provision token not found."));
+            return Ok(ApiResult.OkEmpty());
+        }
+        catch (Exception ex)
+        {
+            return Ok(ApiResult.Fail(ex.Message));
         }
     }
 
@@ -399,6 +508,16 @@ public sealed class WebPhoneController : ControllerBase
         }
 
         return true;
+    }
+
+    /// <summary>Admin Queue ACL session or WebPhone API key for provision-token management.</summary>
+    private bool TryAuthorizeProvisioner(out string? errorMessage)
+    {
+        errorMessage = null;
+        var principal = _aclSessions.ResolveFromHttp(Request);
+        if (principal?.IsAdmin == true)
+            return true;
+        return TryAuthorizeApiKey(out errorMessage);
     }
 
     private static bool FixedTimeEquals(string a, string b)

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { ListQuery } from '../../core/models/asterisk.models';
-import { WebPhoneExtension, WebPhoneOptions } from '../../core/models/webphone.models';
+import { WebPhoneExtension, WebPhoneOptions, WebPhoneProvisionToken, WebPhoneProvisionTokenCreated } from '../../core/models/webphone.models';
 import { WebPhoneApiService } from '../../core/services/webphone-api.service';
 import { applyClientList, defaultListQuery } from '../../core/utils/list-query.util';
 import { ListPagerComponent } from '../../shared/components/list-pager/list-pager.component';
@@ -33,6 +33,8 @@ export class WebphoneExtensionsPageComponent implements OnInit {
   readonly rowsAll = signal<WebPhoneExtension[]>([]);
   readonly rows = signal<WebPhoneExtension[]>([]);
   readonly totalCount = signal(0);
+  readonly tokens = signal<WebPhoneProvisionToken[]>([]);
+  readonly createdToken = signal<WebPhoneProvisionTokenCreated | null>(null);
 
   query: ListQuery = { ...defaultListQuery('sipUsername'), pageSize: 25, sortDir: 'asc' };
   readonly filters: AdvancedFilterField[] = [
@@ -53,13 +55,100 @@ export class WebphoneExtensionsPageComponent implements OnInit {
     isEnabled: true,
   };
 
+  tokenForm = {
+    extensionId: '',
+    label: '',
+  };
+
   ngOnInit(): void {
     this.reloadOptions();
     this.reload();
+    this.reloadTokens();
   }
 
   openSoftphone(): void {
     window.open(this.webPhoneUrl + '/', '_blank', 'noopener,noreferrer');
+  }
+
+  openSoftphoneWithToken(token: string): void {
+    const url =
+      this.webPhoneUrl + '/?token=' + encodeURIComponent(token);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  reloadTokens(): void {
+    this.api.getProvisionTokens().subscribe({
+      next: (r) => {
+        if (r.isSuccess) this.tokens.set(r.data ?? []);
+      },
+      error: () => this.tokens.set([]),
+    });
+  }
+
+  createToken(): void {
+    const extensionId = this.tokenForm.extensionId.trim();
+    if (!extensionId) {
+      this.error.set(this.i18n.instant('WEBPHONE.TOKEN_EXT_REQUIRED'));
+      return;
+    }
+    this.busy.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    this.createdToken.set(null);
+    this.api
+      .createProvisionToken({
+        extensionId,
+        label: this.tokenForm.label.trim() || null,
+        isEnabled: true,
+      })
+      .subscribe({
+        next: (r) => {
+          this.busy.set(false);
+          if (!r.isSuccess || !r.data?.[0]) {
+            this.error.set(r.errorMessage || this.i18n.instant('WEBPHONE.TOKEN_CREATE_FAIL'));
+            return;
+          }
+          this.createdToken.set(r.data[0]);
+          this.success.set(this.i18n.instant('WEBPHONE.TOKEN_CREATE_OK'));
+          this.tokenForm.label = '';
+          this.reloadTokens();
+        },
+        error: (err) => {
+          this.busy.set(false);
+          this.error.set(err?.message || this.i18n.instant('WEBPHONE.TOKEN_CREATE_FAIL'));
+        },
+      });
+  }
+
+  copyTokenLink(token: string): void {
+    const url = this.webPhoneUrl + '/?token=' + encodeURIComponent(token);
+    void navigator.clipboard.writeText(url).then(() => {
+      this.success.set(this.i18n.instant('WEBPHONE.TOKEN_LINK_COPIED'));
+    });
+  }
+
+  removeToken(row: WebPhoneProvisionToken): void {
+    if (!confirm(this.i18n.instant('WEBPHONE.TOKEN_CONFIRM_DELETE'))) return;
+    this.busy.set(true);
+    this.api.deleteProvisionToken(row.id).subscribe({
+      next: (r) => {
+        this.busy.set(false);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || this.i18n.instant('WEBPHONE.TOKEN_DELETE_FAIL'));
+          return;
+        }
+        this.reloadTokens();
+      },
+      error: (err) => {
+        this.busy.set(false);
+        this.error.set(err?.message || this.i18n.instant('WEBPHONE.TOKEN_DELETE_FAIL'));
+      },
+    });
+  }
+
+  extensionLabel(id: string): string {
+    const ext = this.rowsAll().find((x) => x.id === id);
+    return ext ? `${ext.sipUsername} (${ext.profileName || ext.id})` : id;
   }
 
   reloadOptions(): void {

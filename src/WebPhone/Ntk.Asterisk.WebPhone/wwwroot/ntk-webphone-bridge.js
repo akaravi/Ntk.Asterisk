@@ -219,38 +219,61 @@
     });
   }
 
+  function mergeBuddyRows(rows) {
+    if (!rows || !rows.length) return false;
+    if (typeof AddBuddy !== "function" || typeof FindBuddyByIdentity !== "function") return false;
+    rows.forEach(function (b) {
+      var id = b.extensionNumber || b.ExtensionNumber || b.id || b.Id;
+      if (!id || FindBuddyByIdentity(id)) return;
+      try {
+        var buddyObj = {
+          identity: id,
+          type: b.type || b.Type || "extension",
+          CallerIDName: b.displayName || b.DisplayName || id,
+          ExtNo: b.extensionNumber || b.ExtensionNumber || id,
+          Desc: b.description || b.Description || "",
+          MobileNumber: b.mobileNumber || b.MobileNumber || "",
+          Email: b.email || b.Email || "",
+          Contact1: b.contactNumber1 || b.ContactNumber1 || "",
+          Contact2: b.contactNumber2 || b.ContactNumber2 || "",
+          Subscribe: !!(b.subscribe || b.Subscribe),
+          SubscribeUser:
+            b.subscribeUser || b.SubscribeUser || b.extensionNumber || b.ExtensionNumber || id,
+          AllowCallDuringDnd: !!(b.enableDuringDnd || b.EnableDuringDnd),
+          AllowAutoDelete: false,
+          lastActivity: new Date().toISOString()
+        };
+        AddBuddy(buddyObj, false, false, !!buddyObj.Subscribe, false);
+      } catch (e) {
+        console.warn("NTK bridge: merge buddy failed", id, e);
+      }
+    });
+    if (typeof PopulateBuddyList === "function") PopulateBuddyList();
+    return true;
+  }
+
+  function applyProvisionCache() {
+    var hadBuddies = false;
+    try {
+      var optsRaw = localStorage.getItem("ntkProvisionOptions");
+      if (optsRaw) applyFeatureFlags(JSON.parse(optsRaw));
+    } catch (e) {
+      console.warn("NTK bridge: provision options cache skipped", e);
+    }
+    try {
+      var buddiesRaw = localStorage.getItem("ntkProvisionBuddies");
+      if (buddiesRaw) hadBuddies = mergeBuddyRows(JSON.parse(buddiesRaw));
+    } catch (e) {
+      console.warn("NTK bridge: provision buddies cache skipped", e);
+    }
+    return hadBuddies;
+  }
+
   function pullServerBuddies() {
     return getJson("/Buddies/GetList?pageSize=200")
       .then(function (json) {
         var rows = envelopeData(json);
-        if (!rows || !rows.length) return;
-        if (typeof AddBuddy !== "function" || typeof FindBuddyByIdentity !== "function") return;
-        rows.forEach(function (b) {
-          var id = b.extensionNumber || b.id;
-          if (!id || FindBuddyByIdentity(id)) return;
-          try {
-            var buddyObj = {
-              identity: id,
-              type: b.type || "extension",
-              CallerIDName: b.displayName || id,
-              ExtNo: b.extensionNumber || id,
-              Desc: b.description || "",
-              MobileNumber: b.mobileNumber || "",
-              Email: b.email || "",
-              Contact1: b.contactNumber1 || "",
-              Contact2: b.contactNumber2 || "",
-              Subscribe: !!b.subscribe,
-              SubscribeUser: b.subscribeUser || b.extensionNumber || id,
-              AllowCallDuringDnd: !!b.enableDuringDnd,
-              AllowAutoDelete: false,
-              lastActivity: new Date().toISOString()
-            };
-            AddBuddy(buddyObj, false, false, !!b.subscribe, false);
-          } catch (e) {
-            console.warn("NTK bridge: merge buddy failed", id, e);
-          }
-        });
-        if (typeof PopulateBuddyList === "function") PopulateBuddyList();
+        mergeBuddyRows(rows);
       })
       .catch(function (err) {
         console.warn("NTK bridge: Buddies/GetList failed", err);
@@ -384,9 +407,12 @@
 
   function boot() {
     wrapLocals();
-    loadOptions().then(function () {
-      pullServerBuddies().then(startPolling);
-    });
+    var hadProvisionBuddies = applyProvisionCache();
+    loadOptions()
+      .then(function () {
+        if (!hadProvisionBuddies) return pullServerBuddies();
+      })
+      .then(startPolling);
 
     chainHook("web_hook_on_register", function () {
       startPolling();

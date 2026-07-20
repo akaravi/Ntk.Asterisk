@@ -1,0 +1,147 @@
+#ntk-setup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: color-mix(in srgb, #0e151c 72%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.ntk-setup {
+  width: min(28rem, 100%);
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: 0.5rem;
+  border: 1px solid #c5d0db;
+  background: #f7f9fb;
+  color: #14212b;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.ntk-setup h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.ntk-setup__sub {
+  margin: 0 0 1rem;
+  color: #5f7386;
+  font-size: 0.9rem;
+}
+
+.ntk-setup__tabs {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.ntk-setup__tab {
+  flex: 1;
+  border: 1px solid #c5d0db;
+  background: #fff;
+  color: #3d4f5f;
+  padding: 0.45rem 0.5rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ntk-setup__tab.is-active {
+  border-color: #0a6b6f;
+  background: #d3eef0;
+  color: #0a6b6f;
+  font-weight: 600;
+}
+
+.ntk-setup__hint,
+.ntk-setup__hint-manual {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  color: #3d4f5f;
+  line-height: 1.45;
+}
+
+.ntk-setup__field {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.ntk-setup__field input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #c5d0db;
+  border-radius: 0.35rem;
+  font: inherit;
+}
+
+.ntk-setup__field input.ltr {
+  direction: ltr;
+  text-align: start;
+}
+
+.ntk-setup__error {
+  margin: 0 0 0.65rem;
+  color: #a12828;
+  font-size: 0.85rem;
+}
+
+.ntk-setup__primary,
+.ntk-setup__ghost {
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.35rem;
+  border: 1px solid #c5d0db;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ntk-setup__primary {
+  background: #0a6b6f;
+  border-color: #0a6b6f;
+  color: #f4fcfc;
+}
+
+.ntk-setup__primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ntk-setup__ghost {
+  background: #fff;
+  color: #14212b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ntk-setup {
+    background: #162029;
+    border-color: #2a3a48;
+    color: #e7eef5;
+  }
+
+  .ntk-setup__sub,
+  .ntk-setup__hint,
+  .ntk-setup__hint-manual {
+    color: #b7c5d3;
+  }
+
+  .ntk-setup__tab {
+    background: #0e151c;
+    border-color: #2a3a48;
+    color: #b7c5d3;
+  }
+
+  .ntk-setup__field input {
+    background: #0e151c;
+    border-color: #2a3a48;
+    color: #e7eef5;
+  }
+
+  .ntk-setup__ghost {
+    background: #0e151c;
+    color: #e7eef5;
+  }
+}

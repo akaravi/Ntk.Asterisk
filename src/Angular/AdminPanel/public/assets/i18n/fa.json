@@ -537,6 +537,24 @@
                      "AT":  "زمان (UTC)",
                      "DELETE":  "حذف",
                      "BUDDIES_TITLE":  "مخاطبین تلفن وب",
-                     "EXT_SUBTITLE":  "اعتبار SIP برای GetSipConfig — رمز فقط در API برمی‌گردد."
+                     "EXT_SUBTITLE":  "اعتبار SIP برای GetSipConfig — رمز فقط در API برمی‌گردد.",
+                     "TOKEN_TITLE":  "توکن راه‌اندازی Softphone",
+                     "TOKEN_SUBTITLE":  "توکن را در تلفن وب وارد کنید تا همه تنظیمات SIP و مخاطبین بارگذاری شود.",
+                     "TOKEN_EXT":  "داخلی",
+                     "TOKEN_EXT_PH":  "انتخاب داخلی",
+                     "TOKEN_EXT_REQUIRED":  "داخلی را انتخاب کنید",
+                     "TOKEN_LABEL":  "برچسب",
+                     "TOKEN_LABEL_PH":  "مثلاً Agent desk 1",
+                     "TOKEN_CREATE":  "ایجاد توکن",
+                     "TOKEN_CREATE_OK":  "توکن ایجاد شد",
+                     "TOKEN_CREATE_FAIL":  "ایجاد توکن ناموفق",
+                     "TOKEN_CREATED_ONCE":  "توکن (فقط یک‌بار نمایش داده می‌شود):",
+                     "TOKEN_COPY_LINK":  "کپی لینک Softphone",
+                     "TOKEN_OPEN_SOFTPHONE":  "باز کردن با توکن",
+                     "TOKEN_LINK_COPIED":  "لینک کپی شد",
+                     "TOKEN_LAST_USED":  "آخرین استفاده",
+                     "TOKEN_EMPTY":  "توکنی ثبت نشده",
+                     "TOKEN_CONFIRM_DELETE":  "توکن حذف شود؟",
+                     "TOKEN_DELETE_FAIL":  "حذف توکن ناموفق"
                  }
 }

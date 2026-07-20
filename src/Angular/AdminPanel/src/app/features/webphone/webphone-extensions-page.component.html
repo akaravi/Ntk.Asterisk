@@ -140,4 +140,81 @@
   </div>
 
   <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+
+  <article class="entity-card">
+    <h2 class="entity-card__title">{{ 'WEBPHONE.TOKEN_TITLE' | translate }}</h2>
+    <p class="muted">{{ 'WEBPHONE.TOKEN_SUBTITLE' | translate }}</p>
+
+    @if (createdToken(); as ct) {
+      <div class="banner banner--ok" role="status">
+        <p>{{ 'WEBPHONE.TOKEN_CREATED_ONCE' | translate }}</p>
+        <p class="ltr" dir="ltr">{{ ct.token }}</p>
+        <div class="row-actions">
+          <button type="button" class="btn btn--primary" (click)="copyTokenLink(ct.token)">
+            {{ 'WEBPHONE.TOKEN_COPY_LINK' | translate }}
+          </button>
+          <button type="button" class="btn" (click)="openSoftphoneWithToken(ct.token)">
+            {{ 'WEBPHONE.TOKEN_OPEN_SOFTPHONE' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="queue-acl__fields">
+      <label class="field">
+        <span>{{ 'WEBPHONE.TOKEN_EXT' | translate }}</span>
+        <select class="ltr" dir="ltr" [(ngModel)]="tokenForm.extensionId">
+          <option value="">{{ 'WEBPHONE.TOKEN_EXT_PH' | translate }}</option>
+          @for (ext of rowsAll(); track ext.id) {
+            <option [value]="ext.id">{{ ext.sipUsername }} — {{ ext.profileName }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>{{ 'WEBPHONE.TOKEN_LABEL' | translate }}</span>
+        <input
+          [(ngModel)]="tokenForm.label"
+          [placeholder]="'WEBPHONE.TOKEN_LABEL_PH' | translate"
+        />
+      </label>
+    </div>
+    <div class="queue-acl__actions">
+      <button type="button" class="btn btn--primary" (click)="createToken()" [disabled]="busy()">
+        {{ 'WEBPHONE.TOKEN_CREATE' | translate }}
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'WEBPHONE.TOKEN_LABEL' | translate }}</th>
+            <th>{{ 'WEBPHONE.TOKEN_EXT' | translate }}</th>
+            <th>{{ 'WEBPHONE.CREATED' | translate }}</th>
+            <th>{{ 'WEBPHONE.TOKEN_LAST_USED' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tok of tokens(); track tok.id) {
+            <tr>
+              <td>{{ tok.label || '—' }}</td>
+              <td class="ltr" dir="ltr">{{ extensionLabel(tok.extensionId) }}</td>
+              <td class="ltr" dir="ltr">{{ tok.createdAtUtc }}</td>
+              <td class="ltr" dir="ltr">{{ tok.lastUsedAtUtc || '—' }}</td>
+              <td class="row-actions">
+                <button type="button" class="btn btn--ghost" (click)="removeToken(tok)" [disabled]="busy()">
+                  {{ 'WEBPHONE.DELETE' | translate }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">{{ 'WEBPHONE.TOKEN_EMPTY' | translate }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
 </section>

@@ -537,6 +537,24 @@
                      "AT":  "At (UTC)",
                      "DELETE":  "Delete",
                      "BUDDIES_TITLE":  "WebPhone buddies",
-                     "EXT_SUBTITLE":  "SIP credentials for GetSipConfig — password returned only on provision API."
+                     "EXT_SUBTITLE":  "SIP credentials for GetSipConfig — password returned only on provision API.",
+                     "TOKEN_TITLE":  "Softphone provision tokens",
+                     "TOKEN_SUBTITLE":  "User enters token in WebPhone to load SIP settings and buddies automatically.",
+                     "TOKEN_EXT":  "Extension",
+                     "TOKEN_EXT_PH":  "Select extension",
+                     "TOKEN_EXT_REQUIRED":  "Select an extension",
+                     "TOKEN_LABEL":  "Label",
+                     "TOKEN_LABEL_PH":  "e.g. Agent desk 1",
+                     "TOKEN_CREATE":  "Create token",
+                     "TOKEN_CREATE_OK":  "Token created",
+                     "TOKEN_CREATE_FAIL":  "Create token failed",
+                     "TOKEN_CREATED_ONCE":  "Token (shown once only):",
+                     "TOKEN_COPY_LINK":  "Copy softphone link",
+                     "TOKEN_OPEN_SOFTPHONE":  "Open with token",
+                     "TOKEN_LINK_COPIED":  "Link copied",
+                     "TOKEN_LAST_USED":  "Last used",
+                     "TOKEN_EMPTY":  "No tokens yet",
+                     "TOKEN_CONFIRM_DELETE":  "Delete this token?",
+                     "TOKEN_DELETE_FAIL":  "Delete token failed"
                  }
 }

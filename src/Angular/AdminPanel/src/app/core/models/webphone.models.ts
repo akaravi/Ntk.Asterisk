@@ -94,3 +94,23 @@ export interface WebPhoneQos {
   rawJson?: string | null;
   atUtc: string;
 }
+
+export interface WebPhoneProvisionToken {
+  id: string;
+  extensionId: string;
+  label?: string | null;
+  isEnabled: boolean;
+  createdAtUtc: string;
+  lastUsedAtUtc?: string | null;
+  expiresAtUtc?: string | null;
+}
+
+export interface WebPhoneProvisionTokenCreated extends WebPhoneProvisionToken {
+  token: string;
+}
+
+export interface WebPhoneProvisionTokenCreate {
+  extensionId: string;
+  label?: string | null;
+  isEnabled?: boolean | null;
+}

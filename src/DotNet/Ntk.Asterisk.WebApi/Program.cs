@@ -80,6 +80,7 @@ builder.Services.AddSingleton<IQueueStatsSnapshotStore, QueueStatsSnapshotStore>
 builder.Services.AddHostedService<QueueStatsSamplerService>();
 
 builder.Services.AddSingleton<IWebPhoneExtensionStore, WebPhoneExtensionStore>();
+builder.Services.AddSingleton<IWebPhoneProvisionTokenStore, WebPhoneProvisionTokenStore>();
 builder.Services.AddSingleton<IWebPhoneBuddyStore, WebPhoneBuddyStore>();
 builder.Services.AddSingleton<IWebPhoneCdrStore, WebPhoneCdrStore>();
 builder.Services.AddSingleton<IWebPhoneRecordingStore, WebPhoneRecordingStore>();

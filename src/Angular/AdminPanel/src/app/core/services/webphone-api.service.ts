@@ -9,6 +9,9 @@ import {
   WebPhoneExtension,
   WebPhoneExtensionUpsert,
   WebPhoneOptions,
+  WebPhoneProvisionToken,
+  WebPhoneProvisionTokenCreate,
+  WebPhoneProvisionTokenCreated,
   WebPhoneQos,
   WebPhoneRecording,
 } from '../models/webphone.models';
@@ -69,5 +72,22 @@ export class WebPhoneApiService {
 
   getQos(take = 100): Observable<ApiResult<WebPhoneQos>> {
     return this.api.getListWithParams<WebPhoneQos>(`${this.base}/Qos/GetList`, { take });
+  }
+
+  getProvisionTokens(): Observable<ApiResult<WebPhoneProvisionToken>> {
+    return this.api.getList<WebPhoneProvisionToken>(`${this.base}/ProvisionTokens/GetList`);
+  }
+
+  createProvisionToken(
+    body: WebPhoneProvisionTokenCreate,
+  ): Observable<ApiResult<WebPhoneProvisionTokenCreated>> {
+    return this.api.postAction<WebPhoneProvisionTokenCreated>(
+      `${this.base}/ProvisionTokens/Add`,
+      body,
+    );
+  }
+
+  deleteProvisionToken(id: string): Observable<ApiResult<object>> {
+    return this.api.postAction<object>(`${this.base}/ProvisionTokens/ActionDelete`, { id });
   }
 }

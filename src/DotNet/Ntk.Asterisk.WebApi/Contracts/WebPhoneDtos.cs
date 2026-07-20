@@ -210,3 +210,53 @@ public sealed class WebPhoneOptionsDto
     /// <summary>True when server requires X-WebPhone-Api-Key for GetSipConfig (never exposes the key).</summary>
     public bool RequireApiKey { get; init; }
 }
+
+/// <summary>Admin-issued token metadata (secret value only on create).</summary>
+public sealed class WebPhoneProvisionTokenDto
+{
+    public string Id { get; init; } = string.Empty;
+    public string ExtensionId { get; init; } = string.Empty;
+    public string? Label { get; init; }
+    public bool IsEnabled { get; init; } = true;
+    public DateTimeOffset CreatedAtUtc { get; init; }
+    public DateTimeOffset? LastUsedAtUtc { get; init; }
+    public DateTimeOffset? ExpiresAtUtc { get; init; }
+}
+
+public sealed class WebPhoneProvisionTokenCreatedDto
+{
+    public string Id { get; init; } = string.Empty;
+    public string ExtensionId { get; init; } = string.Empty;
+    public string? Label { get; init; }
+    public bool IsEnabled { get; init; } = true;
+    public DateTimeOffset CreatedAtUtc { get; init; }
+    public DateTimeOffset? LastUsedAtUtc { get; init; }
+    public DateTimeOffset? ExpiresAtUtc { get; init; }
+    public string Token { get; init; } = string.Empty;
+}
+
+public sealed class WebPhoneProvisionTokenCreateRequest
+{
+    public string ExtensionId { get; set; } = string.Empty;
+    public string? Label { get; set; }
+    public bool? IsEnabled { get; set; } = true;
+    public DateTimeOffset? ExpiresAtUtc { get; set; }
+}
+
+public sealed class WebPhoneProvisionTokenIdRequest
+{
+    public string Id { get; set; } = string.Empty;
+}
+
+public sealed class WebPhoneProvisionByTokenRequest
+{
+    public string Token { get; set; } = string.Empty;
+}
+
+/// <summary>Full softphone bootstrap returned when redeeming a provision token.</summary>
+public sealed class WebPhoneProvisionBundleDto
+{
+    public SipConfigDto SipConfig { get; init; } = new();
+    public IReadOnlyList<WebPhoneBuddyDto> Buddies { get; init; } = Array.Empty<WebPhoneBuddyDto>();
+    public WebPhoneOptionsDto Options { get; init; } = new();
+}
