@@ -1,0 +1,43 @@
+---
+description: Local dev output/listen ports must be in range - (ntk-asterisk)
+alwaysApply: true
+globs:
+  - "**/launchSettings.json"
+  - "**/appsettings.Development.json"
+  - "karavi/karavi.build.config/local-dev-ports.json"
+  - "**/angular.json"
+  - "**/vite.config.*"
+---
+
+# Local dev port range â€” mandatory
+
+**Standard:** All **local dev output/listen ports** (hosts started by `run all`, `dotnet run`, UI dev servers, BFF, Aspire) MUST be integers in **-** inclusive.
+
+## Canonical config
+
+`karavi/karavi.build.config/local-dev-ports.json` â€” `portRange.min` / `portRange.max` and per-host `port` assignments.
+
+## Applies to
+
+- `launchSettings.json` â†’ `applicationUrl`
+- `appsettings.Development.json` â†’ `Kestrel:Endpoints`, `Urls`
+- Angular `serve` port, Flutter `--web-port`, React / Vue / Next dev server
+- OAuth redirect URIs, CORS, and Authority dev URLs bound to local hosts
+- `run all` stop / start / health port lists
+
+## Required
+
+1. **New host** â€” assign the next free port in range via `local-dev-ports.json`.
+2. **Touched host** â€” align listen port to the range in the same change.
+3. **Scripts** â€” read ports from the manifest; do not hardcode dev ports outside **-**.
+
+## Forbidden
+
+- Dev listen port outside **-**
+- Hardcoded local dev ports in `.cs` / `.ts` / `.dart` / scripts outside env overlays and `local-dev-ports.json`
+- Duplicate port assignment within the active workspace dev stack
+
+## Exceptions
+
+- **Production** deploy URLs and IIS bindings â€” `karavi/karavi.deploy.config/production-hosts.json` only
+- OS-assigned ephemeral **outbound** client ports (not host listen ports)

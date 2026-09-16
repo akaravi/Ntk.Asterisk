@@ -369,20 +369,10 @@ karavi/karavi.logs/.check-logs-state.json
 **/App_Data/webphone-recordings.json.tmp
 **/App_Data/webphone-recordings/**
 
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-a09fce0f99a74644a1c6fdd66df00c40.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-7d48b271e9f1416dbe8ff7beb2a2db06.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-106dfae98cdc46f3815586ae004ab204.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-457012a9440545baa608ba5462d6a587.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-b2a3d99ddee0459f81cae4b853963a75.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-d28b107aa9a34d73a83cd41e0afd2db9.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-f728b92e91264ff58a755b5f5d1178b1.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-fca96ec64c7e49f2ae1fa9d07aa7f338.wav
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-ae76f3a5116f479cbc0c8709d1c76a76.wav
-
+src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/*
 **/App_Data/queue-stats-snapshots.json
 **/App_Data/queue-stats-snapshots.json.tmp
 
 
 **/.DS_Store
-
-src/DotNet/Ntk.Asterisk.WebApi/App_Data/recordings/ntk-4cbbe66b41824ea7bc8feabf33d177e0.wav
+graphify-out/
