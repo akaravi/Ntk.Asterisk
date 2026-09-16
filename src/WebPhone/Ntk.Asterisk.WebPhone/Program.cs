@@ -2,7 +2,11 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 // Dynamic config so API base URL stays in appsettings (not hardcoded in static JS).
 app.MapGet("/ntk-webphone-config.js", (IConfiguration cfg) =>

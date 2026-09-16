@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "karavi-memory": {
+      "type": "http",
+      "url": "https://api.memory.ai.ntk.ir/mcp",
+      "headers": {
+        "X-API-Key": "m0sk_2U22XoGqEKnHvdrReZnmAPv0xGYSeOIFy2_ATmFYmgg",
+        "X-Mem0-Org": "ntk",
+        "X-Mem0-Agent": "antigravity",
+        "X-Mem0-Fleet": "coding"
+      }
+    },
+    "raatik-memory": {
+      "type": "http",
+      "url": "https://api.memory.ai.ntk.ir/mcp",
+      "headers": {
+        "X-API-Key": "m0sk_2U22XoGqEKnHvdrReZnmAPv0xGYSeOIFy2_ATmFYmgg",
+        "X-Mem0-Org": "ntk",
+        "X-Mem0-Agent": "antigravity",
+        "X-Mem0-Fleet": "coding"
+      }
+    }
+  }
+}

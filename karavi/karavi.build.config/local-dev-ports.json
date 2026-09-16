@@ -21,6 +21,16 @@
       "healthPath": null,
       "note": "Ntk.Asterisk.WebPhone — SipJS softphone UI (calls WebApi CORS)"
     },
+    "aspire-dashboard": {
+      "port": 5320,
+      "healthPath": null,
+      "note": "Aspire Dashboard UI"
+    },
+    "aspire-otlp": {
+      "port": 5321,
+      "healthPath": null,
+      "note": "Aspire OTLP gRPC endpoint"
+    },
     "ami-lib": {
       "port": null,
       "healthPath": null,

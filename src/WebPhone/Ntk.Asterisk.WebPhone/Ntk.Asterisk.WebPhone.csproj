@@ -11,4 +11,8 @@
     <Description>NTK Asterisk Browser Phone (SipJS softphone UI) — static host only; APIs live in Ntk.Asterisk.WebApi</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Aspire\Ntk.Asterisk.ServiceDefaults\Ntk.Asterisk.ServiceDefaults.csproj" />
+  </ItemGroup>
+
 </Project>

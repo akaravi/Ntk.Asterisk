@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Ntk.AsterNet.AMI\Ntk.AsterNet.AMI.csproj" />
+    <ProjectReference Include="..\..\Aspire\Ntk.Asterisk.ServiceDefaults\Ntk.Asterisk.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

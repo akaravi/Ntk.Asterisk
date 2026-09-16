@@ -8,6 +8,7 @@ using CorsOpts = Ntk.Asterisk.WebApi.Configuration.CorsOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
 builder.Services.Configure<AsteriskOptions>(builder.Configuration.GetSection(AsteriskOptions.SectionName));
 builder.Services.Configure<CorsOpts>(builder.Configuration.GetSection(CorsOpts.SectionName));
 builder.Services.Configure<WebPhoneOptions>(builder.Configuration.GetSection(WebPhoneOptions.SectionName));
@@ -112,5 +113,6 @@ app.UseMiddleware<QueueAclGateMiddleware>();
 
 app.MapControllers();
 app.MapHub<AsteriskHub>(AsteriskHub.Path);
+app.MapDefaultEndpoints();
 
 app.Run();
