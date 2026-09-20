@@ -1,23 +1,21 @@
-﻿using Ntk.AsterNet.ARI;
-using Ntk.AsterNet.ARI.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.Http;
+using Ntk.AsterNet.ARI;
+using Ntk.AsterNet.ARI.Models;
 
 namespace Asterisk.Console.ARI
 {
     internal class SimpleTestApplication
     {
-        public AriClient ActionClient;
-        private void Main(string[] args)
+        public AriClient? ActionClient;
+
+        public void Run(string host = "192.168.3.201", int port = 8088, string username = "test", string password = "test")
         {
             try
             {
                 // Create a new Ari Connection
                 ActionClient = new AriClient(
-                    new StasisEndpoint("192.168.3.201", 8088, "test", "test"),
+                    new StasisEndpoint(host, port, username, password),
                     "HelloWorld");
 
                 // Hook into required events
@@ -27,23 +25,25 @@ namespace Asterisk.Console.ARI
 
                 ActionClient.Connect();
 
-                System.Console.ReadKey();
+                Program.SafeWait();
+            }
+            catch (HttpRequestException ex)
+            {
+                System.Console.WriteLine($"[SimpleTestApplication] Connection failed: {ex.Message}");
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex.ToString());
-                System.Console.ReadKey();
+                System.Console.WriteLine($"[SimpleTestApplication] Error: {ex.Message}");
             }
         }
 
-        private  void ActionClientOnConnectionStateChanged(object sender)
+        private void ActionClientOnConnectionStateChanged(object sender)
         {
-            System.Console.WriteLine("Connection state is now {0}", ActionClient.Connected);
+            System.Console.WriteLine("Connection state is now {0}", ActionClient?.Connected);
         }
 
         private void ActionClientOnChannelDtmfReceivedEvent(IAriClient sender, ChannelDtmfReceivedEvent e)
         {
-            // When DTMF received
             switch (e.Digit)
             {
                 case "*":
@@ -61,10 +61,7 @@ namespace Asterisk.Console.ARI
 
         private void c_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-            // Answer the channel
             sender.Channels.Answer(e.Channel.Id);
-
-            // Play an announcement
             sender.Channels.Play(e.Channel.Id, "sound:hello-world");
         }
     }

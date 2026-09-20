@@ -89,12 +89,11 @@ Ctrl-C to exit");
             }
             catch (Exception ex)
             {
-           System.     Console.WriteLine(ex.Message);
-           System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-           System.Console.ReadLine();
+                System.Console.WriteLine(ex.Message);
+                System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
+                SafeReadLine();
                 return;
             }
-
             ResponseEvents re;
             try
             {
@@ -125,7 +124,7 @@ Ctrl-C to exit");
                 }
             }
             System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-            System.Console.ReadLine();
+            SafeReadLine();
         }
         #endregion
 
@@ -161,11 +160,10 @@ Ctrl-C to exit");
             catch (Exception ex)
             {
                 System.Console.WriteLine(ex);
-                System.Console.ReadLine();
+                SafeReadLine();
                 manager.Logoff();
                 return;
             }
-
             {
                 System.Console.WriteLine("\nGetConfig action");
                 ManagerResponse response = manager.SendAction(new GetConfigAction("manager.conf"));
@@ -198,8 +196,7 @@ Ctrl-C to exit");
             System.Console.WriteLine("\nPress ENTER key to originate call.\n"
                                      + "Start phone (or connect) or make a call to see events.\n"
                                      + "After all events press a key to originate call.");
-            System.Console.ReadLine();
-
+            SafeReadLine();
             OriginateAction oc = new OriginateAction();
             oc.Context = ORIGINATE_CONTEXT;
             oc.Priority = "1";
@@ -214,8 +211,7 @@ Ctrl-C to exit");
             System.Console.WriteLine(originateResponse);
 
             System.Console.WriteLine("Press ENTER key to next test.");
-            System.Console.ReadLine();
-
+            SafeReadLine();
             //
             // Display result of Show Queues command
             //
@@ -238,9 +234,8 @@ Ctrl-C to exit");
                     System.Console.WriteLine("Response error: " + err);
                 }
                 System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-                System.Console.ReadLine();
+                SafeReadLine();
             }
-            //
             // Display Queues and Members
             //
             ResponseEvents re;
@@ -274,8 +269,7 @@ Ctrl-C to exit");
             }
 
             System.Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
-            System.Console.ReadLine();
-
+            SafeReadLine();
             //
             //	To test create 3 extensions:
             //	1 - SIP/4012 w/o voicemail (with eyeBeam softphone)
@@ -293,7 +287,7 @@ Ctrl-C to exit");
             while (transferChannel == null)
             {
                 System.Threading.Thread.Sleep(100);
-                if (System.Console.KeyAvailable && System.Console.ReadKey(true).Key == ConsoleKey.Escape)
+                if (IsCancelPressed(ConsoleKey.Escape))
                     break;
             }
             manager.Dial -= de;
@@ -328,7 +322,7 @@ Ctrl-C to exit");
             while (monitorChannel == null)
             {
                 System.Threading.Thread.Sleep(100);
-                if (System.Console.KeyAvailable && System.Console.ReadKey(true).Key == ConsoleKey.Escape)
+                if (IsCancelPressed(ConsoleKey.Escape))
                     break;
             }
             manager.Link -= le;
@@ -469,6 +463,34 @@ Ctrl-C to exit");
             }
         }
         #endregion
+        private static string? SafeReadLine()
+        {
+            if (System.Console.IsInputRedirected || !Environment.UserInteractive)
+                return null;
+            try
+            {
+                return System.Console.ReadLine();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static bool IsCancelPressed(ConsoleKey key)
+        {
+            if (System.Console.IsInputRedirected || !Environment.UserInteractive)
+                return false;
+            try
+            {
+                if (System.Console.KeyAvailable && System.Console.ReadKey(true).Key == key)
+                    return true;
+            }
+            catch
+            {
+            }
+            return false;
+        }
     }
 
     public class UserAgentLoginEvent : UserEvent

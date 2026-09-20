@@ -1,98 +1,96 @@
-﻿using Ntk.AsterNet.ARI.Models;
-using Ntk.AsterNet.ARI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.Http;
+using Ntk.AsterNet.ARI;
+using Ntk.AsterNet.ARI.Models;
 
 namespace Asterisk.Console.ARI
 {
     internal class SimpleBridge2
     {
-        public  AriClient ActionClient;
-        public  Bridge simpleBridge;
+        public AriClient? ActionClient;
+        public Bridge? simpleBridge;
 
         private const string AppName = "bridge_test";
-        void Main()
+
+        public void Run(string host = "127.0.0.1", int port = 8088, string username = "dev", string password = "test")
         {
             try
             {
-                // Create a message actionClient to receive events on
-                ActionClient = new AriClient(new StasisEndpoint("127.0.0.1", 8088, "dev", "test"), AppName);
+                ActionClient = new AriClient(new StasisEndpoint(host, port, username, password), AppName);
 
                 ActionClient.OnStasisStartEvent += c_OnStasisStartEvent;
                 ActionClient.OnStasisEndEvent += c_OnStasisEndEvent;
 
                 ActionClient.Connect();
 
-                // Create simple bridge
                 simpleBridge = ActionClient.Bridges.Create("mixing", Guid.NewGuid().ToString(), AppName);
-
-                // subscribe to bridge events
                 ActionClient.Applications.Subscribe(AppName, "bridge:" + simpleBridge.Id);
-
-                // start MOH on bridge
                 ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
 
-                var done = false;
-                while (!done)
+                if (!System.Console.IsInputRedirected && Environment.UserInteractive)
                 {
-                    var lastKey =System. Console.ReadKey();
-                    switch (lastKey.KeyChar.ToString())
+                    var done = false;
+                    while (!done)
                     {
-                        case "*":
-                            done = true;
-                            break;
-                        case "1":
-                            ActionClient.Bridges.StopMoh(simpleBridge.Id);
-                            break;
-                        case "2":
-                            ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
-                            break;
-                        case "3":
-                            // Mute all channels on bridge
-                            var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
-                            foreach (var chan in bridgeMute.Channels)
-                                ActionClient.Channels.Mute(chan, "in");
-                            break;
-                        case "4":
-                            // Unmute all channels on bridge
-                            var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
-                            foreach (var chan in bridgeUnmute.Channels)
-                                ActionClient.Channels.Unmute(chan, "in");
-                            break;
+                        var lastKey = System.Console.ReadKey();
+                        switch (lastKey.KeyChar.ToString())
+                        {
+                            case "*":
+                                done = true;
+                                break;
+                            case "1":
+                                ActionClient.Bridges.StopMoh(simpleBridge.Id);
+                                break;
+                            case "2":
+                                ActionClient.Bridges.StartMoh(simpleBridge.Id, "default");
+                                break;
+                            case "3":
+                                var bridgeMute = ActionClient.Bridges.Get(simpleBridge.Id);
+                                foreach (var chan in bridgeMute.Channels)
+                                    ActionClient.Channels.Mute(chan, "in");
+                                break;
+                            case "4":
+                                var bridgeUnmute = ActionClient.Bridges.Get(simpleBridge.Id);
+                                foreach (var chan in bridgeUnmute.Channels)
+                                    ActionClient.Channels.Unmute(chan, "in");
+                                break;
+                        }
                     }
                 }
 
                 ActionClient.Bridges.Destroy(simpleBridge.Id);
                 ActionClient.Disconnect();
             }
+            catch (HttpRequestException ex)
+            {
+                System.Console.WriteLine($"[SimpleBridge] Connection failed: {ex.Message}");
+            }
             catch (Exception ex)
             {
-                System.Console.WriteLine(ex.ToString());
-                System.Console.ReadKey();
+                System.Console.WriteLine($"[SimpleBridge] Error: {ex.Message}");
+            }
+            finally
+            {
+                Program.SafeWait();
             }
         }
 
-         void c_OnStasisEndEvent(object sender, StasisEndEvent e)
+        private void c_OnStasisEndEvent(object sender, StasisEndEvent e)
         {
-            // remove from bridge
-            ActionClient.Bridges.RemoveChannel(simpleBridge.Id, e.Channel.Id);
-
-            // hangup
-            ActionClient.Channels.Hangup(e.Channel.Id, "normal");
+            if (simpleBridge != null && ActionClient != null)
+            {
+                ActionClient.Bridges.RemoveChannel(simpleBridge.Id, e.Channel.Id);
+                ActionClient.Channels.Hangup(e.Channel.Id, "normal");
+            }
         }
 
-         void c_OnStasisStartEvent(object sender, StasisStartEvent e)
+        private void c_OnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
-            // answer channel
-            ActionClient.Channels.Answer(e.Channel.Id);
-
-            // add to bridge
-            ActionClient.Bridges.AddChannel(simpleBridge.Id, e.Channel.Id, "member");
+            sender.Channels.Answer(e.Channel.Id);
+            if (simpleBridge != null)
+            {
+                sender.Bridges.AddChannel(simpleBridge.Id, e.Channel.Id, "member");
+            }
         }
     }
-
-
 }
