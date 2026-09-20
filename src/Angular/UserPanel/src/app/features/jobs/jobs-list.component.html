@@ -41,25 +41,29 @@
     <div class="advanced" role="region" [attr.aria-label]="'JOBS.ADVANCED' | t">
       <label class="field">
         <span>{{ 'JOBS.FILTER_STATUS' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          [(ngModel)]="filterStatus"
-          [attr.placeholder]="'JOBS.FILTER_STATUS_PH' | t"
-          (keyup.enter)="onSearch()"
-        />
+        <select class="ltr" dir="ltr" [(ngModel)]="filterStatus" (ngModelChange)="onSearch()">
+          <option value="">{{ 'ALL' | t }} (همه)</option>
+          <option value="queued">{{ 'STATUS.queued' | t }}</option>
+          <option value="dialing_leg1">{{ 'STATUS.dialing_leg1' | t }}</option>
+          <option value="waiting_answer">{{ 'STATUS.waiting_answer' | t }}</option>
+          <option value="dialing_leg2">{{ 'STATUS.dialing_leg2' | t }}</option>
+          <option value="bridged">{{ 'STATUS.bridged' | t }}</option>
+          <option value="completed">{{ 'STATUS.completed' | t }}</option>
+          <option value="failed">{{ 'STATUS.failed' | t }}</option>
+          <option value="cancelled">{{ 'STATUS.cancelled' | t }}</option>
+        </select>
       </label>
       <label class="field">
         <span>{{ 'JOBS.FILTER_TYPE' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          [(ngModel)]="filterType"
-          [attr.placeholder]="'JOBS.FILTER_TYPE_PH' | t"
-          (keyup.enter)="onSearch()"
-        />
+        <select class="ltr" dir="ltr" [(ngModel)]="filterType" (ngModelChange)="onSearch()">
+          <option value="">{{ 'ALL' | t }} (همه)</option>
+          <option value="ExtToExt">{{ 'TYPE.ExtToExt' | t }}</option>
+          <option value="MobileToExt">{{ 'TYPE.MobileToExt' | t }}</option>
+          <option value="MobileToMobile">{{ 'TYPE.MobileToMobile' | t }}</option>
+          <option value="CommandHangup">{{ 'TYPE.CommandHangup' | t }}</option>
+          <option value="CommandBridge">{{ 'TYPE.CommandBridge' | t }}</option>
+          <option value="CommandChanSpy">{{ 'TYPE.CommandChanSpy' | t }}</option>
+        </select>
       </label>
       <label class="field">
         <span>{{ 'JOBS.FILTER_FROM' | t }}</span>
@@ -126,6 +130,15 @@
                 <button
                   type="button"
                   class="btn btn--ghost"
+                  [disabled]="loadingAudioId() === job.id"
+                  (click)="toggleAudioPlayer(job)"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span>{{ (activePlayerJobId() === job.id ? 'JOBS.CLOSE_AUDIO' : 'JOBS.PLAY_AUDIO') | t }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--ghost"
                   [disabled]="downloadingId() === job.id"
                   (click)="downloadRecording(job)"
                 >
@@ -147,6 +160,11 @@
             </div>
           </header>
 
+          @if (activePlayerJobId() === job.id && getAudioBlobUrl(job); as audioUrl) {
+            <div class="job-card__player">
+              <audio controls [src]="audioUrl" class="audio-player"></audio>
+            </div>
+          }
           <p class="job-card__reason" [attr.data-tone]="reasonTone(job)">
             <span class="job-card__reason-label">{{ 'JOBS.COL_REASON' | t }}</span>
             <span>{{ displayReason(job) }}</span>

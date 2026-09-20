@@ -18,7 +18,7 @@ import { ListPagerComponent } from '../../shared/components/list-pager/list-page
 @Component({
   selector: 'app-queues-page',
   standalone: true,
-  imports: [TranslatePipe, FormsModule, ListToolbarComponent, ListPagerComponent, DatePipe],
+  imports: [TranslatePipe, FormsModule, ListToolbarComponent, ListPagerComponent],
   templateUrl: './queues-page.component.html',
   styleUrl: './queues-page.component.scss',
 })

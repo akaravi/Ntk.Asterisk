@@ -1,0 +1,346 @@
+<section class="page call-routing-page" aria-labelledby="call-routing-title">
+  <!-- Masthead Header -->
+  <header class="page__header">
+    <div class="header-title-group">
+      <h1 id="call-routing-title">{{ 'CALL_ROUTING.TITLE' | translate }}</h1>
+      <p class="page__header-sub">{{ 'CALL_ROUTING.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="page__actions">
+      <button type="button" class="btn btn--primary" (click)="openAdd()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <span>{{ 'CALL_ROUTING.ADD_ROUTE' | translate }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" [disabled]="loading()" (click)="reload()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>{{ loading() ? ('ACTION.LOADING' | translate) : ('CALL_ROUTING.REFRESH' | translate) }}</span>
+      </button>
+    </div>
+  </header>
+
+  @if (error(); as err) {
+    <div class="banner banner--error" role="alert">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ err }}</span>
+    </div>
+  }
+  @if (success(); as ok) {
+    <div class="banner banner--ok" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>{{ ok }}</span>
+    </div>
+  }
+
+  <!-- Live Lookup Tester Card -->
+  <div class="view-card tester-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        <div>
+          <h2>{{ 'CALL_ROUTING.TESTER_TITLE' | translate }}</h2>
+          <p class="view-card__subtitle muted">{{ 'CALL_ROUTING.TESTER_DESC' | translate }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="tester-card__body">
+      <div class="tester-form">
+        <input
+          type="text"
+          class="tester-input ltr"
+          dir="ltr"
+          [(ngModel)]="lookupTester.callerNumber"
+          [placeholder]="'CALL_ROUTING.TESTER_PH' | translate"
+          (keyup.enter)="runTestLookup()"
+        />
+        <button
+          type="button"
+          class="btn btn--test"
+          [disabled]="lookupTester.busy || !lookupTester.callerNumber"
+          (click)="runTestLookup()"
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="lookupTester.busy"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          <span>{{ lookupTester.busy ? ('ACTION.LOADING' | translate) : ('CALL_ROUTING.TEST_BTN' | translate) }}</span>
+        </button>
+      </div>
+
+      @if (lookupTester.result; as res) {
+        <div class="tester-result" [class.tester-result--matched]="res.matched" [class.tester-result--unmatched]="!res.matched">
+          <div class="tester-result__badge">
+            <span class="badge" [class.badge--ok]="res.matched" [class.badge--neutral]="!res.matched">
+              {{ res.matched ? ('CALL_ROUTING.MATCH_FOUND' | translate) : ('CALL_ROUTING.NO_MATCH' | translate) }}
+            </span>
+            <span class="action-tag font-mono">{{ res.action }}</span>
+          </div>
+          <div class="tester-result__details">
+            <p><strong>{{ 'CALL_ROUTING.NORMALIZED_CALLER' | translate }}:</strong> <code class="font-mono" dir="ltr">{{ res.normalizedCallerNumber }}</code></p>
+            @if (res.destinationExtension) {
+              <p><strong>{{ 'CALL_ROUTING.STEP_EXTENSION' | translate }}:</strong> <span class="badge badge--ext font-mono">{{ res.destinationExtension }}</span> ({{ res.extensionTimeoutSeconds || res.timeoutSeconds }} {{ 'CALL_ROUTING.SECONDS' | translate }})</p>
+            }
+            @if (res.destinationExternalNumber) {
+              <p><strong>{{ 'CALL_ROUTING.STEP_FORWARD' | translate }}:</strong> <span class="badge badge--ok font-mono" dir="ltr">{{ res.destinationExternalNumber }}</span> ({{ res.externalTimeoutSeconds || 30 }} {{ 'CALL_ROUTING.SECONDS' | translate }}) {{ res.outboundTrunk ? ('[' + res.outboundTrunk + ']') : '' }}</p>
+            }
+            <p class="tester-msg muted">{{ res.message }}</p>
+          </div>
+        </div>
+      }
+      @if (lookupTester.error; as err) {
+        <p class="tester-error text-danger">{{ err }}</p>
+      }
+    </div>
+  </div>
+
+  <!-- Route Rules Table View Card with Drag & Drop -->
+  <div class="view-card table-view-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        <h2>{{ 'CALL_ROUTING.TITLE' | translate }}</h2>
+        <span class="badge badge--neutral">{{ totalCount() }}</span>
+      </div>
+
+      <div class="toolbar-wrap">
+        <select class="status-select" [(ngModel)]="statusFilter" (change)="reload()">
+          <option value="all">{{ 'CALL_ROUTING.FILTER_ALL' | translate }}</option>
+          <option value="active">{{ 'CALL_ROUTING.FILTER_ACTIVE' | translate }}</option>
+          <option value="inactive">{{ 'CALL_ROUTING.FILTER_INACTIVE' | translate }}</option>
+        </select>
+        <div class="search-wrap">
+          <input
+            type="search"
+            class="search-input"
+            [(ngModel)]="quickSearch"
+            [placeholder]="'CALL_ROUTING.SEARCH_PH' | translate"
+            (change)="reload()"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table data-table--reorderable">
+        <thead>
+          <tr>
+            <th class="col-drag">{{ 'CALL_ROUTING.COL_ORDER' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_CALLER' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_CONTACT' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_EXTENSION' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_EXTERNAL' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_TIMEOUTS' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_PRIORITY' | translate }}</th>
+            <th>{{ 'CALL_ROUTING.COL_STATUS' | translate }}</th>
+            <th class="text-end">{{ 'CALL_ROUTING.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id; let i = $index) {
+            <tr
+              draggable="true"
+              (dragstart)="onDragStart(i, $event)"
+              (dragover)="onDragOver(i, $event)"
+              (drop)="onDrop(i, $event)"
+              [class.row--dragging]="draggedIndex === i"
+            >
+              <td class="col-drag" (click)="$event.stopPropagation()">
+                <div class="drag-controls">
+                  <span class="drag-handle" title="Drag to reorder priority">⋮⋮</span>
+                  <div class="order-arrows">
+                    <button type="button" class="btn-order-move" (click)="moveUp(i)" [disabled]="i === 0" title="Increase priority">▲</button>
+                    <button type="button" class="btn-order-move" (click)="moveDown(i)" [disabled]="i === rows().length - 1" title="Decrease priority">▼</button>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="font-mono font-bold" dir="ltr">{{ row.callerNumber }}</span>
+              </td>
+              <td>
+                <div class="contact-cell">
+                  <span class="contact-name font-bold">{{ row.contactName || '—' }}</span>
+                  @if (row.description) {
+                    <span class="contact-desc muted">{{ row.description }}</span>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (row.targetExtension) {
+                  <span class="badge badge--ext font-mono">{{ row.targetExtension }}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td>
+                @if (row.targetExternalNumber) {
+                  <span class="badge badge--ok font-mono" dir="ltr">{{ row.targetExternalNumber }}</span>
+                  @if (row.outboundTrunk) {
+                    <span class="trunk-tag font-mono">{{ row.outboundTrunk }}</span>
+                  }
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td>
+                <div class="timeouts-cell font-mono text-xs" dir="ltr">
+                  <span>Ext: <strong>{{ row.extensionTimeout || 15 }}s</strong></span>
+                  <span>Mob: <strong>{{ row.externalTimeout || 30 }}s</strong></span>
+                </div>
+              </td>
+              <td>
+                <span class="badge badge--neutral font-mono" dir="ltr">{{ row.priority || 1 }}</span>
+              </td>
+              <td>
+                <button
+                  type="button"
+                  class="pill-toggle"
+                  [class.pill-toggle--active]="row.isActive"
+                  [disabled]="busy()"
+                  (click)="toggleActive(row)"
+                >
+                  {{ (row.isActive ? 'STATUS.ACTIVE' : 'STATUS.INACTIVE') | translate }}
+                </button>
+              </td>
+              <td class="text-end">
+                <div class="table-row-actions">
+                  <button type="button" class="btn-action-icon btn-action-icon--edit" (click)="openEdit(row)" [title]="'ACTION.EDIT' | translate">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button type="button" class="btn-action-icon btn-action-icon--danger" (click)="deleteRow(row)" [title]="'ACTION.DELETE' | translate">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" class="empty-cell text-center muted">
+                {{ 'CALL_ROUTING.NO_DATA' | translate }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  @if (modalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <h2>{{ (isEdit() ? 'CALL_ROUTING.MODAL_EDIT' : 'CALL_ROUTING.MODAL_ADD') | translate }}</h2>
+          <button type="button" class="btn-icon" (click)="closeModal()">✕</button>
+        </header>
+        <div class="modal-body">
+          <div class="form-grid">
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_CALLER' | translate }} *</span>
+              <input
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.callerNumber"
+                [placeholder]="'CALL_ROUTING.FIELD_CALLER_PH' | translate"
+              />
+              <span class="field-hint muted">{{ 'CALL_ROUTING.FIELD_CALLER_HINT' | translate }}</span>
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_CONTACT' | translate }}</span>
+              <input
+                [(ngModel)]="form.contactName"
+                [placeholder]="'CALL_ROUTING.FIELD_CONTACT_PH' | translate"
+              />
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_EXTENSION' | translate }}</span>
+              <input
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.targetExtension"
+                [placeholder]="'CALL_ROUTING.FIELD_EXTENSION_PH' | translate"
+              />
+              <span class="field-hint muted">{{ 'CALL_ROUTING.FIELD_EXTENSION_HINT' | translate }}</span>
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_TIMEOUT' | translate }}</span>
+              <input
+                type="number"
+                min="5"
+                max="120"
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.extensionTimeout"
+              />
+              <span class="field-hint muted">{{ 'CALL_ROUTING.FIELD_TIMEOUT_HINT' | translate }}</span>
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_EXTERNAL' | translate }}</span>
+              <input
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.targetExternalNumber"
+                [placeholder]="'CALL_ROUTING.FIELD_EXTERNAL_PH' | translate"
+              />
+              <span class="field-hint muted">{{ 'CALL_ROUTING.FIELD_EXTERNAL_HINT' | translate }}</span>
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_EXTERNAL_TIMEOUT' | translate }}</span>
+              <input
+                type="number"
+                min="5"
+                max="120"
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.externalTimeout"
+              />
+              <span class="field-hint muted">{{ 'CALL_ROUTING.FIELD_EXTERNAL_TIMEOUT_HINT' | translate }}</span>
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_TRUNK' | translate }}</span>
+              <input
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.outboundTrunk"
+                [placeholder]="'CALL_ROUTING.FIELD_TRUNK_PH' | translate"
+              />
+            </label>
+
+            <label class="field">
+              <span>{{ 'CALL_ROUTING.FIELD_PRIORITY' | translate }}</span>
+              <input
+                type="number"
+                min="1"
+                max="999"
+                class="ltr"
+                dir="ltr"
+                [(ngModel)]="form.priority"
+                [placeholder]="'1'"
+              />
+            </label>
+
+            <label class="field full-width">
+              <span>{{ 'CALL_ROUTING.FIELD_DESC' | translate }}</span>
+              <textarea
+                rows="2"
+                [(ngModel)]="form.description"
+                [placeholder]="'CALL_ROUTING.FIELD_DESC_PH' | translate"
+              ></textarea>
+            </label>
+
+            <label class="field-checkbox full-width">
+              <input type="checkbox" [(ngModel)]="form.isActive" />
+              <span>{{ 'CALL_ROUTING.FIELD_ACTIVE' | translate }}</span>
+            </label>
+          </div>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="btn btn--ghost" (click)="closeModal()">{{ 'ACTION.CANCEL' | translate }}</button>
+          <button type="button" class="btn btn--primary" [disabled]="busy() || !form.callerNumber" (click)="save()">
+            {{ busy() ? ('ACTION.LOADING' | translate) : ('ACTION.SAVE' | translate) }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+</section>

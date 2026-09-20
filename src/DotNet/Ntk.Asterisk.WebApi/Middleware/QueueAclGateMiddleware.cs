@@ -66,7 +66,8 @@ public sealed class QueueAclGateMiddleware
             return false;
         if (p.StartsWith("/api/v1/WebPhone", StringComparison.OrdinalIgnoreCase))
             return false;
-
+        if (p.StartsWith("/api/v1/CallRoutes/Lookup", StringComparison.OrdinalIgnoreCase))
+            return false;
         return true;
     }
 
@@ -78,6 +79,9 @@ public sealed class QueueAclGateMiddleware
         if (p.StartsWith("/api/v1/AsteriskServers", StringComparison.OrdinalIgnoreCase))
             return true;
         if (p.StartsWith("/api/v1/Asterisk/CallFiles", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (p.StartsWith("/api/v1/CallRoutes", StringComparison.OrdinalIgnoreCase)
+            && !p.StartsWith("/api/v1/CallRoutes/Lookup", StringComparison.OrdinalIgnoreCase))
             return true;
         if (p.StartsWith("/api/v1/Config", StringComparison.OrdinalIgnoreCase)
             && !HttpMethods.IsGet(method))

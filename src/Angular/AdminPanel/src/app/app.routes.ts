@@ -13,7 +13,14 @@ export const routes: Routes = [
     component: ShellComponent,
     canActivate: [authGateGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'connection' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard-page.component').then(
+            (m) => m.DashboardPageComponent,
+          ),
+      },
       {
         path: 'connection',
         loadComponent: () =>
@@ -36,6 +43,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/live-events/live-events-page.component').then(
             (m) => m.LiveEventsPageComponent,
+          ),
+      },
+      {
+        path: 'call-routing',
+        canActivate: [adminRoleGuard],
+        loadComponent: () =>
+          import('./features/call-routing/call-routing-page.component').then(
+            (m) => m.CallRoutingPageComponent,
           ),
       },
       {

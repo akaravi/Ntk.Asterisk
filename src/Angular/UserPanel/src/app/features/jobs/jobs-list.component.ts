@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { CallJob, CallJobStatus, resolveJobStatus } from '../../core/models/call-job';
@@ -31,8 +32,10 @@ export class JobsListComponent implements OnInit, OnDestroy {
   readonly cancellingId = signal<string | null>(null);
   readonly redialingId = signal<string | null>(null);
   readonly downloadingId = signal<string | null>(null);
+  readonly activePlayerJobId = signal<string | null>(null);
+  readonly loadingAudioId = signal<string | null>(null);
+  readonly audioObjectUrls = signal<Record<string, string>>({});
   readonly successMessage = signal<string | null>(null);
-
   pageIndex = 0;
   pageSize = 25;
   sortBy: 'updatedAtUtc' | 'createdAtUtc' | 'status' | 'type' = 'updatedAtUtc';
@@ -56,6 +59,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    Object.values(this.audioObjectUrls()).forEach((u) => URL.revokeObjectURL(u));
   }
 
   reload(): void {
@@ -69,7 +73,7 @@ export class JobsListComponent implements OnInit, OnDestroy {
         sortDir: this.sortDir,
         quickSearch: this.quickSearch.trim() || undefined,
         filter: {
-          state: this.filterStatus.trim() || undefined,
+          status: this.filterStatus.trim() || undefined,
           type: this.filterType.trim() || undefined,
           from: this.filterFrom.trim() || undefined,
           to: this.filterTo.trim() || undefined,
@@ -180,7 +184,38 @@ export class JobsListComponent implements OnInit, OnDestroy {
     const time = `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
     return `ntk-${date}-${time}-from-${from}-to-${to}.wav`;
   }
+  toggleAudioPlayer(job: CallJob): void {
+    if (this.activePlayerJobId() === job.id) {
+      this.activePlayerJobId.set(null);
+      return;
+    }
+    const cached = this.audioObjectUrls()[job.id];
+    if (cached) {
+      this.activePlayerJobId.set(job.id);
+      return;
+    }
+    this.loadingAudioId.set(job.id);
+    this.api.downloadRecording(job.id).subscribe({
+      next: (blob) => {
+        this.loadingAudioId.set(null);
+        if (blob.type && blob.type.includes('json')) {
+          this.errorMessage.set(this.i18n.t('JOBS.DOWNLOAD_FAIL'));
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        this.audioObjectUrls.update((m) => ({ ...m, [job.id]: url }));
+        this.activePlayerJobId.set(job.id);
+      },
+      error: () => {
+        this.loadingAudioId.set(null);
+        this.errorMessage.set(this.i18n.t('JOBS.DOWNLOAD_FAIL'));
+      },
+    });
+  }
 
+  getAudioBlobUrl(job: CallJob): string | null {
+    return this.audioObjectUrls()[job.id] ?? null;
+  }
   downloadRecording(job: CallJob): void {
     if (!this.canDownloadRecording(job) || this.downloadingId()) {
       return;

@@ -16,7 +16,7 @@ import { ThemeService } from './core/services/theme.service';
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  private readonly i18n = inject(I18nService);
+  readonly i18n = inject(I18nService);
   private readonly hub = inject(AsteriskHubService);
   private readonly auth = inject(QueueAclAuthService);
   private readonly router = inject(Router);

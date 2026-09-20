@@ -1,10 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { WebPhoneBuddy } from '../../core/models/webphone';
 import { WebPhoneApi } from '../../core/services/webphone.api';
-
+import { CallJobsApi } from '../../core/services/call-jobs.api';
 @Component({
   selector: 'app-webphone-buddies',
   standalone: true,
@@ -14,8 +15,9 @@ import { WebPhoneApi } from '../../core/services/webphone.api';
 })
 export class WebphoneBuddiesComponent implements OnInit {
   private readonly api = inject(WebPhoneApi);
+  private readonly callJobs = inject(CallJobsApi);
+  private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
-
   readonly rows = signal<WebPhoneBuddy[]>([]);
   readonly loading = signal(false);
   readonly busy = signal(false);
@@ -86,5 +88,21 @@ export class WebphoneBuddiesComponent implements OnInit {
           this.error.set(err?.message || this.i18n.t('WEBPHONE.SAVE_FAIL'));
         },
       });
+  }
+
+  callExt(ext: string | null | undefined): void {
+    if (!ext) return;
+    this.callJobs.add({ type: 'ExtToExt', to: ext }).subscribe({
+      next: () => void this.router.navigate(['/jobs']),
+      error: (err: unknown) => this.error.set(err instanceof Error ? err.message : String(err)),
+    });
+  }
+
+  callMobile(mob: string | null | undefined): void {
+    if (!mob) return;
+    this.callJobs.add({ type: 'MobileToExt', to: mob, mobile1: mob }).subscribe({
+      next: () => void this.router.navigate(['/jobs']),
+      error: (err: unknown) => this.error.set(err instanceof Error ? err.message : String(err)),
+    });
   }
 }

@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AsteriskServer, ConnectionStatus, SiteSettings } from '../../core/models/asterisk.models';
 import { AsteriskApiService } from '../../core/services/asterisk-api.service';
-
+import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
 @Component({
   selector: 'app-settings-page',
   standalone: true,
@@ -12,14 +13,17 @@ import { AsteriskApiService } from '../../core/services/asterisk-api.service';
   templateUrl: './settings-page.component.html',
   styleUrl: './settings-page.component.scss',
 })
-export class SettingsPageComponent implements OnInit {
+export class SettingsPageComponent implements OnInit, OnDestroy {
   private readonly api = inject(AsteriskApiService);
+  private readonly hub = inject(AsteriskHubService);
+  private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
-
+  private readonly subs = new Subscription();
   readonly apiBaseUrl = environment.apiBaseUrl;
   readonly hubUrl = `${environment.apiBaseUrl.replace(/\/$/, '')}${environment.hubPath}`;
 
   readonly servers = signal<AsteriskServer[]>([]);
+  readonly connections = signal<ConnectionStatus[]>([]);
   readonly selectedServerId = signal<string | null>(null);
   readonly settings = signal<SiteSettings | null>(null);
   readonly error = signal<string | null>(null);
@@ -29,7 +33,10 @@ export class SettingsPageComponent implements OnInit {
   readonly saving = signal(false);
   readonly testing = signal(false);
   readonly serverBusy = signal(false);
+  readonly rowBusyId = signal<string | null>(null);
   readonly serverQuickSearch = signal('');
+  readonly activeTab = signal<'ami' | 'originate' | 'smartrouting' | 'recording' | 'queues' | 'webphone' | 'guide'>('ami');
+  readonly mode = signal<'list' | 'editor'>('list');
 
   readonly form = this.fb.nonNullable.group({
     name: ['Default', Validators.required],
@@ -67,12 +74,45 @@ export class SettingsPageComponent implements OnInit {
     sipUseTls: [true],
     stunServersJson: [''],
     reconnectAfterSave: [true],
+    ivrInterceptDelaySeconds: [3, [Validators.required, Validators.min(0), Validators.max(120)]],
+    defaultExtensionTimeoutSeconds: [15, [Validators.required, Validators.min(5), Validators.max(120)]],
+    defaultExternalTimeoutSeconds: [30, [Validators.required, Validators.min(5), Validators.max(120)]],
+    defaultOutboundTrunk: ['trunk-default'],
+    defaultFallbackContext: ['timeconditions,2,1'],
+    enableDirectInboundRouting: [true],
+    enableLiveIvrIntercept: [true],
+    autoRecordSmartRoutes: [false],
   });
 
   ngOnInit(): void {
     this.reload();
+    this.subs.add(
+      this.hub.hubEvents$.subscribe((ev) => {
+        if (ev.kind === 'connection') {
+          this.connections.update((cur) => {
+            const idx = cur.findIndex((c) => c.serverId === ev.payload.serverId);
+            if (idx >= 0) {
+              const next = [...cur];
+              next[idx] = ev.payload;
+              return next;
+            }
+            return [...cur, ev.payload];
+          });
+        }
+      })
+    );
   }
 
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
+  isServerConnected(server: AsteriskServer): boolean | null {
+    const list = this.connections();
+    const match = list.find((c) => c.serverId === server.id) ?? (server.isDefault ? list.find((c) => c.isDefault) : null);
+    if (!match) return null;
+    return match.connected;
+  }
   filteredServers(): AsteriskServer[] {
     const q = this.serverQuickSearch().trim().toLowerCase();
     const list = this.servers();
@@ -102,6 +142,19 @@ export class SettingsPageComponent implements OnInit {
     this.serverQuickSearch.set(value);
   }
 
+  openServerEditor(server: AsteriskServer): void {
+    this.selectServer(server);
+    this.mode.set('editor');
+    this.activeTab.set('ami');
+  }
+
+  backToList(): void {
+    this.mode.set('list');
+  }
+
+  setActiveTab(tab: 'ami' | 'originate' | 'smartrouting' | 'recording' | 'queues' | 'webphone' | 'guide'): void {
+    this.activeTab.set(tab);
+  }
   onServerTabKeydown(event: KeyboardEvent): void {
     const tabs = this.filteredServers();
     if (tabs.length === 0) return;
@@ -137,6 +190,13 @@ export class SettingsPageComponent implements OnInit {
     this.error.set(null);
     this.success.set(null);
     this.testResult.set(null);
+
+    this.api.getConnectionStatusList().subscribe({
+      next: (res) => {
+        this.connections.set(res.data ?? []);
+      },
+    });
+
     this.api.getServers({ pageIndex: 0, pageSize: 100, sortBy: 'name', sortDir: 'asc' }).subscribe({
       next: (r) => {
         if (!r.isSuccess) {
@@ -211,6 +271,14 @@ export class SettingsPageComponent implements OnInit {
       serverName: server.name,
       isEnabled: server.isEnabled,
       isDefault: server.isDefault,
+      ivrInterceptDelaySeconds: server.ivrInterceptDelaySeconds ?? 3,
+      defaultExtensionTimeoutSeconds: server.defaultExtensionTimeoutSeconds ?? 15,
+      defaultExternalTimeoutSeconds: server.defaultExternalTimeoutSeconds ?? 30,
+      defaultOutboundTrunk: server.defaultOutboundTrunk ?? 'trunk-default',
+      defaultFallbackContext: server.defaultFallbackContext ?? 'timeconditions,2,1',
+      enableDirectInboundRouting: server.enableDirectInboundRouting ?? true,
+      enableLiveIvrIntercept: server.enableLiveIvrIntercept ?? true,
+      autoRecordSmartRoutes: server.autoRecordSmartRoutes ?? false,
     });
     this.form.patchValue({
       name: server.name || 'Default',
@@ -248,6 +316,14 @@ export class SettingsPageComponent implements OnInit {
       sipUseTls: server.sipUseTls ?? true,
       stunServersJson: server.stunServersJson ?? '',
       reconnectAfterSave: true,
+      ivrInterceptDelaySeconds: server.ivrInterceptDelaySeconds ?? 3,
+      defaultExtensionTimeoutSeconds: server.defaultExtensionTimeoutSeconds ?? 15,
+      defaultExternalTimeoutSeconds: server.defaultExternalTimeoutSeconds ?? 30,
+      defaultOutboundTrunk: server.defaultOutboundTrunk ?? 'trunk-default',
+      defaultFallbackContext: server.defaultFallbackContext ?? 'timeconditions,2,1',
+      enableDirectInboundRouting: server.enableDirectInboundRouting ?? true,
+      enableLiveIvrIntercept: server.enableLiveIvrIntercept ?? true,
+      autoRecordSmartRoutes: server.autoRecordSmartRoutes ?? false,
     });
   }
 
@@ -278,6 +354,7 @@ export class SettingsPageComponent implements OnInit {
           }
           const createdId = r.data?.[0]?.id ?? null;
           this.success.set('SETTINGS.SERVER_ADD_OK');
+          this.mode.set('editor');
           this.reload(createdId);
         },
         error: (err: Error) => {
@@ -286,23 +363,92 @@ export class SettingsPageComponent implements OnInit {
         },
       });
   }
+  toggleAmiConnection(server: AsteriskServer): void {
+    if (this.rowBusyId() || this.serverBusy()) return;
+    this.rowBusyId.set(server.id);
+    this.error.set(null);
+    this.success.set(null);
+    const connected = this.isServerConnected(server);
+    const action$ = connected ? this.api.disconnectAmi(server.id) : this.api.connectAmi(server.id);
+    action$.subscribe({
+      next: (res) => {
+        this.rowBusyId.set(null);
+        if (!res.isSuccess) {
+          this.error.set(res.errorMessage || 'AMI action failed');
+          return;
+        }
+        this.success.set(connected ? 'CONNECTION.DISCONNECT_OK' : 'CONNECTION.CONNECT_OK');
+        this.reload(server.id);
+      },
+      error: (err: Error) => {
+        this.rowBusyId.set(null);
+        this.error.set(err.message);
+      },
+    });
+  }
+
+  testServer(server: AsteriskServer): void {
+    if (this.rowBusyId() || this.serverBusy()) return;
+    this.rowBusyId.set(server.id);
+    this.testing.set(true);
+    this.testResult.set(null);
+    this.error.set(null);
+    this.api.connectAmi(server.id).subscribe({
+      next: (r) => {
+        this.rowBusyId.set(null);
+        this.testing.set(false);
+        if (!r.isSuccess) {
+          this.error.set(r.errorMessage || 'SETTINGS.TEST_FAIL');
+          return;
+        }
+        const resStatus = r.data?.[0] ?? null;
+        this.testResult.set(resStatus);
+        if (resStatus) {
+          this.connections.update((cur) => {
+            const idx = cur.findIndex((c) => c.serverId === server.id);
+            if (idx >= 0) {
+              const next = [...cur];
+              next[idx] = resStatus;
+              return next;
+            }
+            return [...cur, resStatus];
+          });
+        }
+        this.success.set('SETTINGS.TEST_OK');
+      },
+      error: (err: Error) => {
+        this.rowBusyId.set(null);
+        this.testing.set(false);
+        this.error.set(err.message);
+      },
+    });
+  }
 
   enableServer(server: AsteriskServer): void {
     this.runServerAction(() => this.api.enableServer(server.id), 'SETTINGS.SERVER_ENABLE_OK');
   }
 
   disableServer(server: AsteriskServer): void {
+    const enabledCount = this.servers().filter((s) => s.isEnabled).length;
+    if (server.isDefault || enabledCount <= 1) {
+      const msg = this.translate.instant('DASHBOARD.CONFIRM_DISABLE_DEFAULT');
+      if (typeof window !== 'undefined' && !window.confirm(msg)) {
+        return;
+      }
+    }
     this.runServerAction(() => this.api.disableServer(server.id), 'SETTINGS.SERVER_DISABLE_OK');
   }
-
   setDefaultServer(server: AsteriskServer): void {
     this.runServerAction(() => this.api.setDefaultServer(server.id), 'SETTINGS.SERVER_DEFAULT_OK');
   }
 
   deleteServer(server: AsteriskServer): void {
+    if (server.isDefault) return;
+    const confirmBase = this.translate.instant('SETTINGS.CONFIRM_SERVER_DELETE');
+    const msg = `${confirmBase} (${server.name})`;
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
     this.runServerAction(() => this.api.deleteServer(server.id), 'SETTINGS.SERVER_DELETE_OK');
   }
-
   save(): void {
     const id = this.selectedServerId();
     if (!id) {
@@ -356,6 +502,14 @@ export class SettingsPageComponent implements OnInit {
         sipUseTls: v.sipUseTls,
         stunServersJson: v.stunServersJson.trim() || null,
         reconnectAfterSave: v.reconnectAfterSave,
+        ivrInterceptDelaySeconds: Number(v.ivrInterceptDelaySeconds) || 3,
+        defaultExtensionTimeoutSeconds: Number(v.defaultExtensionTimeoutSeconds) || 15,
+        defaultExternalTimeoutSeconds: Number(v.defaultExternalTimeoutSeconds) || 30,
+        defaultOutboundTrunk: v.defaultOutboundTrunk.trim() || 'trunk-default',
+        defaultFallbackContext: v.defaultFallbackContext.trim() || 'timeconditions,2,1',
+        enableDirectInboundRouting: v.enableDirectInboundRouting,
+        enableLiveIvrIntercept: v.enableLiveIvrIntercept,
+        autoRecordSmartRoutes: v.autoRecordSmartRoutes,
       })
       .subscribe({
         next: (r) => {
@@ -376,6 +530,11 @@ export class SettingsPageComponent implements OnInit {
   }
 
   testConnection(): void {
+    const selected = this.selectedServer();
+    if (selected) {
+      this.testServer(selected);
+      return;
+    }
     this.testing.set(true);
     this.error.set(null);
     this.success.set(null);
@@ -389,6 +548,20 @@ export class SettingsPageComponent implements OnInit {
         }
         const status = r.data?.[0] ?? null;
         this.testResult.set(status);
+        if (status) {
+          const targetId = status.serverId;
+          this.connections.update((cur) => {
+            const idx = cur.findIndex((c) =>
+              targetId ? c.serverId === targetId : c.isDefault,
+            );
+            if (idx >= 0) {
+              const next = [...cur];
+              next[idx] = status;
+              return next;
+            }
+            return [...cur, status];
+          });
+        }
         this.success.set('SETTINGS.TEST_OK');
       },
       error: (err: Error) => {

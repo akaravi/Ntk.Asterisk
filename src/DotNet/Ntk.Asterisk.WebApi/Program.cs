@@ -56,7 +56,10 @@ builder.Services.AddHttpClient("recording-fetch", client =>
 });
 builder.Services.AddSingleton<ICallRecordingService, CallRecordingService>();
 builder.Services.AddSingleton<ICallFileService, CallFileService>();
-
+builder.Services.AddSingleton<IFastAgiTelemetryService, FastAgiTelemetryService>();
+builder.Services.AddSingleton<ICallRouteStore, CallRouteStore>();
+builder.Services.AddSingleton<Ntk.Asterisk.WebApi.Services.SmartRouting.Scenario2_LiveIvrAmiScenario>();
+builder.Services.AddHostedService<SmartRouteAmiIvrService>();
 builder.Services.AddSingleton<AmiSession>();
 builder.Services.AddSingleton<IAmiSession>(sp => sp.GetRequiredService<AmiSession>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<AmiSession>());

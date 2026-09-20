@@ -1,39 +1,68 @@
-<section class="page">
+<section class="page queues-page" aria-labelledby="queues-title">
+  <!-- Masthead Header -->
   <header class="page__header">
-    <div>
-      <h1>{{ 'NAV.QUEUES' | translate }}</h1>
+    <div class="header-title-group">
+      <h1 id="queues-title">{{ 'NAV.QUEUES' | translate }}</h1>
       <p class="page__header-sub">{{ 'QUEUES.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="page__actions">
+      <button type="button" class="btn btn--primary" (click)="reload()" [disabled]="loading()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>{{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportExcel()" [title]="'LIST.EXPORT_EXCEL' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Excel</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportPdf()" [title]="'LIST.EXPORT_PDF' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/><path d="M9 7h1"/></svg>
+        <span>PDF</span>
+      </button>
     </div>
   </header>
 
   @if (error()) {
-    <p class="banner banner--error" role="alert">{{ error() }}</p>
+    <div class="banner banner--error" role="alert">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ error() }}</span>
+    </div>
   }
   @if (success()) {
-    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+    <div class="banner banner--ok" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>{{ success()! | translate }}</span>
+    </div>
   }
 
-  <div class="queues-toolbar-extra">
-    <label class="field">
-      <span>{{ 'QUEUES.SPY_SUPERVISOR' | translate }}</span>
-      <input
-        type="text"
-        dir="ltr"
-        class="input"
-        [(ngModel)]="spySupervisor"
-        (ngModelChange)="onSpySupervisorChange()"
-        [placeholder]="'QUEUES.SPY_SUPERVISOR_PH' | translate"
-      />
-    </label>
-    <label class="field">
-      <span>{{ 'QUEUES.PAUSE_REASON' | translate }}</span>
-      <input
-        type="text"
-        class="input"
-        [(ngModel)]="pauseReason"
-        [placeholder]="'QUEUES.PAUSE_REASON_PH' | translate"
-      />
-    </label>
+  <!-- Supervisor Quick Settings Card -->
+  <div class="view-card supervisor-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h2>{{ 'QUEUES.SUPERVISOR_SETTINGS' | translate }}</h2>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label class="field">
+        <span>{{ 'QUEUES.SPY_SUPERVISOR' | translate }}</span>
+        <input
+          type="text"
+          dir="ltr"
+          class="ltr"
+          [(ngModel)]="spySupervisor"
+          (ngModelChange)="onSpySupervisorChange()"
+          [placeholder]="'QUEUES.SPY_SUPERVISOR_PH' | translate"
+        />
+      </label>
+      <label class="field">
+        <span>{{ 'QUEUES.PAUSE_REASON' | translate }}</span>
+        <input
+          type="text"
+          [(ngModel)]="pauseReason"
+          [placeholder]="'QUEUES.PAUSE_REASON_PH' | translate"
+        />
+      </label>
+    </div>
   </div>
 
   <app-list-toolbar
@@ -47,125 +76,160 @@
     (exportPdf)="exportPdf()"
     (exportExcel)="exportExcel()"
   />
+  <!-- Queues Board -->
+  <div class="view-card queues-board-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <h2>{{ 'NAV.QUEUES' | translate }}</h2>
+        <span class="badge badge--neutral">{{ totalCount() }}</span>
+      </div>
+    </div>
 
-  <div class="entity-board" [attr.aria-busy]="loading() || actionBusy()">
-    @if (loading()) {
-      <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
-    } @else if (queuesRows().length === 0) {
-      <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-    } @else {
-      @for (q of queuesRows(); track q.name) {
-        <article class="entity-card queue-card" [attr.data-open]="expanded() === q.name">
-          <header class="entity-card__head">
-            <button type="button" class="queue-card__toggle" (click)="toggleExpand(q.name)">
-              <span class="entity-card__title" dir="ltr">{{ q.name }}</span>
-              <span class="muted" dir="ltr">{{ q.strategy || '—' }}</span>
-            </button>
-            <div class="queue-card__stats" dir="ltr">
-              <span class="stat-chip">{{ 'QUEUES.WAITING' | translate }}: {{ q.callsWaiting }}</span>
-              <span class="stat-chip">{{ 'QUEUES.COMPLETED' | translate }}: {{ q.completed }}</span>
-              <span class="stat-chip">{{ 'QUEUES.ABANDONED' | translate }}: {{ q.abandoned }} ({{
-                q.abandonedPercent
-              }}%)</span>
-              <span class="stat-chip">SL: {{ q.serviceLevelPerf }}%</span>
-            </div>
-          </header>
+    <div class="queues-grid" [attr.aria-busy]="loading() || actionBusy()">
+      @if (loading()) {
+        <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+      } @else if (queuesRows().length === 0) {
+        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+      } @else {
+        @for (q of queuesRows(); track q.name) {
+          <article class="queue-item-card" [class.queue-item-card--open]="expanded() === q.name">
+            <header class="queue-item-card__header" (click)="toggleExpand(q.name)">
+              <div class="queue-header-left">
+                <div class="queue-title-row">
+                  <span class="queue-name font-mono" dir="ltr">{{ q.name }}</span>
+                  <span class="badge badge--neutral" dir="ltr">{{ q.strategy || 'ringall' }}</span>
+                </div>
+                <div class="queue-meta font-mono muted" dir="ltr">
+                  Hold: {{ q.holdtimeSeconds }}s · Talk: {{ q.talkTimeSeconds }}s · Max: {{ q.max }}
+                </div>
+              </div>
 
-          @if (expanded() === q.name) {
-            <div class="queue-card__body">
-              <p class="muted queue-meta" dir="ltr">
-                hold {{ q.holdtimeSeconds }}s · talk {{ q.talkTimeSeconds }}s · max {{ q.max }} · weight
-                {{ q.weight }} · snapshot {{ q.snapshotUtc | date: 'medium' }}
-              </p>
+              <div class="queue-header-stats" dir="ltr">
+                <span class="stat-pill stat-pill--waiting">
+                  <strong>{{ q.callsWaiting }}</strong> {{ 'QUEUES.WAITING' | translate }}
+                </span>
+                <span class="stat-pill stat-pill--done">
+                  <strong>{{ q.completed }}</strong> {{ 'QUEUES.COMPLETED' | translate }}
+                </span>
+                <span class="stat-pill stat-pill--abandoned">
+                  <strong>{{ q.abandoned }}</strong> ({{ q.abandonedPercent }}%)
+                </span>
+                <span class="status-pill" [attr.data-tone]="(q.serviceLevelPerf || 0) >= 80 ? 'ok' : 'warn'">
+                  SL: {{ q.serviceLevelPerf }}%
+                </span>
+              </div>
+            </header>
 
-              <h3>{{ 'QUEUES.MEMBERS' | translate }}</h3>
-              @if (q.members.length === 0) {
-                <p class="muted">{{ 'LIST.EMPTY' | translate }}</p>
-              } @else {
-                <ul class="queue-list">
-                  @for (m of q.members; track m.interface) {
-                    <li class="queue-list__row">
-                      <div>
-                        <strong>{{ m.name || m.interface }}</strong>
-                        <span class="status-pill" [attr.data-status]="m.paused ? 'paused' : 'ok'" dir="ltr">{{
-                          m.statusLabel
-                        }}</span>
-                        <p class="muted" dir="ltr">{{ m.interface }} · penalty {{ m.penalty }} · taken {{
-                          m.callsTaken
-                        }}</p>
-                        @if (m.pausedReason) {
-                          <p class="muted">{{ m.pausedReason }}</p>
-                        }
-                      </div>
-                      <div class="queue-list__actions">
-                        @if (m.paused) {
-                          <button
-                            type="button"
-                            class="btn"
-                            [disabled]="actionBusy()"
-                            (click)="unpauseMember(q, m)"
-                          >
-                            {{ 'QUEUES.UNPAUSE' | translate }}
-                          </button>
-                        } @else {
-                          <button
-                            type="button"
-                            class="btn"
-                            [disabled]="actionBusy()"
-                            (click)="pauseMember(q, m)"
-                          >
-                            {{ 'QUEUES.PAUSE' | translate }}
-                          </button>
-                        }
-                        @for (sm of spyModes; track sm.mode) {
-                          <button
-                            type="button"
-                            class="btn btn--ghost"
-                            [disabled]="actionBusy()"
-                            (click)="spyOnMember(m, sm.mode)"
-                          >
-                            {{ sm.labelKey | translate }}
-                          </button>
-                        }
-                      </div>
-                    </li>
+            @if (expanded() === q.name) {
+              <div class="queue-item-card__body">
+                <div class="members-section">
+                  <div class="section-title">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <h3>{{ 'QUEUES.MEMBERS' | translate }} ({{ q.members.length }})</h3>
+                  </div>
+
+                  @if (q.members.length === 0) {
+                    <p class="muted text-center py-2">{{ 'LIST.EMPTY' | translate }}</p>
+                  } @else {
+                    <div class="members-list">
+                      @for (m of q.members; track m.interface) {
+                        <div class="member-row">
+                          <div class="member-info">
+                            <div class="member-name-group">
+                              <strong>{{ m.name || m.interface }}</strong>
+                              <span class="status-pill" [attr.data-status]="m.paused ? 'paused' : 'ok'" dir="ltr">{{ m.statusLabel }}</span>
+                            </div>
+                            <span class="member-details font-mono muted" dir="ltr">
+                              {{ m.interface }} · Taken: {{ m.callsTaken }} · Penalty: {{ m.penalty }}
+                              @if (m.pausedReason) {
+                                ({{ m.pausedReason }})
+                              }
+                            </span>
+                          </div>
+
+                          <div class="member-actions">
+                            @if (m.paused) {
+                              <button
+                                type="button"
+                                class="btn btn--sm btn--primary"
+                                [disabled]="actionBusy()"
+                                (click)="unpauseMember(q, m)"
+                              >
+                                {{ 'QUEUES.UNPAUSE' | translate }}
+                              </button>
+                            } @else {
+                              <button
+                                type="button"
+                                class="btn btn--sm btn--ghost"
+                                [disabled]="actionBusy()"
+                                (click)="pauseMember(q, m)"
+                              >
+                                {{ 'QUEUES.PAUSE' | translate }}
+                              </button>
+                            }
+
+                            @for (sm of spyModes; track sm.mode) {
+                              <button
+                                type="button"
+                                class="btn btn--sm btn--test"
+                                [disabled]="actionBusy() || !spySupervisor.trim()"
+                                (click)="spyOnMember(m, sm.mode)"
+                                [title]="sm.labelKey | translate"
+                              >
+                                {{ sm.labelKey | translate }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
                   }
-                </ul>
-              }
+                </div>
 
-              <h3>{{ 'QUEUES.ENTRIES' | translate }}</h3>
-              @if (q.entries.length === 0) {
-                <p class="muted">{{ 'QUEUES.NO_ENTRIES' | translate }}</p>
-              } @else {
-                <ul class="queue-list">
-                  @for (e of q.entries; track e.position + (e.channel || '')) {
-                    <li class="queue-list__row">
-                      <div>
-                        <strong dir="ltr">#{{ e.position }} {{ e.callerId || '—' }}</strong>
-                        <p class="muted" dir="ltr">
-                          wait {{ e.waitSeconds }}s · pri {{ e.priority }} · {{ e.channel || '—' }}
-                        </p>
-                      </div>
-                      <div class="queue-list__actions">
-                        <button
-                          type="button"
-                          class="btn btn--danger"
-                          [disabled]="actionBusy() || !e.channel"
-                          (click)="hangupEntry(e)"
-                        >
-                          {{ 'QUEUES.HANGUP' | translate }}
-                        </button>
-                      </div>
-                    </li>
-                  }
-                </ul>
-              }
-            </div>
-          }
-        </article>
+                @if (q.entries.length > 0) {
+                  <div class="callers-section">
+                    <div class="section-title">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      <h3>{{ 'QUEUES.CALLERS' | translate }} ({{ q.entries.length }})</h3>
+                    </div>
+                    <div class="table-container">
+                      <table class="data-table">
+                        <thead>
+                          <tr>
+                            <th>{{ 'QUEUES.COL_CHANNEL' | translate }}</th>
+                            <th>{{ 'QUEUES.COL_CALLER_ID' | translate }}</th>
+                            <th>{{ 'QUEUES.COL_WAIT' | translate }}</th>
+                            <th>{{ 'QUEUES.COL_POS' | translate }}</th>
+                            <th class="text-end">{{ 'CALL_ROUTING.COL_ACTIONS' | translate }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (c of q.entries; track c.channel) {
+                            <tr>
+                              <td><span class="font-mono text-muted" dir="ltr">{{ c.channel }}</span></td>
+                              <td><span class="font-mono font-bold" dir="ltr">{{ c.callerId || c.callerIdName || '—' }}</span></td>
+                              <td><span class="font-mono" dir="ltr">{{ c.waitSeconds }}s</span></td>
+                              <td><span class="badge badge--neutral">#{{ c.position }}</span></td>
+                              <td class="text-end">
+                                <button type="button" class="btn-action-icon btn-action-icon--danger" (click)="hangupEntry(c)" [disabled]="actionBusy()" [title]="'QUEUES.HANGUP' | translate">
+                                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </article>
+        }
       }
-    }
-  </div>
+    </div>
 
-  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+    <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
+  </div>
 </section>

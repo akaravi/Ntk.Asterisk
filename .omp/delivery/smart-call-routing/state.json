@@ -1,0 +1,41 @@
+{
+  "runId": "smart-call-routing",
+  "updatedAtUtc": "2026-09-20T10:45:00Z",
+  "objective": "Implement Smart Call Routing in AdminPanel and WebApi with FastAGI/Dialplan integration",
+  "scope": {
+    "inScope": [
+      "Smart Call Route data model, DTOs, and file-backed store in WebApi",
+      "CallRoutesController with CRUD, active-toggle, pagination, and caller-id lookup endpoints",
+      "FastAGI / Dialplan integration support (SmartCallRouteAgiScript) and mapping in Asterisk.Console.AMI",
+      "Angular models, services, and reactive state in AdminPanel",
+      "AdminPanel Smart Call Routing UI page with table, modal add/edit, quick toggle, search, priority management, and online lookup tester",
+      "Route registration in app.routes.ts and navigation link in shell.component.html with i18n (fa/en)"
+    ],
+    "outOfScope": [
+      "Remote live PBX Asterisk socket modification"
+    ]
+  },
+  "risk": "standard",
+  "acceptanceCriteria": [
+    "Admins can view, search, filter, and paginate smart call routing rules",
+    "Admins can add, edit, delete, and toggle active status for routing rules",
+    "Priority field is displayed in table and configurable in form",
+    "Caller number is normalized across multiple Iranian and international formats (+98, 0098, 98, 09, Persian/Arabic digits)",
+    "Lookup API returns the matched rule with TargetExtension, TargetExternalNumber, ExtensionTimeout, and OutboundTrunk",
+    "Admin UI includes a live lookup test widget allowing verification of routing rules directly",
+    "FastAGI script / Dialplan handler provides fallback handling when extension is unanswered or not configured",
+    "WebApi (.NET), FastAGI (.NET), and AdminPanel (Angular) build without errors"
+  ],
+  "relevanceMask": {
+    "management": "relevant",
+    "uxUi": "relevant",
+    "frontend": "relevant",
+    "backend": "relevant",
+    "infraSecurity": "relevant",
+    "quality": "relevant",
+    "contentSeo": "not-relevant"
+  },
+  "phase": "completed",
+  "status": "completed",
+  "judgeVerdict": "accept"
+}

@@ -1,153 +1,415 @@
-<section class="call-forms">
-  <header class="panel-head">
-    <h2>{{ 'NAV.CALLS' | t }}</h2>
-    <p>{{ 'FORM.PANEL_SUBTITLE' | t }}</p>
+<div class="dash-page">
+  <!-- Top Executive Header -->
+  <header class="dash-header">
+    <div class="dash-header__main">
+      <div class="dash-title-group">
+        <div class="dash-tag" dir="ltr">ORIGINATE DISPATCHER</div>
+        <h1 class="dash-title">{{ 'NAV.CALLS' | t }}</h1>
+        <p class="dash-subtitle">{{ 'FORM.PANEL_SUBTITLE' | t }}</p>
+      </div>
+
+      <div class="dash-header__actions">
+        <a routerLink="/jobs" class="btn btn--jobs">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 14 2 2 4-4"/></svg>
+          <span>{{ 'NAV.JOBS' | t }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Originate Mode Selector Tabs -->
+    <div class="perspective-nav">
+      <span class="perspective-nav__label">نوع اتصال و شماره‌گیری:</span>
+      <div class="perspective-tabs" role="tablist" aria-label="call job types">
+        @for (tab of tabs; track tab) {
+          <button
+            type="button"
+            class="perspective-tab"
+            role="tab"
+            [class.active]="activeTab() === tab"
+            [attr.aria-selected]="activeTab() === tab"
+            [attr.id]="'tab-' + tab"
+            [attr.aria-controls]="'panel-' + tab"
+            (click)="selectTab(tab)"
+          >
+            @if (tab === 'ExtToExt') {
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            } @else if (tab === 'MobileToExt') {
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            } @else {
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            }
+            <span>{{ tabLabelKey(tab) | t }}</span>
+          </button>
+        }
+      </div>
+    </div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="call job types">
-    @for (tab of tabs; track tab) {
-      <button
-        type="button"
-        role="tab"
-        class="tab"
-        [class.active]="activeTab() === tab"
-        [attr.aria-selected]="activeTab() === tab"
-        (click)="selectTab(tab)"
-      >
-        {{ tabLabelKey(tab) | t }}
-      </button>
-    }
-  </nav>
+  <!-- Quick KPI Cards Grid -->
+  <section class="kpi-grid">
+    <div class="kpi-card kpi-card--signal" [class.kpi-card--active]="activeTab() === 'ExtToExt'" (click)="selectTab('ExtToExt')">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'TYPE.ExtToExt' | t }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num font-mono">PJSIP / SIP</div>
+        <div class="kpi-card__sub">
+          <span class="pulse-indicator pulse-indicator--ok"></span>
+          <span>اتصال دو داخلی داخل سازمان</span>
+        </div>
+      </div>
+    </div>
 
+    <div class="kpi-card kpi-card--purple" [class.kpi-card--active]="activeTab() === 'MobileToExt'" (click)="selectTab('MobileToExt')">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'TYPE.MobileToExt' | t }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num font-mono">TRUNK → EXT</div>
+        <div class="kpi-card__sub">
+          <span>تماس با موبایل و اتصال به اپراتور</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--amber" [class.kpi-card--active]="activeTab() === 'MobileToMobile'" (click)="selectTab('MobileToMobile')">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'TYPE.MobileToMobile' | t }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num font-mono">TRUNK ↔ TRUNK</div>
+        <div class="kpi-card__sub">
+          <span>پل‌زدن بین دو شماره همراه</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feedback Alerts -->
   @if (successMessage()) {
-    <p class="banner success" role="status">
-      {{ 'FORM.SUCCESS' | t }} — <span class="ltr" dir="ltr">{{ successMessage() }}</span>
-    </p>
+    <div class="banner banner--ok" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>{{ 'FORM.SUCCESS' | t }} — <strong class="font-mono" dir="ltr">{{ successMessage() }}</strong></span>
+    </div>
   }
   @if (errorMessage()) {
-    <p class="banner error" role="alert">{{ errorMessage() }}</p>
+    <div class="banner banner--error" role="alert">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
   }
 
-  @if (activeTab() === 'ExtToExt') {
-    <form class="form" [formGroup]="extToExtForm" (ngSubmit)="submit()">
-      <label>
-        <span>{{ 'FORM.FROM_EXT' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          formControlName="from"
-          [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t"
-          autocomplete="off"
-        />
-      </label>
-      <label>
-        <span>{{ 'FORM.TO_EXT' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          formControlName="to"
-          [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t"
-          autocomplete="off"
-        />
-      </label>
-      <label>
-        <span>{{ 'FORM.TIMEOUT' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="number"
-          formControlName="timeoutSec"
-          [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
-          min="5"
-        />
-      </label>
-      <button type="submit" class="primary" [disabled]="submitting()">
-        {{ (submitting() ? 'FORM.SUBMITTING' : 'FORM.SUBMIT') | t }}
-      </button>
-    </form>
-  }
+  <!-- Active Form Panel -->
+  <div class="panel-card form-panel">
+    <!-- TAB 1: Ext To Ext Form -->
+    @if (activeTab() === 'ExtToExt') {
+      <div class="panel-card__head">
+        <div class="panel-card__title-wrap">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <h2 class="panel-card__title">{{ 'FORM.EXT_TO_EXT' | t }}</h2>
+        </div>
 
-  @if (activeTab() === 'MobileToExt') {
-    <form class="form" [formGroup]="mobileToExtForm" (ngSubmit)="submit()">
-      <label>
-        <span>{{ 'FORM.MOBILE' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          formControlName="mobile1"
-          [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
-          autocomplete="off"
-        />
-      </label>
-      <label>
-        <span>{{ 'FORM.TO_EXT' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          formControlName="to"
-          [attr.placeholder]="'FORM.PLACEHOLDER_EXT' | t"
-          autocomplete="off"
-        />
-      </label>
-      <label>
-        <span>{{ 'FORM.TIMEOUT' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="number"
-          formControlName="timeoutSec"
-          [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
-          min="5"
-        />
-      </label>
-      <button type="submit" class="primary" [disabled]="submitting()">
-        {{ (submitting() ? 'FORM.SUBMITTING' : 'FORM.SUBMIT') | t }}
-      </button>
-    </form>
-  }
+        <!-- Speed Dial Presets -->
+        <div class="presets-row">
+          <span class="presets-label">شماره‌گیری سریع:</span>
+          <button type="button" class="btn-preset" (click)="setExtPreset('1001', '1002')">۱۰۱ ← ۱۰۲</button>
+          <button type="button" class="btn-preset" (click)="setExtPreset('1001', '1003')">۱۰۱ ← ۱۰۳</button>
+          <button type="button" class="btn-preset" (click)="setExtPreset('1002', '1003')">۱۰۲ ← ۱۰۳</button>
+        </div>
+      </div>
 
-  @if (activeTab() === 'MobileToMobile') {
-    <form class="form" [formGroup]="mobileToMobileForm" (ngSubmit)="submit()">
-      <label>
-        <span>{{ 'FORM.MOBILE1' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          formControlName="mobile1"
-          [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
-          autocomplete="off"
-        />
-      </label>
-      <label>
-        <span>{{ 'FORM.MOBILE2' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="text"
-          formControlName="mobile2"
-          [attr.placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
-          autocomplete="off"
-        />
-      </label>
-      <label>
-        <span>{{ 'FORM.TIMEOUT' | t }}</span>
-        <input
-          class="ltr"
-          dir="ltr"
-          type="number"
-          formControlName="timeoutSec"
-          [attr.placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
-          min="5"
-        />
-      </label>
-      <button type="submit" class="primary" [disabled]="submitting()">
-        {{ (submitting() ? 'FORM.SUBMITTING' : 'FORM.SUBMIT') | t }}
-      </button>
-    </form>
-  }
-</section>
+      <div class="panel-card__body">
+        <form class="form" [formGroup]="extToExtForm" (ngSubmit)="submit()">
+          <div class="form-grid-3">
+            <div class="form-field">
+              <label for="ext-from">{{ 'FORM.FROM_EXT' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <input
+                  id="ext-from"
+                  type="text"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="from"
+                  [placeholder]="'FORM.PLACEHOLDER_EXT' | t"
+                  autocomplete="tel-extension"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="ext-to">{{ 'FORM.TO_EXT' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                <input
+                  id="ext-to"
+                  type="text"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="to"
+                  [placeholder]="'FORM.PLACEHOLDER_EXT' | t"
+                  autocomplete="tel-extension"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="ext-timeout">{{ 'FORM.TIMEOUT' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <input
+                  id="ext-timeout"
+                  type="number"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="timeoutSec"
+                  [placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="spinning"><path d="M23 4v6h-6M1 20v-6h6"/></svg>
+                <span>{{ 'FORM.SUBMITTING' | t }}</span>
+              } @else {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>{{ 'FORM.SUBMIT' | t }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- TAB 2: Mobile To Ext Form -->
+    @if (activeTab() === 'MobileToExt') {
+      <div class="panel-card__head">
+        <div class="panel-card__title-wrap">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          <h2 class="panel-card__title">{{ 'FORM.MOBILE_TO_EXT' | t }}</h2>
+        </div>
+      </div>
+
+      <div class="panel-card__body">
+        <form class="form" [formGroup]="mobileToExtForm" (ngSubmit)="submit()">
+          <div class="form-grid-3">
+            <div class="form-field">
+              <label for="mob-mobile">{{ 'FORM.MOBILE' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <input
+                  id="mob-mobile"
+                  type="text"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="mobile1"
+                  [placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
+                  autocomplete="tel"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="mob-to">{{ 'FORM.TO_EXT' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <input
+                  id="mob-to"
+                  type="text"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="to"
+                  [placeholder]="'FORM.PLACEHOLDER_EXT' | t"
+                  autocomplete="tel-extension"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="mob-timeout">{{ 'FORM.TIMEOUT' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <input
+                  id="mob-timeout"
+                  type="number"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="timeoutSec"
+                  [placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="spinning"><path d="M23 4v6h-6M1 20v-6h6"/></svg>
+                <span>{{ 'FORM.SUBMITTING' | t }}</span>
+              } @else {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>{{ 'FORM.SUBMIT' | t }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- TAB 3: Mobile To Mobile Form -->
+    @if (activeTab() === 'MobileToMobile') {
+      <div class="panel-card__head">
+        <div class="panel-card__title-wrap">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <h2 class="panel-card__title">{{ 'FORM.MOBILE_TO_MOBILE' | t }}</h2>
+        </div>
+      </div>
+
+      <div class="panel-card__body">
+        <form class="form" [formGroup]="mobileToMobileForm" (ngSubmit)="submit()">
+          <div class="form-grid-3">
+            <div class="form-field">
+              <label for="m2m-mob1">{{ 'FORM.MOBILE1' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <input
+                  id="m2m-mob1"
+                  type="text"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="mobile1"
+                  [placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
+                  autocomplete="tel"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="m2m-mob2">{{ 'FORM.MOBILE2' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <input
+                  id="m2m-mob2"
+                  type="text"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="mobile2"
+                  [placeholder]="'FORM.PLACEHOLDER_MOBILE' | t"
+                  autocomplete="tel"
+                />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="m2m-timeout">{{ 'FORM.TIMEOUT' | t }}</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <input
+                  id="m2m-timeout"
+                  type="number"
+                  class="input font-mono"
+                  dir="ltr"
+                  formControlName="timeoutSec"
+                  [placeholder]="'FORM.PLACEHOLDER_TIMEOUT' | t"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="spinning"><path d="M23 4v6h-6M1 20v-6h6"/></svg>
+                <span>{{ 'FORM.SUBMITTING' | t }}</span>
+              } @else {
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>{{ 'FORM.SUBMIT' | t }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
+
+  <!-- Bottom Guidance and Fast Access Grid -->
+  <div class="grid-two-col">
+    <!-- Panel 1: Guidance -->
+    <div class="panel-card">
+      <div class="panel-card__head">
+        <h3 class="panel-card__title">راهنمای شماره‌گیری و ارتباط خطوط</h3>
+      </div>
+      <div class="panel-card__body">
+        <div class="guidance-list">
+          <div class="guidance-item">
+            <span class="guidance-bullet">۱</span>
+            <div>
+              <strong>فرمت داخلی‌ها (Extension):</strong>
+              <p>شماره داخلی ثبت‌شده در استریسک (مانند ۱۰۰۱ یا ۱۰۲).</p>
+            </div>
+          </div>
+          <div class="guidance-item">
+            <span class="guidance-bullet">۲</span>
+            <div>
+              <strong>شماره همراه یا تلفن ثابت:</strong>
+              <p>شماره استاندارد ۱۱ رقمی با صفر اول (مانند ۰۹۱۲۱۲۳۴۵۶۷).</p>
+            </div>
+          </div>
+          <div class="guidance-item">
+            <span class="guidance-bullet">۳</span>
+            <div>
+              <strong>مکانیسم Originate:</strong>
+              <p>ابتدا طرف اول زنگ می‌خورد و پس از پاسخگویی، طرف دوم شماره‌گیری می‌شود.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: Quick Links -->
+    <div class="panel-card">
+      <div class="panel-card__head">
+        <h3 class="panel-card__title">میان‌برها و ماژول‌های مرتبط</h3>
+      </div>
+      <div class="panel-card__body">
+        <div class="quick-links-grid">
+          <a routerLink="/jobs" class="quick-link-tile">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="m9 14 2 2 4-4"/></svg>
+            <div class="quick-link-meta">
+              <strong>{{ 'NAV.JOBS' | t }}</strong>
+              <span>مشاهده کارها و وضعیت شماره‌گیری</span>
+            </div>
+          </a>
+
+          <a routerLink="/webphone/buddies" class="quick-link-tile">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="quick-link-meta">
+              <strong>{{ 'NAV.WEBPHONE_BUDDIES' | t }}</strong>
+              <span>مخاطبین تلفن و شماره‌گیری سریع</span>
+            </div>
+          </a>
+
+          <a routerLink="/webphone/cdr" class="quick-link-tile">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div class="quick-link-meta">
+              <strong>{{ 'NAV.WEBPHONE_CDR' | t }}</strong>
+              <span>سوابق، گزارش و مدت مکالمات</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

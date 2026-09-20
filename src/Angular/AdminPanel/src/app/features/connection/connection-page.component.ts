@@ -1,5 +1,6 @@
-import { DatePipe } from '@angular/common';
+
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { ConnectionStatus, ListQuery } from '../../core/models/asterisk.models';
@@ -16,7 +17,7 @@ import { ListPagerComponent } from '../../shared/components/list-pager/list-page
 @Component({
   selector: 'app-connection-page',
   standalone: true,
-  imports: [TranslatePipe, DatePipe, ListToolbarComponent, ListPagerComponent],
+  imports: [TranslatePipe, FormsModule, ListToolbarComponent, ListPagerComponent],
   templateUrl: './connection-page.component.html',
   styleUrl: './connection-page.component.scss',
 })

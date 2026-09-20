@@ -8,7 +8,9 @@ import {
   ConnectionStatus,
   LiveEventItem,
   PeerItem,
+  SmartRouteDecisionItem,
 } from '../models/asterisk.models';
+import { FastAgiPacket } from '../models/fastagi.models';
 import { QueueItem } from '../models/queue.models';
 
 export type AsteriskHubEvent =
@@ -18,8 +20,9 @@ export type AsteriskHubEvent =
   | { kind: 'queues'; payload: QueueItem[] }
   | { kind: 'connection'; payload: ConnectionStatus }
   | { kind: 'liveEvent'; payload: LiveEventItem }
+  | { kind: 'smartRouteDecision'; payload: SmartRouteDecisionItem }
+  | { kind: 'fastAgiPacket'; payload: FastAgiPacket }
   | { kind: 'amiHint'; payload: { type?: string; channel?: string | null; at?: string } };
-
 @Injectable({ providedIn: 'root' })
 export class AsteriskHubService implements OnDestroy {
   private readonly events$ = new Subject<AsteriskHubEvent>();
@@ -79,6 +82,18 @@ export class AsteriskHubService implements OnDestroy {
     );
     this.bind('connectionStatus', (payload: ConnectionStatus) =>
       this.events$.next({ kind: 'connection', payload }),
+    );
+    this.bind('smartRouteDecision', (payload: SmartRouteDecisionItem) =>
+      this.events$.next({ kind: 'smartRouteDecision', payload }),
+    );
+    this.bind('SmartRouteDecision', (payload: SmartRouteDecisionItem) =>
+      this.events$.next({ kind: 'smartRouteDecision', payload }),
+    );
+    this.bind('fastAgiPacket', (payload: FastAgiPacket) =>
+      this.events$.next({ kind: 'fastAgiPacket', payload }),
+    );
+    this.bind('FastAgiPacket', (payload: FastAgiPacket) =>
+      this.events$.next({ kind: 'fastAgiPacket', payload }),
     );
 
     this.connection.onreconnected(async () => {

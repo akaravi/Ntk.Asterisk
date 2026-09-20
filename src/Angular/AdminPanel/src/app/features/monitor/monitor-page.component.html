@@ -1,17 +1,33 @@
-<section class="page monitor">
+<section class="page monitor-page" aria-labelledby="monitor-title">
+  <!-- Masthead Header -->
   <header class="page__header">
-    <div>
-      <h1>{{ 'NAV.MONITOR' | translate }}</h1>
+    <div class="header-title-group">
+      <h1 id="monitor-title">{{ 'NAV.MONITOR' | translate }}</h1>
       <p class="page__header-sub">{{ 'MONITOR.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="page__actions">
+      <button type="button" class="btn btn--primary" (click)="reload()" [disabled]="loading() || serverBusy()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>{{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportExcel()" [title]="'LIST.EXPORT_EXCEL' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Excel</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportPdf()" [title]="'LIST.EXPORT_PDF' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/><path d="M9 7h1"/></svg>
+        <span>PDF</span>
+      </button>
     </div>
   </header>
 
-  <div class="tabs" role="tablist">
+  <!-- Navigation Tabs -->
+  <div class="tabs-container" role="tablist">
     <button
       type="button"
       role="tab"
-      class="tab"
-      [class.tab--active]="tab() === 'all'"
+      class="tab-btn"
+      [class.tab-btn--active]="tab() === 'all'"
       (click)="setTab('all')"
     >
       {{ 'MONITOR.ALL' | translate }}
@@ -19,8 +35,8 @@
     <button
       type="button"
       role="tab"
-      class="tab"
-      [class.tab--active]="tab() === 'extensions'"
+      class="tab-btn"
+      [class.tab-btn--active]="tab() === 'extensions'"
       (click)="setTab('extensions')"
     >
       {{ 'MONITOR.EXTENSIONS' | translate }}
@@ -28,8 +44,8 @@
     <button
       type="button"
       role="tab"
-      class="tab"
-      [class.tab--active]="tab() === 'trunks'"
+      class="tab-btn"
+      [class.tab-btn--active]="tab() === 'trunks'"
       (click)="setTab('trunks')"
     >
       {{ 'MONITOR.TRUNKS' | translate }}
@@ -37,8 +53,8 @@
     <button
       type="button"
       role="tab"
-      class="tab"
-      [class.tab--active]="tab() === 'channels'"
+      class="tab-btn"
+      [class.tab-btn--active]="tab() === 'channels'"
       (click)="setTab('channels')"
     >
       {{ 'MONITOR.CHANNELS' | translate }}
@@ -46,12 +62,19 @@
   </div>
 
   @if (error()) {
-    <p class="banner banner--error" role="alert">{{ error() }}</p>
+    <div class="banner banner--error" role="alert">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ error() }}</span>
+    </div>
   }
   @if (success()) {
-    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+    <div class="banner banner--ok" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>{{ success()! | translate }}</span>
+    </div>
   }
 
+  <!-- Toolbar with Filters -->
   <app-list-toolbar
     [query]="query"
     [totalCount]="totalCount()"
@@ -64,212 +87,208 @@
     (exportExcel)="exportExcel()"
   />
 
-  <section
-    class="server-strip"
-    [attr.aria-label]="'MONITOR.SERVERS_LABEL' | translate"
-    [attr.aria-busy]="serverBusy()"
-  >
-    <header class="server-strip__head">
-      <h2 class="server-strip__title">{{ 'MONITOR.SERVERS_LABEL' | translate }}</h2>
-      <p class="server-strip__hint muted">{{ 'MONITOR.SERVERS_HINT' | translate }}</p>
-    </header>
+  <!-- Active Servers Strip Card -->
+  <div class="view-card server-strip-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        <h2>{{ 'MONITOR.SERVERS_LABEL' | translate }}</h2>
+        <span class="badge badge--neutral">{{ servers().length }}</span>
+      </div>
+      <p class="muted text-xs">{{ 'MONITOR.SERVERS_HINT' | translate }}</p>
+    </div>
+
     @if (servers().length === 0) {
-      <p class="server-strip__empty muted">{{ 'MONITOR.SERVERS_EMPTY' | translate }}</p>
+      <p class="entity-empty muted">{{ 'MONITOR.SERVERS_EMPTY' | translate }}</p>
     } @else {
-      <div class="server-strip__list" role="listbox" [attr.aria-label]="'MONITOR.SERVERS_LABEL' | translate">
+      <div class="server-chips-grid">
         @for (s of servers(); track s.serverId || serverEndpoint(s)) {
           <button
             type="button"
-            role="option"
-            class="server-chip"
-            [class.server-chip--active]="isMonitoring(s)"
-            [attr.data-tone]="s.connected ? 'ok' : 'fail'"
-            [attr.aria-selected]="isMonitoring(s)"
+            class="server-monitor-chip"
+            [class.server-monitor-chip--active]="isMonitoring(s)"
             [disabled]="serverBusy() || !s.serverId"
             (click)="selectMonitorServer(s)"
           >
-            <span class="server-chip__name">{{ s.serverName || '—' }}</span>
-            <span class="server-chip__host ltr" dir="ltr">{{ serverEndpoint(s) }}</span>
-            <span class="server-chip__meta">
+            <div class="server-chip-top">
+              <span class="server-chip__dot" [class.server-chip__dot--on]="s.connected" [class.server-chip__dot--off]="!s.connected"></span>
+              <strong class="server-chip-name">{{ s.serverName || '—' }}</strong>
+            </div>
+            <span class="server-chip-host font-mono" dir="ltr">{{ serverEndpoint(s) }}</span>
+            <div class="server-chip-badges">
               <span class="status-pill" [attr.data-tone]="s.connected ? 'ok' : 'fail'">
                 {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
               </span>
               @if (isMonitoring(s)) {
-                <span class="status-pill" data-tone="active">{{ 'MONITOR.MONITORING' | translate }}</span>
+                <span class="badge badge--ok">{{ 'MONITOR.MONITORING' | translate }}</span>
               }
-            </span>
+            </div>
           </button>
         }
       </div>
     }
-  </section>
+  </div>
 
-  <section class="spy-strip" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
-    <header class="spy-strip__head">
-      <h2 class="spy-strip__title">{{ 'MONITOR.SPY_LABEL' | translate }}</h2>
-      <p class="spy-strip__hint muted">{{ 'MONITOR.SPY_HINT' | translate }}</p>
-    </header>
-    <label class="spy-strip__field">
-      <span>{{ 'MONITOR.SPY_SUPERVISOR' | translate }}</span>
-      <input
-        type="text"
-        class="input ltr"
-        dir="ltr"
-        name="spySupervisor"
-        autocomplete="off"
-        [placeholder]="'MONITOR.SPY_SUPERVISOR_PH' | translate"
-        [ngModel]="spySupervisor"
-        (ngModelChange)="onSpySupervisorChange($event)"
-      />
-    </label>
-  </section>
+  <!-- Supervisor & Bridge Strip -->
+  <div class="bridge-supervisor-grid">
+    <div class="view-card spy-card">
+      <div class="view-card__header">
+        <div class="view-card__title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <h3>{{ 'MONITOR.SPY_LABEL' | translate }}</h3>
+        </div>
+      </div>
+      <label class="field">
+        <span>{{ 'MONITOR.SPY_SUPERVISOR' | translate }}</span>
+        <input
+          type="text"
+          class="ltr"
+          dir="ltr"
+          [placeholder]="'MONITOR.SPY_SUPERVISOR_PH' | translate"
+          [ngModel]="spySupervisor"
+          (ngModelChange)="onSpySupervisorChange($event)"
+        />
+      </label>
+    </div>
 
-  <section class="bridge-strip" [attr.aria-label]="'MONITOR.BRIDGE_LABEL' | translate">
-    <header class="bridge-strip__head">
-      <h2 class="bridge-strip__title">{{ 'MONITOR.BRIDGE_LABEL' | translate }}</h2>
-      <p class="bridge-strip__hint muted">{{ 'MONITOR.BRIDGE_HINT' | translate }}</p>
-    </header>
-    <div class="bridge-strip__body">
-      <p class="bridge-strip__pick ltr" dir="ltr">
-        <span class="muted">{{ 'MONITOR.BRIDGE_CH1' | translate }}:</span>
-        {{ bridgeChannel1() || '—' }}
-      </p>
-      <p class="bridge-strip__pick ltr" dir="ltr">
-        <span class="muted">{{ 'MONITOR.BRIDGE_CH2' | translate }}:</span>
-        {{ bridgeChannel2() || '—' }}
-      </p>
-      <div class="bridge-strip__actions">
-        <button
-          type="button"
-          class="btn btn--primary btn--xs"
-          [disabled]="!canRunBridge()"
-          (click)="runBridge()"
-        >
-          {{ 'MONITOR.BRIDGE_RUN' | translate }}
-        </button>
-        <button
-          type="button"
-          class="btn btn--ghost btn--xs"
-          [disabled]="actionBusy() || (!bridgeChannel1() && !bridgeChannel2())"
-          (click)="clearBridgeSelection()"
-        >
-          {{ 'MONITOR.BRIDGE_CLEAR' | translate }}
-        </button>
+    <div class="view-card bridge-card">
+      <div class="view-card__header">
+        <div class="view-card__title">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          <h3>{{ 'MONITOR.BRIDGE_LABEL' | translate }}</h3>
+        </div>
+      </div>
+      <div class="bridge-body">
+        <div class="bridge-channels font-mono text-xs ltr" dir="ltr">
+          <div><span class="muted">CH1:</span> {{ bridgeChannel1() || '—' }}</div>
+          <div><span class="muted">CH2:</span> {{ bridgeChannel2() || '—' }}</div>
+        </div>
+        <div class="bridge-actions">
+          <button
+            type="button"
+            class="btn btn--sm btn--primary"
+            [disabled]="!canRunBridge()"
+            (click)="runBridge()"
+          >
+            {{ 'MONITOR.BRIDGE_RUN' | translate }}
+          </button>
+          <button
+            type="button"
+            class="btn btn--sm btn--ghost"
+            [disabled]="actionBusy() || (!bridgeChannel1() && !bridgeChannel2())"
+            (click)="clearBridgeSelection()"
+          >
+            {{ 'MONITOR.BRIDGE_CLEAR' | translate }}
+          </button>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  @if (tab() === 'all') {
-    <div class="tile-board" [attr.aria-busy]="loading()">
-      @if (loading()) {
-        <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
-      } @else if (unifiedRows().length === 0) {
-        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-      } @else {
-        @for (row of unifiedRows(); track row.key) {
-          <article class="tile" [attr.data-tone]="row.tone" [attr.data-kind]="row.kind">
-            <header class="tile__head">
-              <span class="tile__kind">{{ kindLabel(row.kind) }}</span>
-              <span class="status-pill" [attr.data-tone]="row.tone">{{ row.status }}</span>
-            </header>
-            <p class="tile__title ltr" dir="ltr">{{ row.title }}</p>
-            @if (row.detail) {
-              <p class="tile__meta ltr" dir="ltr">{{ row.detail }}</p>
-            } @else if (row.ip) {
-              <p class="tile__meta ltr" dir="ltr">{{ row.ip }}</p>
-            } @else if (row.tech) {
-              <p class="tile__meta ltr" dir="ltr">{{ row.tech }}</p>
-            }
-            <footer class="tile__foot">
-              <span class="tile__activity">
-                @if (row.durationSec != null) {
-                  {{ 'MONITOR.DURATION_SEC' | translate: { sec: row.durationSec } }}
-                } @else if (row.lastActivityUtc) {
-                  {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
-                } @else {
-                  —
-                }
-              </span>
-              @if (row.kind === 'channel' && row.channel) {
-                <button
-                  type="button"
-                  class="btn btn--danger btn--xs"
-                  [disabled]="actionBusy()"
-                  (click)="hangup(row.channel!)"
-                >
-                  {{ 'MONITOR.HANGUP' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="btn btn--ghost btn--xs"
-                  [class.btn--picked]="isBridgeSelected(row.channel)"
-                  [disabled]="actionBusy()"
-                  (click)="selectForBridge(row.channel!)"
-                >
-                  {{ 'MONITOR.BRIDGE_PICK' | translate }}
-                </button>
+  <!-- Tiles Board View -->
+  <div class="view-card table-view-card">
+    @if (tab() === 'all') {
+      <div class="tile-board" [attr.aria-busy]="loading()">
+        @if (loading()) {
+          <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+        } @else if (unifiedRows().length === 0) {
+          <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+        } @else {
+          @for (row of unifiedRows(); track row.key) {
+            <article class="tile-card" [attr.data-tone]="row.tone" [attr.data-kind]="row.kind">
+              <header class="tile-card__head">
+                <span class="badge font-mono">{{ kindLabel(row.kind) }}</span>
+                <span class="status-pill" [attr.data-tone]="row.tone">{{ row.status }}</span>
+              </header>
+              <p class="tile-card__title font-mono font-bold ltr" dir="ltr">{{ row.title }}</p>
+              @if (row.detail) {
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.detail }}</p>
+              } @else if (row.ip) {
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.ip }}</p>
+              } @else if (row.tech) {
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.tech }}</p>
               }
-              @if (row.spyTarget && (row.inCall || row.kind === 'channel')) {
-                <div class="spy-actions" role="group" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
-                  @for (m of spyModes; track m.mode) {
+              <footer class="tile-card__foot">
+                <span class="tile-activity font-mono text-xs">
+                  @if (row.durationSec != null) {
+                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: row.durationSec } }}
+                  } @else if (row.lastActivityUtc) {
+                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }}
+                  } @else {
+                    —
+                  }
+                </span>
+                <div class="tile-actions">
+                  @if (row.kind === 'channel' && row.channel) {
                     <button
                       type="button"
-                      class="btn btn--ghost btn--xs"
-                      [disabled]="!canSpy(row.spyTarget)"
-                      (click)="spy(row.spyTarget!, m.mode)"
+                      class="btn-action-icon btn-action-icon--danger"
+                      [disabled]="actionBusy()"
+                      (click)="hangup(row.channel!)"
+                      [title]="'MONITOR.HANGUP' | translate"
                     >
-                      {{ m.labelKey | translate }}
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-action-icon btn-action-icon--test"
+                      [class.btn--picked]="isBridgeSelected(row.channel)"
+                      [disabled]="actionBusy()"
+                      (click)="selectForBridge(row.channel!)"
+                      [title]="'MONITOR.BRIDGE_PICK' | translate"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
                     </button>
                   }
+                  @if (row.spyTarget && (row.inCall || row.kind === 'channel')) {
+                    @for (m of spyModes; track m.mode) {
+                      <button
+                        type="button"
+                        class="btn-action-icon btn-action-icon--edit"
+                        [disabled]="!canSpy(row.spyTarget)"
+                        (click)="spy(row.spyTarget!, m.mode)"
+                        [title]="m.labelKey | translate"
+                      >
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      </button>
+                    }
+                  }
                 </div>
-              }
-            </footer>
-          </article>
+              </footer>
+            </article>
+          }
         }
-      }
-    </div>
-  } @else {
-    <div class="tile-board" [attr.aria-busy]="loading()">
-      @if (loading()) {
-        <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
-      } @else if (tab() === 'extensions') {
+      </div>
+    } @else if (tab() === 'extensions') {
+      <div class="tile-board" [attr.aria-busy]="loading()">
         @if (peersRows().length === 0) {
           <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
         } @else {
           @for (row of peersRows(); track row.id) {
-            <article class="tile" [attr.data-tone]="peerTone(row)" data-kind="extension">
-              <header class="tile__head">
-                <span class="tile__kind">{{ row.tech || '—' }}</span>
-                <span class="status-pill" [attr.data-tone]="peerTone(row)">{{
-                  row.status || '—'
-                }}</span>
+            <article class="tile-card" [attr.data-tone]="peerTone(row)" data-kind="extension">
+              <header class="tile-card__head">
+                <span class="badge font-mono">{{ row.tech || '—' }}</span>
+                <span class="status-pill" [attr.data-tone]="peerTone(row)">{{ row.status || '—' }}</span>
               </header>
-              <p class="tile__title ltr" dir="ltr">{{ row.id }}</p>
+              <p class="tile-card__title font-mono font-bold ltr" dir="ltr">{{ row.id }}</p>
               @if (row.callerId || row.channel) {
-                <p class="tile__meta ltr" dir="ltr">{{ row.callerId || row.channel }}</p>
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.callerId || row.channel }}</p>
               } @else if (row.ip) {
-                <p class="tile__meta ltr" dir="ltr">{{ row.ip }}</p>
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.ip }}</p>
               }
-              <footer class="tile__foot">
-                <span class="tile__activity">
-                  @if (peerDuration(row) != null) {
-                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: peerDuration(row) } }}
-                  } @else if (row.lastActivityUtc) {
-                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
-                  } @else {
-                    —
-                  }
-                </span>
-                @if (row.inCall) {
-                  <div class="spy-actions" role="group" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
+              <footer class="tile-card__foot">
+                <span class="font-mono text-xs">{{ row.ip || '—' }}</span>
+                @if (row.channel || row.inCall) {
+                  <div class="tile-actions">
                     @for (m of spyModes; track m.mode) {
                       <button
                         type="button"
-                        class="btn btn--ghost btn--xs"
-                        [disabled]="!canSpy(peerSpyTarget(row))"
-                        (click)="spy(peerSpyTarget(row), m.mode)"
+                        class="btn-action-icon btn-action-icon--edit"
+                        [disabled]="!canSpy(row.id)"
+                        (click)="spy(row.id, m.mode)"
+                        [title]="m.labelKey | translate"
                       >
-                        {{ m.labelKey | translate }}
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                       </button>
                     }
                   </div>
@@ -278,109 +297,73 @@
             </article>
           }
         }
-      } @else if (tab() === 'trunks') {
+      </div>
+    } @else if (tab() === 'trunks') {
+      <div class="tile-board" [attr.aria-busy]="loading()">
         @if (trunksRows().length === 0) {
           <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
         } @else {
           @for (row of trunksRows(); track row.id) {
-            <article class="tile" [attr.data-tone]="peerTone(row)" data-kind="trunk">
-              <header class="tile__head">
-                <span class="tile__kind">{{ row.tech || '—' }}</span>
-                <span class="status-pill" [attr.data-tone]="peerTone(row)">{{
-                  row.status || '—'
-                }}</span>
+            <article class="tile-card" [attr.data-tone]="peerTone(row)" data-kind="trunk">
+              <header class="tile-card__head">
+                <span class="badge font-mono">{{ row.tech || '—' }}</span>
+                <span class="status-pill" [attr.data-tone]="peerTone(row)">{{ row.status || '—' }}</span>
               </header>
-              <p class="tile__title ltr" dir="ltr">{{ row.id }}</p>
-              @if (row.callerId || row.channel) {
-                <p class="tile__meta ltr" dir="ltr">{{ row.callerId || row.channel }}</p>
+              <p class="tile-card__title font-mono font-bold ltr" dir="ltr">{{ row.id }}</p>
+              @if (row.channel) {
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.channel }}</p>
               } @else if (row.ip) {
-                <p class="tile__meta ltr" dir="ltr">{{ row.ip }}</p>
+                <p class="tile-card__meta font-mono muted ltr" dir="ltr">{{ row.ip }}</p>
               }
-              <footer class="tile__foot">
-                <span class="tile__activity">
-                  @if (peerDuration(row) != null) {
-                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: peerDuration(row) } }}
-                  } @else if (row.lastActivityUtc) {
-                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
-                  } @else {
-                    —
-                  }
-                </span>
+              <footer class="tile-card__foot">
+                <span class="font-mono text-xs">{{ row.ip || '—' }}</span>
               </footer>
             </article>
           }
         }
-      } @else {
-        @if (channelsRows().length === 0) {
-          <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-        } @else {
-          @for (row of channelsRows(); track row.channel) {
-            <article class="tile" [attr.data-tone]="statusTone(row.state)" data-kind="channel">
-              <header class="tile__head">
-                <span class="tile__kind">{{ kindLabel('channel') }}</span>
-                <span class="status-pill" [attr.data-tone]="statusTone(row.state)">{{
-                  row.state || '—'
-                }}</span>
-              </header>
-              <p class="tile__title ltr" dir="ltr">{{ row.channel }}</p>
-              @if (row.callerId) {
-                <p class="tile__meta ltr" dir="ltr">{{ row.callerId }}</p>
-              } @else if (row.application) {
-                <p class="tile__meta ltr" dir="ltr">{{ row.application }}</p>
-              }
-              <footer class="tile__foot">
-                <span class="tile__activity">
-                  @if (channelDuration(row) != null) {
-                    {{ 'MONITOR.DURATION_SEC' | translate: { sec: channelDuration(row) } }}
-                  } @else if (row.lastActivityUtc) {
-                    {{ row.lastActivityUtc | date: 'HH:mm:ss' }} UTC
-                  } @else {
-                    —
-                  }
-                </span>
-                <button
-                  type="button"
-                  class="btn btn--danger btn--xs"
-                  [disabled]="actionBusy()"
-                  (click)="hangup(row.channel)"
-                >
-                  {{ 'MONITOR.HANGUP' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="btn btn--ghost btn--xs"
-                  [class.btn--picked]="isBridgeSelected(row.channel)"
-                  [disabled]="actionBusy()"
-                  (click)="selectForBridge(row.channel)"
-                >
-                  {{ 'MONITOR.BRIDGE_PICK' | translate }}
-                </button>
-                @if (channelSpyTarget(row); as target) {
-                  <div class="spy-actions" role="group" [attr.aria-label]="'MONITOR.SPY_LABEL' | translate">
-                    @for (m of spyModes; track m.mode) {
-                      <button
-                        type="button"
-                        class="btn btn--ghost btn--xs"
-                        [disabled]="!canSpy(target)"
-                        (click)="spy(target, m.mode)"
-                      >
-                        {{ m.labelKey | translate }}
-                      </button>
-                    }
+      </div>
+    } @else if (tab() === 'channels') {
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>{{ 'MONITOR.CHANNELS' | translate }}</th>
+              <th>{{ 'MONITOR.STATE' | translate }}</th>
+              <th>{{ 'MONITOR.CALLER' | translate }}</th>
+              <th>{{ 'MONITOR.APP' | translate }}</th>
+              <th>{{ 'MONITOR.DURATION' | translate }}</th>
+              <th class="text-end">{{ 'CALL_ROUTING.COL_ACTIONS' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of channelsRows(); track row.channel) {
+              <tr>
+                <td><span class="font-mono font-bold" dir="ltr">{{ row.channel }}</span></td>
+                <td><span class="status-pill" [attr.data-tone]="row.state === 'Up' ? 'ok' : 'warn'">{{ row.state }}</span></td>
+                <td><span class="font-mono" dir="ltr">{{ row.callerId || '—' }}</span></td>
+                <td><span class="font-mono" dir="ltr">{{ row.application || '—' }}</span></td>
+                <td><span class="font-mono" dir="ltr">{{ row.durationSec != null ? row.durationSec + 's' : '—' }}</span></td>
+                <td class="text-end">
+                  <div class="table-row-actions">
+                    <button type="button" class="btn-action-icon btn-action-icon--danger" (click)="hangup(row.channel)" [disabled]="actionBusy()" [title]="'MONITOR.HANGUP' | translate">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
                   </div>
-                }
-              </footer>
-            </article>
-          }
-        }
-      }
-    </div>
-  }
-
-  <app-list-pager
-    [query]="query"
-    [totalCount]="totalCount()"
-    [busy]="loading()"
-    (queryChange)="onQueryChange($event)"
-  />
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-cell text-center muted">{{ 'LIST.EMPTY' | translate }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <app-list-pager
+      [query]="query"
+      [totalCount]="totalCount()"
+      (queryChange)="onQueryChange($event)"
+    />
+  </div>
 </section>

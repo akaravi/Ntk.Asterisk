@@ -3,7 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
 import { QueueAclAuthService } from '../../core/services/queue-acl-auth.service';
-
+import { ThemeService, ThemeMode } from '../../core/services/theme.service';
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -16,7 +16,7 @@ export class ShellComponent implements OnInit {
   private readonly hub = inject(AsteriskHubService);
   private readonly auth = inject(QueueAclAuthService);
   private readonly router = inject(Router);
-
+  readonly theme = inject(ThemeService);
   readonly lang = signal('fa');
   readonly hubOk = signal(false);
   readonly gateActive = signal(false);

@@ -1,75 +1,89 @@
-<section class="page connection">
+<section class="page connection-page" aria-labelledby="connection-title">
+  <!-- Masthead Header -->
   <header class="page__header">
-    <div>
-      <h1>{{ 'NAV.CONNECTION' | translate }}</h1>
+    <div class="header-title-group">
+      <h1 id="connection-title">{{ 'NAV.CONNECTION' | translate }}</h1>
       <p class="page__header-sub">{{ 'CONNECTION.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="page__actions">
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="actionBusy()"
+        (click)="connectAll()"
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <span>{{ 'CONNECTION.CONNECT_ALL' | translate }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="reload()" [disabled]="loading()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>{{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportExcel()" [title]="'LIST.EXPORT_EXCEL' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Excel</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportPdf()" [title]="'LIST.EXPORT_PDF' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/><path d="M9 7h1"/></svg>
+        <span>PDF</span>
+      </button>
     </div>
   </header>
 
   @if (error()) {
-    <p class="banner banner--error" role="alert">{{ error() }}</p>
+    <div class="banner banner--error" role="alert">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ error() }}</span>
+    </div>
   }
   @if (success()) {
-    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+    <div class="banner banner--ok" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>{{ success()! | translate }}</span>
+    </div>
   }
 
-  <div class="status-grid" aria-live="polite">
-    <article class="stat" [class.stat--ok]="hubConnected()" [class.stat--bad]="!hubConnected()">
-      <h2>{{ 'CONNECTION.SIGNALR' | translate }}</h2>
-      <p class="stat__value">
+  <!-- KPI Overview Cards -->
+  <div class="kpi-grid" aria-live="polite">
+    <div class="view-card kpi-card" [class.kpi-card--ok]="hubConnected()" [class.kpi-card--bad]="!hubConnected()">
+      <div class="kpi-card__top">
+        <span class="server-chip__dot" [class.server-chip__dot--on]="hubConnected()" [class.server-chip__dot--off]="!hubConnected()"></span>
+        <h3>{{ 'CONNECTION.SIGNALR' | translate }}</h3>
+      </div>
+      <p class="kpi-card__val font-bold">
         {{ (hubConnected() ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
       </p>
-    </article>
-    <article
-      class="stat"
-      [class.stat--ok]="liveStatus()?.connected"
-      [class.stat--bad]="liveStatus() && !liveStatus()?.connected"
-    >
-      <h2>{{ 'CONNECTION.LIVE_SESSION' | translate }}</h2>
-      <p class="stat__value">
-        {{
-          liveStatus()
-            ? ((liveStatus()!.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED')
-              | translate)
-            : '—'
-        }}
-      </p>
-      @if (liveStatus()?.serverName) {
-        <p class="muted">{{ liveStatus()!.serverName }}</p>
-      }
-      <div class="stat__actions">
-        <button
-          type="button"
-          class="btn btn--primary btn--xs"
-          [disabled]="actionBusy() || !!liveStatus()?.connected"
-          (click)="connectLive(liveStatus()?.serverId)"
-        >
-          {{ 'CONNECTION.CONNECT' | translate }}
-        </button>
-        <button
-          type="button"
-          class="btn btn--ghost btn--xs"
-          [disabled]="actionBusy()"
-          (click)="connectAll()"
-        >
-          {{ 'CONNECTION.CONNECT_ALL' | translate }}
-        </button>
-        <button
-          type="button"
-          class="btn btn--danger btn--xs"
-          [disabled]="actionBusy() || !liveStatus()?.connected"
-          (click)="disconnectLive(liveStatus()?.serverId)"
-        >
-          {{ 'CONNECTION.DISCONNECT' | translate }}
-        </button>
+    </div>
+
+    <div class="view-card kpi-card" [class.kpi-card--ok]="liveStatus()?.connected" [class.kpi-card--bad]="liveStatus() && !liveStatus()?.connected">
+      <div class="kpi-card__top">
+        <span class="server-chip__dot" [class.server-chip__dot--on]="liveStatus()?.connected" [class.server-chip__dot--off]="!liveStatus()?.connected"></span>
+        <h3>{{ 'CONNECTION.LIVE_SESSION' | translate }}</h3>
       </div>
-    </article>
-    <article class="stat">
-      <h2>{{ 'CONNECTION.ENABLED_COUNT' | translate }}</h2>
-      <p class="stat__value ltr">{{ rowsAll().length }}</p>
-    </article>
+      <div class="kpi-card__content">
+        <p class="kpi-card__val font-bold">
+          {{
+            liveStatus()
+              ? ((liveStatus()!.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate)
+              : '—'
+          }}
+        </p>
+        @if (liveStatus()?.serverName) {
+          <span class="font-mono text-muted text-xs" dir="ltr">{{ liveStatus()!.serverName }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="view-card kpi-card">
+      <div class="kpi-card__top">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/></svg>
+        <h3>{{ 'CONNECTION.ENABLED_COUNT' | translate }}</h3>
+      </div>
+      <p class="kpi-card__val font-mono font-bold">{{ rowsAll().length }}</p>
+    </div>
   </div>
 
+  <!-- Toolbar with Filters -->
   <app-list-toolbar
     [query]="query"
     [totalCount]="totalCount()"
@@ -82,90 +96,92 @@
     (exportExcel)="exportExcel()"
   />
 
-  <div class="entity-board" [attr.aria-busy]="loading()">
-    @if (loading()) {
-      <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
-    } @else if (rows().length === 0) {
-      <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-    } @else {
-      @for (s of rows(); track s.serverId || endpoint(s)) {
-        <article
-          class="entity-card"
-          [attr.data-tone]="s.connected ? 'ok' : 'fail'"
-          [attr.data-live]="s.isLiveSession ? 'true' : null"
-        >
-          <header class="entity-card__head">
-            <div class="entity-card__identity">
-              <span class="entity-card__title">{{ s.serverName || '—' }}</span>
-              <span class="status-pill" [attr.data-tone]="s.connected ? 'ok' : 'fail'">
-                {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
-              </span>
-              @if (s.isDefault) {
-                <span class="status-pill" data-tone="ok">{{ 'CONNECTION.DEFAULT' | translate }}</span>
-              }
-              @if (s.isLiveSession) {
-                <span class="status-pill" data-tone="ok">{{ 'CONNECTION.LIVE' | translate }}</span>
-              }
-            </div>
-          </header>
+  <!-- Servers Connection Table Card -->
+  <div class="view-card table-view-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        <h2>{{ 'SETTINGS.SERVERS_TITLE' | translate }}</h2>
+        <span class="badge badge--neutral">{{ totalCount() }}</span>
+      </div>
+    </div>
 
-          <dl class="entity-card__meta">
-            <div>
-              <dt>{{ 'CONNECTION.COL_HOST' | translate }}</dt>
-              <dd class="ltr">{{ endpoint(s) }}</dd>
-            </div>
-            <div>
-              <dt>{{ 'CONNECTION.COL_USER' | translate }}</dt>
-              <dd class="ltr">{{ s.username || '—' }}</dd>
-            </div>
-            <div>
-              <dt>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</dt>
-              <dd class="ltr">{{ s.channelTech || '—' }}</dd>
-            </div>
-            <div>
-              <dt>{{ 'CONNECTION.UPTIME' | translate }}</dt>
-              <dd class="ltr">
-                {{ s.connected && s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
-              </dd>
-            </div>
-            @if (s.asteriskVersion) {
-              <div>
-                <dt>{{ 'CONNECTION.COL_VERSION' | translate }}</dt>
-                <dd class="ltr">{{ s.asteriskVersion }}</dd>
-              </div>
-            }
-          </dl>
-
-          @if (s.lastError) {
-            <p class="banner banner--warn connection__row-error" role="status">{{ s.lastError }}</p>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>{{ 'SETTINGS.SERVER_NAME' | translate }}</th>
+            <th>{{ 'CONNECTION.COL_HOST' | translate }}</th>
+            <th>{{ 'CONNECTION.COL_USER' | translate }}</th>
+            <th>{{ 'CONNECTION.CHANNEL_TECH' | translate }}</th>
+            <th>{{ 'CONNECTION.COL_STATUS' | translate }}</th>
+            <th>{{ 'CONNECTION.UPTIME' | translate }}</th>
+            <th class="text-end">{{ 'CALL_ROUTING.COL_ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of rows(); track s.serverId || endpoint(s)) {
+            <tr [class.row-default]="s.isDefault">
+              <td>
+                <div class="server-name-cell">
+                  <span class="server-chip__dot" [class.server-chip__dot--on]="s.connected" [class.server-chip__dot--off]="!s.connected"></span>
+                  <strong class="server-name font-mono" dir="ltr">{{ s.serverName || '—' }}</strong>
+                  @if (s.isDefault) {
+                    <span class="badge badge--ok">{{ 'CONNECTION.DEFAULT' | translate }}</span>
+                  }
+                  @if (s.isLiveSession) {
+                    <span class="badge badge--ext">{{ 'CONNECTION.LIVE' | translate }}</span>
+                  }
+                </div>
+              </td>
+              <td><span class="font-mono" dir="ltr">{{ endpoint(s) }}</span></td>
+              <td><span class="font-mono text-muted" dir="ltr">{{ s.username || '—' }}</span></td>
+              <td><span class="badge font-mono" dir="ltr">{{ s.channelTech || 'SIP' }}</span></td>
+              <td>
+                <span class="status-pill" [attr.data-tone]="s.connected ? 'ok' : 'fail'">
+                  {{ (s.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
+                </span>
+              </td>
+              <td>
+                <span class="font-mono text-xs" dir="ltr">
+                  {{ s.connected && s.uptimeSeconds != null ? s.uptimeSeconds + 's' : '—' }}
+                </span>
+              </td>
+              <td class="text-end">
+                <div class="table-row-actions">
+                  @if (s.connected) {
+                    <button
+                      type="button"
+                      class="btn-action-icon btn-action-icon--danger"
+                      [disabled]="rowBusy(s.serverId)"
+                      (click)="disconnectLive(s.serverId)"
+                      [title]="'CONNECTION.DISCONNECT' | translate"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-action-icon btn-action-icon--connected"
+                      [disabled]="rowBusy(s.serverId) || !s.configured"
+                      (click)="connectLive(s.serverId)"
+                      [title]="'CONNECTION.CONNECT' | translate"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-cell text-center muted">{{ 'LIST.EMPTY' | translate }}</td>
+            </tr>
           }
+        </tbody>
+      </table>
+    </div>
 
-          <footer class="entity-card__foot">
-            <button
-              type="button"
-              class="btn btn--primary btn--xs"
-              [disabled]="rowBusy(s.serverId) || s.connected || !s.configured"
-              (click)="connectLive(s.serverId)"
-            >
-              {{ 'CONNECTION.CONNECT' | translate }}
-            </button>
-            <button
-              type="button"
-              class="btn btn--danger btn--xs"
-              [disabled]="rowBusy(s.serverId) || !s.connected"
-              (click)="disconnectLive(s.serverId)"
-            >
-              {{ 'CONNECTION.DISCONNECT' | translate }}
-            </button>
-          </footer>
-        </article>
-      }
-    }
+    <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
   </div>
-
-  <app-list-pager [query]="query" [totalCount]="totalCount()" (queryChange)="onQueryChange($event)" />
-
-  @if (refreshedAt(); as t) {
-    <p class="muted" dir="ltr">{{ t | date: 'yyyy-MM-dd HH:mm:ss' }} UTC display</p>
-  }
 </section>

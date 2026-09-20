@@ -186,6 +186,14 @@ public sealed class ConfigVisibilityDto
     public string? QueueRenameMap { get; init; }
     public string? CallFileStagingDirectory { get; init; }
     public string? CallFileOutgoingDirectory { get; init; }
+    public int IvrInterceptDelaySeconds { get; init; } = 3;
+    public int DefaultExtensionTimeoutSeconds { get; init; } = 15;
+    public int DefaultExternalTimeoutSeconds { get; init; } = 30;
+    public string? DefaultOutboundTrunk { get; init; } = "trunk-default";
+    public string? DefaultFallbackContext { get; init; } = "timeconditions,2,1";
+    public bool EnableDirectInboundRouting { get; init; } = true;
+    public bool EnableLiveIvrIntercept { get; init; } = true;
+    public bool AutoRecordSmartRoutes { get; init; }
 }
 
 /// <summary>List/detail DTO for multi-server Admin management (secret never returned).</summary>
@@ -228,6 +236,14 @@ public sealed class AsteriskServerDto
     public string? QueueRenameMap { get; init; }
     public string? CallFileStagingDirectory { get; init; }
     public string? CallFileOutgoingDirectory { get; init; }
+    public int IvrInterceptDelaySeconds { get; init; } = 3;
+    public int DefaultExtensionTimeoutSeconds { get; init; } = 15;
+    public int DefaultExternalTimeoutSeconds { get; init; } = 30;
+    public string? DefaultOutboundTrunk { get; init; } = "trunk-default";
+    public string? DefaultFallbackContext { get; init; } = "timeconditions,2,1";
+    public bool EnableDirectInboundRouting { get; init; } = true;
+    public bool EnableLiveIvrIntercept { get; init; } = true;
+    public bool AutoRecordSmartRoutes { get; init; }
 }
 
 public sealed class AsteriskServerAddRequest
@@ -267,6 +283,14 @@ public sealed class AsteriskServerAddRequest
     public string? QueueRenameMap { get; set; }
     public string? CallFileStagingDirectory { get; set; }
     public string? CallFileOutgoingDirectory { get; set; }
+    public int? IvrInterceptDelaySeconds { get; set; } = 3;
+    public int? DefaultExtensionTimeoutSeconds { get; set; } = 15;
+    public int? DefaultExternalTimeoutSeconds { get; set; } = 30;
+    public string? DefaultOutboundTrunk { get; set; } = "trunk-default";
+    public string? DefaultFallbackContext { get; set; } = "timeconditions,2,1";
+    public bool? EnableDirectInboundRouting { get; set; } = true;
+    public bool? EnableLiveIvrIntercept { get; set; } = true;
+    public bool? AutoRecordSmartRoutes { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }
 
@@ -309,6 +333,14 @@ public sealed class AsteriskServerUpdateRequest
     public string? QueueRenameMap { get; set; }
     public string? CallFileStagingDirectory { get; set; }
     public string? CallFileOutgoingDirectory { get; set; }
+    public int? IvrInterceptDelaySeconds { get; set; }
+    public int? DefaultExtensionTimeoutSeconds { get; set; }
+    public int? DefaultExternalTimeoutSeconds { get; set; }
+    public string? DefaultOutboundTrunk { get; set; }
+    public string? DefaultFallbackContext { get; set; }
+    public bool? EnableDirectInboundRouting { get; set; }
+    public bool? EnableLiveIvrIntercept { get; set; }
+    public bool? AutoRecordSmartRoutes { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }
 
@@ -393,5 +425,13 @@ public sealed class AsteriskSiteSettingsUpdateRequest
     public string? QueueRenameMap { get; set; }
     public string? CallFileStagingDirectory { get; set; }
     public string? CallFileOutgoingDirectory { get; set; }
+    public int? IvrInterceptDelaySeconds { get; set; }
+    public int? DefaultExtensionTimeoutSeconds { get; set; }
+    public int? DefaultExternalTimeoutSeconds { get; set; }
+    public string? DefaultOutboundTrunk { get; set; }
+    public string? DefaultFallbackContext { get; set; }
+    public bool? EnableDirectInboundRouting { get; set; }
+    public bool? EnableLiveIvrIntercept { get; set; }
+    public bool? AutoRecordSmartRoutes { get; set; }
     public bool? ReconnectAfterSave { get; set; } = true;
 }

@@ -21,6 +21,55 @@ export interface ConnectionStatus {
   isLiveSession?: boolean;
 }
 
+export interface SmartRouteDecisionItem {
+  id: string;
+  callerNumber: string;
+  normalizedCallerNumber?: string | null;
+  contactName?: string | null;
+  channel?: string | null;
+  uniqueId?: string | null;
+  source: string; // 'agi' | 'simulator' | 'manual' | 'dialplan'
+  matched: boolean;
+  action: string; // 'DialExtension' | 'ForwardMobile' | 'DialExtensionThenForward' | 'DefaultIVR'
+  destinationExtension?: string | null;
+  destinationExternalNumber?: string | null;
+  outboundTrunk?: string | null;
+  timeoutSeconds: number;
+  reason: string;
+  matchedRuleId?: string | null;
+  timestampUtc: string;
+  status: string; // 'Routed' | 'Fallback' | 'Dialing' | 'Answered' | 'NoAnswer' | 'Error'
+  note?: string | null;
+}
+
+export interface CallRouteItem {
+  id: string;
+  callerNumber: string;
+  contactName?: string | null;
+  description?: string | null;
+  targetExtension?: string | null;
+  targetExternalNumber?: string | null;
+  extensionTimeout: number;
+  outboundTrunk?: string | null;
+  isActive: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SmartRouteLookupResponse {
+  matched: boolean;
+  route?: CallRouteItem | null;
+  action: string;
+  destinationExtension?: string | null;
+  destinationExternalNumber?: string | null;
+  timeoutSeconds: number;
+  outboundTrunk?: string | null;
+  normalizedCallerNumber: string;
+  message: string;
+  decision?: SmartRouteDecisionItem | null;
+}
+
 export interface PeerItem {
   id: string;
   tech: string;
@@ -209,6 +258,14 @@ export interface SiteSettings {
   webSocketPort?: number | null;
   sipUseTls?: boolean;
   stunServersJson?: string | null;
+  ivrInterceptDelaySeconds?: number;
+  defaultExtensionTimeoutSeconds?: number;
+  defaultExternalTimeoutSeconds?: number;
+  defaultOutboundTrunk?: string | null;
+  defaultFallbackContext?: string | null;
+  enableDirectInboundRouting?: boolean;
+  enableLiveIvrIntercept?: boolean;
+  autoRecordSmartRoutes?: boolean;
 }
 
 /** One Asterisk AMI server in the multi-server registry. */
@@ -250,6 +307,14 @@ export interface AsteriskServer {
   webSocketPort?: number | null;
   sipUseTls?: boolean;
   stunServersJson?: string | null;
+  ivrInterceptDelaySeconds?: number;
+  defaultExtensionTimeoutSeconds?: number;
+  defaultExternalTimeoutSeconds?: number;
+  defaultOutboundTrunk?: string | null;
+  defaultFallbackContext?: string | null;
+  enableDirectInboundRouting?: boolean;
+  enableLiveIvrIntercept?: boolean;
+  autoRecordSmartRoutes?: boolean;
 }
 
 export interface SiteSettingsUpdateRequest {
@@ -287,6 +352,14 @@ export interface SiteSettingsUpdateRequest {
   webSocketPort?: number | null;
   sipUseTls?: boolean | null;
   stunServersJson?: string | null;
+  ivrInterceptDelaySeconds?: number | null;
+  defaultExtensionTimeoutSeconds?: number | null;
+  defaultExternalTimeoutSeconds?: number | null;
+  defaultOutboundTrunk?: string | null;
+  defaultFallbackContext?: string | null;
+  enableDirectInboundRouting?: boolean | null;
+  enableLiveIvrIntercept?: boolean | null;
+  autoRecordSmartRoutes?: boolean | null;
   reconnectAfterSave?: boolean;
 }
 
@@ -333,6 +406,14 @@ export interface AsteriskServerAddRequest {
   webSocketPort?: number | null;
   sipUseTls?: boolean | null;
   stunServersJson?: string | null;
+  ivrInterceptDelaySeconds?: number | null;
+  defaultExtensionTimeoutSeconds?: number | null;
+  defaultExternalTimeoutSeconds?: number | null;
+  defaultOutboundTrunk?: string | null;
+  defaultFallbackContext?: string | null;
+  enableDirectInboundRouting?: boolean | null;
+  enableLiveIvrIntercept?: boolean | null;
+  autoRecordSmartRoutes?: boolean | null;
   reconnectAfterSave?: boolean;
 }
 

@@ -154,6 +154,14 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 QueueRenameMap = NullIfWhiteSpace(request.QueueRenameMap),
                 CallFileStagingDirectory = NullIfWhiteSpace(request.CallFileStagingDirectory),
                 CallFileOutgoingDirectory = NullIfWhiteSpace(request.CallFileOutgoingDirectory),
+                IvrInterceptDelaySeconds = request.IvrInterceptDelaySeconds ?? 3,
+                DefaultExtensionTimeoutSeconds = request.DefaultExtensionTimeoutSeconds ?? 15,
+                DefaultExternalTimeoutSeconds = request.DefaultExternalTimeoutSeconds ?? 30,
+                DefaultOutboundTrunk = NullIfWhiteSpace(request.DefaultOutboundTrunk) ?? "trunk-default",
+                DefaultFallbackContext = NullIfWhiteSpace(request.DefaultFallbackContext) ?? "timeconditions,2,1",
+                EnableDirectInboundRouting = request.EnableDirectInboundRouting ?? true,
+                EnableLiveIvrIntercept = request.EnableLiveIvrIntercept ?? true,
+                AutoRecordSmartRoutes = request.AutoRecordSmartRoutes ?? false,
             };
 
             NormalizeServer(created);
@@ -228,6 +236,16 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 request.CallFileStagingDirectory,
                 request.CallFileOutgoingDirectory);
 
+            ApplySmartRoutingFields(
+                target,
+                request.IvrInterceptDelaySeconds,
+                request.DefaultExtensionTimeoutSeconds,
+                request.DefaultExternalTimeoutSeconds,
+                request.DefaultOutboundTrunk,
+                request.DefaultFallbackContext,
+                request.EnableDirectInboundRouting,
+                request.EnableLiveIvrIntercept,
+                request.AutoRecordSmartRoutes);
             if (request.Name != null)
                 target.Name = string.IsNullOrWhiteSpace(request.Name) ? target.Name : request.Name.Trim();
 
@@ -381,6 +399,16 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
                 request.CallFileStagingDirectory,
                 request.CallFileOutgoingDirectory);
 
+            ApplySmartRoutingFields(
+                target,
+                request.IvrInterceptDelaySeconds,
+                request.DefaultExtensionTimeoutSeconds,
+                request.DefaultExternalTimeoutSeconds,
+                request.DefaultOutboundTrunk,
+                request.DefaultFallbackContext,
+                request.EnableDirectInboundRouting,
+                request.EnableLiveIvrIntercept,
+                request.AutoRecordSmartRoutes);
             NormalizeServer(target);
             EnsureDefaultInvariantUnlocked();
             PersistUnlocked();
@@ -649,6 +677,34 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
             target.CallFileOutgoingDirectory = NullIfWhiteSpace(callFileOutgoingDirectory);
     }
 
+    private static void ApplySmartRoutingFields(
+        AsteriskServerConfig target,
+        int? ivrInterceptDelaySeconds,
+        int? defaultExtensionTimeoutSeconds,
+        int? defaultExternalTimeoutSeconds,
+        string? defaultOutboundTrunk,
+        string? defaultFallbackContext,
+        bool? enableDirectInboundRouting,
+        bool? enableLiveIvrIntercept,
+        bool? autoRecordSmartRoutes)
+    {
+        if (ivrInterceptDelaySeconds.HasValue && ivrInterceptDelaySeconds.Value >= 0)
+            target.IvrInterceptDelaySeconds = ivrInterceptDelaySeconds.Value;
+        if (defaultExtensionTimeoutSeconds.HasValue && defaultExtensionTimeoutSeconds.Value > 0)
+            target.DefaultExtensionTimeoutSeconds = defaultExtensionTimeoutSeconds.Value;
+        if (defaultExternalTimeoutSeconds.HasValue && defaultExternalTimeoutSeconds.Value > 0)
+            target.DefaultExternalTimeoutSeconds = defaultExternalTimeoutSeconds.Value;
+        if (defaultOutboundTrunk != null)
+            target.DefaultOutboundTrunk = NullIfWhiteSpace(defaultOutboundTrunk);
+        if (defaultFallbackContext != null)
+            target.DefaultFallbackContext = NullIfWhiteSpace(defaultFallbackContext);
+        if (enableDirectInboundRouting.HasValue)
+            target.EnableDirectInboundRouting = enableDirectInboundRouting.Value;
+        if (enableLiveIvrIntercept.HasValue)
+            target.EnableLiveIvrIntercept = enableLiveIvrIntercept.Value;
+        if (autoRecordSmartRoutes.HasValue)
+            target.AutoRecordSmartRoutes = autoRecordSmartRoutes.Value;
+    }
     private static ConfigVisibilityDto ToVisibilityDto(AsteriskServerConfig opt, bool persisted) => new()
     {
         AmiConfigured = opt.IsConfigured,
@@ -683,6 +739,14 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         QueueRenameMap = opt.QueueRenameMap,
         CallFileStagingDirectory = opt.CallFileStagingDirectory,
         CallFileOutgoingDirectory = opt.CallFileOutgoingDirectory,
+        IvrInterceptDelaySeconds = opt.IvrInterceptDelaySeconds,
+        DefaultExtensionTimeoutSeconds = opt.DefaultExtensionTimeoutSeconds,
+        DefaultExternalTimeoutSeconds = opt.DefaultExternalTimeoutSeconds,
+        DefaultOutboundTrunk = opt.DefaultOutboundTrunk,
+        DefaultFallbackContext = opt.DefaultFallbackContext,
+        EnableDirectInboundRouting = opt.EnableDirectInboundRouting,
+        EnableLiveIvrIntercept = opt.EnableLiveIvrIntercept,
+        AutoRecordSmartRoutes = opt.AutoRecordSmartRoutes,
         Note = "Managed via Admin Settings. Secret is never returned; leave blank to keep existing."
     };
 
@@ -725,6 +789,14 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         QueueRenameMap = opt.QueueRenameMap,
         CallFileStagingDirectory = opt.CallFileStagingDirectory,
         CallFileOutgoingDirectory = opt.CallFileOutgoingDirectory,
+        IvrInterceptDelaySeconds = opt.IvrInterceptDelaySeconds,
+        DefaultExtensionTimeoutSeconds = opt.DefaultExtensionTimeoutSeconds,
+        DefaultExternalTimeoutSeconds = opt.DefaultExternalTimeoutSeconds,
+        DefaultOutboundTrunk = opt.DefaultOutboundTrunk,
+        DefaultFallbackContext = opt.DefaultFallbackContext,
+        EnableDirectInboundRouting = opt.EnableDirectInboundRouting,
+        EnableLiveIvrIntercept = opt.EnableLiveIvrIntercept,
+        AutoRecordSmartRoutes = opt.AutoRecordSmartRoutes,
     };
 
     private static AsteriskServerConfig CloneServer(AsteriskServerConfig src) => new()
@@ -765,6 +837,14 @@ public sealed class AsteriskSettingsService : IAsteriskSettingsService
         QueueRenameMap = src.QueueRenameMap,
         CallFileStagingDirectory = src.CallFileStagingDirectory,
         CallFileOutgoingDirectory = src.CallFileOutgoingDirectory,
+        IvrInterceptDelaySeconds = src.IvrInterceptDelaySeconds,
+        DefaultExtensionTimeoutSeconds = src.DefaultExtensionTimeoutSeconds,
+        DefaultExternalTimeoutSeconds = src.DefaultExternalTimeoutSeconds,
+        DefaultOutboundTrunk = src.DefaultOutboundTrunk,
+        DefaultFallbackContext = src.DefaultFallbackContext,
+        EnableDirectInboundRouting = src.EnableDirectInboundRouting,
+        EnableLiveIvrIntercept = src.EnableLiveIvrIntercept,
+        AutoRecordSmartRoutes = src.AutoRecordSmartRoutes,
     };
 
     private static AsteriskOptions CloneOptions(AsteriskOptions src) => new()

@@ -1,29 +1,57 @@
-<section class="page">
+<section class="page jobs-page" aria-labelledby="jobs-title">
+  <!-- Masthead Header -->
   <header class="page__header">
-    <div>
-      <h1>{{ 'NAV.JOBS' | translate }}</h1>
+    <div class="header-title-group">
+      <h1 id="jobs-title">{{ 'NAV.JOBS' | translate }}</h1>
       <p class="page__header-sub">{{ 'JOBS.SUBTITLE' | translate }}</p>
+    </div>
+    <div class="page__actions">
+      <button type="button" class="btn btn--primary" (click)="reload()" [disabled]="loading()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>{{ loading() ? ('ACTION.LOADING' | translate) : ('ACTION.REFRESH' | translate) }}</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportExcel()" [title]="'LIST.EXPORT_EXCEL' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Excel</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="exportPdf()" [title]="'LIST.EXPORT_PDF' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/><path d="M9 7h1"/></svg>
+        <span>PDF</span>
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="printTable()" [title]="'LIST.PRINT' | translate">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <span>{{ 'LIST.PRINT' | translate }}</span>
+      </button>
     </div>
   </header>
 
   @if (error()) {
-    <p class="banner banner--error" role="alert">{{ error() }}</p>
+    <div class="banner banner--error" role="alert">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>{{ error() }}</span>
+    </div>
   }
   @if (success()) {
-    <p class="banner banner--ok" role="status">{{ success()! | translate }}</p>
+    <div class="banner banner--ok" role="status">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span>{{ success()! | translate }}</span>
+    </div>
   }
 
-  <article class="entity-card callfile-card">
-    <header class="entity-card__head">
-      <div class="entity-card__identity">
-        <h2 class="entity-card__title">{{ 'JOBS.CALLFILE_TITLE' | translate }}</h2>
+  <!-- Create Call File Spool Card -->
+  <div class="view-card form-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        <h2>{{ 'JOBS.CALLFILE_TITLE' | translate }}</h2>
       </div>
-    </header>
-    <p class="muted callfile-card__hint">{{ 'JOBS.CALLFILE_HINT' | translate }}</p>
-    <form class="callfile-form" [formGroup]="callFileForm" (ngSubmit)="submitCallFile()" novalidate>
-      <div class="callfile-form__grid">
+      <span class="text-muted font-mono" dir="ltr">/var/spool/asterisk/outgoing</span>
+    </div>
+
+    <form [formGroup]="callFileForm" (ngSubmit)="submitCallFile()" novalidate>
+      <div class="form-grid">
         <label class="field">
-          <span>{{ 'JOBS.CALLFILE_CHANNEL' | translate }}</span>
+          <span>{{ 'JOBS.CALLFILE_CHANNEL' | translate }} *</span>
           <input
             type="text"
             formControlName="channel"
@@ -42,19 +70,19 @@
             [placeholder]="'JOBS.CALLFILE_CALLER_ID_PH' | translate"
           />
         </label>
-        <label class="field field--narrow">
+        <label class="field">
           <span>{{ 'JOBS.CALLFILE_WAIT' | translate }}</span>
           <input type="number" formControlName="waitTimeSec" class="ltr" dir="ltr" [placeholder]="'JOBS.CALLFILE_WAIT_PH' | translate" />
         </label>
-        <label class="field field--narrow">
+        <label class="field">
           <span>{{ 'JOBS.CALLFILE_RETRIES' | translate }}</span>
           <input type="number" formControlName="maxRetries" class="ltr" dir="ltr" [placeholder]="'JOBS.CALLFILE_RETRIES_PH' | translate" />
         </label>
-        <label class="field field--narrow">
+        <label class="field">
           <span>{{ 'JOBS.CALLFILE_RETRY_TIME' | translate }}</span>
           <input type="number" formControlName="retryTimeSec" class="ltr" dir="ltr" [placeholder]="'JOBS.CALLFILE_RETRY_TIME_PH' | translate" />
         </label>
-        <label class="field field--narrow">
+        <label class="field">
           <span>{{ 'JOBS.CALLFILE_ARCHIVE' | translate }}</span>
           <select formControlName="archive" class="ltr" dir="ltr">
             <option value="yes">yes</option>
@@ -110,7 +138,7 @@
               [placeholder]="'JOBS.CALLFILE_EXTENSION_PH' | translate"
             />
           </label>
-          <label class="field field--narrow">
+          <label class="field">
             <span>{{ 'JOBS.CALLFILE_PRIORITY' | translate }}</span>
             <input
               type="text"
@@ -122,14 +150,16 @@
           </label>
         }
       </div>
-      <div class="callfile-form__actions">
-        <button type="submit" class="btn" [disabled]="callFileBusy()">
-          {{ callFileBusy() ? ('ACTION.LOADING' | translate) : ('JOBS.CALLFILE_SUBMIT' | translate) }}
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary" [disabled]="callFileBusy() || callFileForm.invalid">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <span>{{ callFileBusy() ? ('ACTION.LOADING' | translate) : ('JOBS.CALLFILE_SUBMIT' | translate) }}</span>
         </button>
       </div>
     </form>
-  </article>
+  </div>
 
+  <!-- List Toolbar with Advanced Filters -->
   <app-list-toolbar
     [query]="query"
     [totalCount]="totalCount()"
@@ -142,120 +172,95 @@
     (exportExcel)="exportExcel()"
   />
 
-  <div class="entity-board" [attr.aria-busy]="loading()">
-    @if (loading()) {
-      <p class="entity-empty muted">…</p>
-    } @else if (jobsRows().length === 0) {
-      <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
-    } @else {
-      @for (job of jobsRows(); track job.id) {
-        <article class="entity-card" [attr.data-status]="normalizeState(job.state)">
-          <header class="entity-card__head">
-            <div class="entity-card__identity">
-              <span class="entity-card__title">{{ typeLabel(job.type) }}</span>
-              <span class="status-pill" [attr.data-status]="normalizeState(job.state)">{{
-                stateLabel(job.state)
-              }}</span>
-            </div>
-            <div class="entity-card__route ltr" dir="ltr">
-              <span>{{ displayFrom(job) }}</span>
-              <span class="entity-card__arrow" aria-hidden="true">→</span>
-              <span>{{ displayTo(job) }}</span>
-            </div>
-            <div class="entity-card__actions">
-              @if (canRedial(job)) {
-                <button
-                  type="button"
-                  class="btn"
-                  [disabled]="actionBusyId() === job.id"
-                  (click)="redial(job)"
-                >
-                  {{
-                    actionBusyId() === job.id
-                      ? ('ACTION.LOADING' | translate)
-                      : ('JOBS.REDIAL' | translate)
-                  }}
-                </button>
-              }
-              @if (canDownloadRecording(job)) {
-                <button
-                  type="button"
-                  class="btn btn--ghost"
-                  [disabled]="actionBusyId() === job.id"
-                  (click)="downloadRecording(job)"
-                >
-                  {{
-                    actionBusyId() === job.id
-                      ? ('ACTION.LOADING' | translate)
-                      : ('JOBS.DOWNLOAD_AUDIO' | translate)
-                  }}
-                </button>
-              }
-              @if (canCancel(job)) {
-                <button
-                  type="button"
-                  class="btn btn--danger"
-                  [disabled]="actionBusyId() === job.id"
-                  (click)="cancel(job)"
-                >
-                  {{
-                    actionBusyId() === job.id
-                      ? ('ACTION.LOADING' | translate)
-                      : ('JOBS.CANCEL' | translate)
-                  }}
-                </button>
-              }
-            </div>
-          </header>
+  <!-- Jobs Board View Card -->
+  <div class="view-card table-view-card">
+    <div class="view-card__header">
+      <div class="view-card__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        <h2>{{ 'NAV.JOBS' | translate }}</h2>
+        <span class="badge badge--neutral">{{ totalCount() }}</span>
+      </div>
+    </div>
 
-          <p class="entity-card__reason" [attr.data-tone]="reasonTone(job)">
-            <span class="entity-card__reason-label">{{ 'JOBS.COL_REASON' | translate }}</span>
-            <span>{{ reason(job) }}</span>
-          </p>
+    <div class="jobs-list" [attr.aria-busy]="loading()">
+      @if (loading()) {
+        <p class="entity-empty muted">{{ 'ACTION.LOADING' | translate }}</p>
+      } @else if (jobsRows().length === 0) {
+        <p class="entity-empty">{{ 'LIST.EMPTY' | translate }}</p>
+      } @else {
+        @for (job of jobsRows(); track job.id) {
+          <article class="job-item-card" [attr.data-status]="normalizeState(job.state)">
+            <header class="job-item-card__header">
+              <div class="job-identity">
+                <span class="job-type-badge">{{ typeLabel(job.type) }}</span>
+                <span class="status-pill" [attr.data-status]="normalizeState(job.state)">
+                  {{ stateLabel(job.state) }}
+                </span>
+                <span class="font-mono text-muted text-xs ltr" dir="ltr">#{{ job.id }}</span>
+              </div>
 
-          <dl class="entity-card__meta">
-            <div>
-              <dt>{{ 'JOBS.COL_CALL_TIME' | translate }}</dt>
-              <dd class="ltr" dir="ltr">
-                {{ (job.callTimeUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}
-              </dd>
+              <div class="job-route font-mono font-bold ltr" dir="ltr">
+                <span>{{ displayFrom(job) }}</span>
+                <span class="job-arrow" aria-hidden="true">→</span>
+                <span>{{ displayTo(job) }}</span>
+              </div>
+
+              <div class="job-actions">
+                @if (canRedial(job)) {
+                  <button
+                    type="button"
+                    class="btn btn--sm btn--primary"
+                    [disabled]="actionBusyId() === job.id"
+                    (click)="redial(job)"
+                  >
+                    {{ actionBusyId() === job.id ? ('ACTION.LOADING' | translate) : ('JOBS.REDIAL' | translate) }}
+                  </button>
+                }
+                @if (canDownloadRecording(job)) {
+                  <button
+                    type="button"
+                    class="btn btn--sm btn--ghost"
+                    [disabled]="actionBusyId() === job.id"
+                    (click)="downloadRecording(job)"
+                  >
+                    {{ actionBusyId() === job.id ? ('ACTION.LOADING' | translate) : ('JOBS.DOWNLOAD_AUDIO' | translate) }}
+                  </button>
+                }
+                @if (canCancel(job)) {
+                  <button
+                    type="button"
+                    class="btn btn--sm btn--danger-ghost"
+                    [disabled]="actionBusyId() === job.id"
+                    (click)="cancel(job)"
+                  >
+                    {{ actionBusyId() === job.id ? ('ACTION.LOADING' | translate) : ('JOBS.CANCEL' | translate) }}
+                  </button>
+                }
+              </div>
+            </header>
+
+            @if (reason(job)) {
+              <div class="job-reason" [attr.data-tone]="reasonTone(job)">
+                <strong>{{ 'JOBS.COL_REASON' | translate }}:</strong> {{ reason(job) }}
+              </div>
+            }
+
+            <div class="job-meta-grid font-mono text-xs" dir="ltr">
+              <div><span>{{ 'JOBS.COL_CALL_TIME' | translate }}:</span> {{ (job.callTimeUtc || job.createdAtUtc) | date: 'yyyy-MM-dd HH:mm:ss' }}</div>
+              <div><span>{{ 'JOBS.COL_STARTED' | translate }}:</span> {{ job.startedAtUtc ? (job.startedAtUtc | date: 'HH:mm:ss') : '—' }}</div>
+              <div><span>{{ 'JOBS.COL_ENDED' | translate }}:</span> {{ job.endedAtUtc ? (job.endedAtUtc | date: 'HH:mm:ss') : '—' }}</div>
+              <div><span>{{ 'JOBS.COL_DURATION' | translate }}:</span> {{ job.durationSeconds != null ? job.durationSeconds + 's' : '—' }}</div>
             </div>
-            <div>
-              <dt>{{ 'JOBS.COL_STARTED' | translate }}</dt>
-              <dd class="ltr" dir="ltr">
-                {{ job.startedAtUtc ? (job.startedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}
-              </dd>
-            </div>
-            <div>
-              <dt>{{ 'JOBS.COL_ENDED' | translate }}</dt>
-              <dd class="ltr" dir="ltr">
-                {{ job.endedAtUtc ? (job.endedAtUtc | date: 'yyyy-MM-dd HH:mm:ss') : '—' }}
-              </dd>
-            </div>
-            <div>
-              <dt>{{ 'JOBS.COL_DURATION' | translate }}</dt>
-              <dd class="ltr" dir="ltr">
-                {{ job.durationSeconds != null ? job.durationSeconds + ' s' : '—' }}
-              </dd>
-            </div>
-            <div>
-              <dt>{{ 'JOBS.COL_UPDATED' | translate }}</dt>
-              <dd class="ltr" dir="ltr">{{ job.updatedAtUtc | date: 'yyyy-MM-dd HH:mm:ss' }}</dd>
-            </div>
-            <div class="entity-card__id">
-              <dt>{{ 'JOBS.COL_ID' | translate }}</dt>
-              <dd class="ltr" dir="ltr">{{ job.id }}</dd>
-            </div>
-          </dl>
-        </article>
+          </article>
+        }
       }
-    }
-  </div>
+    </div>
 
-  <app-list-pager
-    [query]="query"
-    [totalCount]="totalCount()"
-    [busy]="loading()"
-    (queryChange)="onQueryChange($event)"
-  />
+    <app-list-pager
+      [query]="query"
+      [totalCount]="totalCount()"
+      [busy]="loading()"
+      (queryChange)="onQueryChange($event)"
+    />
+  </div>
 </section>

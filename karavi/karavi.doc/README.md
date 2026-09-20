@@ -15,6 +15,7 @@
 | [callfile-spool.md](callfile-spool.md) | Call File stage→Move (Karavi.008) |
 | [multi-ami-live-sessions.md](multi-ami-live-sessions.md) | Multi-AMI live sockets (Karavi.009) |
 | [panel-auth-queue-acl.md](panel-auth-queue-acl.md) | Panel-wide Queue ACL gate (Karavi.010) |
+| [smart-call-routing-setup-guide.md](smart-call-routing-setup-guide.md) | راهنمای کامل راه‌اندازی و اتصال مسیریابی هوشمند تماس |
 | `workflows/` | run-all، publish، deploy، check-log |
 
 تفاوت‌های محلی فقط اینجا و در `karavi.build.config/` / `karavi.deploy.config/` — نه کپی از پروژهٔ دیگر.

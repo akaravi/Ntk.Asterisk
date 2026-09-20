@@ -32,6 +32,15 @@ public sealed class AsteriskServerConfig
     public string? RecordingAsteriskDirectory { get; set; }
     public string RecordingFormat { get; set; } = "wav";
 
+    /// <summary>Smart Routing Settings: seconds in IVR before live AMI intercept redirect (default: 3).</summary>
+    public int IvrInterceptDelaySeconds { get; set; } = 3;
+    public int DefaultExtensionTimeoutSeconds { get; set; } = 15;
+    public int DefaultExternalTimeoutSeconds { get; set; } = 30;
+    public string? DefaultOutboundTrunk { get; set; } = "trunk-default";
+    public string? DefaultFallbackContext { get; set; } = "timeconditions,2,1";
+    public bool EnableDirectInboundRouting { get; set; } = true;
+    public bool EnableLiveIvrIntercept { get; set; } = true;
+    public bool AutoRecordSmartRoutes { get; set; }
     /// <summary>Full WebSocket SIP URL (ws/wss). When set, preferred over host+port+path.</summary>
     public string? SipWebsocketUrl { get; set; }
     /// <summary>Host for SIP WebSocket when SipWebsocketUrl is empty (often same as AMI Host).</summary>

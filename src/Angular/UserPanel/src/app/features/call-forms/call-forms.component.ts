@@ -47,13 +47,15 @@ export class CallFormsComponent implements OnInit {
     this.successMessage.set(null);
     this.errorMessage.set(null);
   }
+  setExtPreset(from: string, to: string): void {
+    this.extToExtForm.patchValue({ from, to });
+  }
 
   selectTab(tab: FormTab): void {
     this.activeTab.set(tab);
     this.successMessage.set(null);
     this.errorMessage.set(null);
   }
-
   submit(): void {
     const tab = this.activeTab();
     this.successMessage.set(null);

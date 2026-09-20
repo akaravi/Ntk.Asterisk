@@ -29,11 +29,10 @@ namespace Asterisk.Console.AMI
         [STAThread]
         static void Main()
         {
-            // Comment me out if you don't want to run the AMI sample
-            checkManagerAPI();
-
-            // Comment me out if you don't want to run the FastAGI sample
+            // Start FastAGI listeners immediately on ports 4573 and 4572
             checkFastAGI();
+
+            Thread.Sleep(Timeout.Infinite);
         }
 
         #region checkFastAGI()
@@ -48,25 +47,33 @@ Also enter 'agi debug' from Asterisk console to more information.
 See CustomIVR.cs and fastagi-mapping.resx to detail.
 
 Ctrl-C to exit");
-            AsteriskFastAGI agi = new AsteriskFastAGI();
-            // Remove the lines below to enable the default (resource based) MappingStrategy
-            // You can use an XML file with XmlMappingStrategy, or simply pass in a list of
-            // ScriptMapping. 
-            // If you wish to save it to a file, use ScriptMapping.SaveMappings and pass in a path.
-            // This can then be used to load the mappings without having to change the source code!
-
-            agi.MappingStrategy = new GeneralMappingStrategy(new List<ScriptMapping>()
+            var mappings = new List<ScriptMapping>()
             {
                 new ScriptMapping() {
                     ScriptClass = "AsterNET.Test.CustomIVR",
                     ScriptName = "customivr"
+                },
+                new ScriptMapping() {
+                    ScriptClass = "Asterisk.Console.AMI.SmartCallRouteAgiScript",
+                    ScriptName = "smartroute"
                 }
+            };
+
+            AsteriskFastAGI agi4573 = new AsteriskFastAGI { BindPort = 4573 };
+            agi4573.MappingStrategy = new GeneralMappingStrategy(mappings);
+            Task.Run(() =>
+            {
+                try { agi4573.Start(); }
+                catch (Exception ex) { System.Console.WriteLine($"[FastAGI:4573] Error: {ex.Message}"); }
             });
 
-            //agi.SC511_CAUSES_EXCEPTION = true;
-            //agi.SCHANGUP_CAUSES_EXCEPTION = true;
-
-            agi.Start();
+            AsteriskFastAGI agi4572 = new AsteriskFastAGI { BindPort = 4572 };
+            agi4572.MappingStrategy = new GeneralMappingStrategy(mappings);
+            Task.Run(() =>
+            {
+                try { agi4572.Start(); }
+                catch (Exception ex) { System.Console.WriteLine($"[FastAGI:4572] Error: {ex.Message}"); }
+            });
         }
         #endregion
 

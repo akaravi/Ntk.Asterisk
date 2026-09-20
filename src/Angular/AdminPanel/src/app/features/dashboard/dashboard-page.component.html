@@ -1,0 +1,745 @@
+<div class="dash-page">
+  <!-- Top Executive Header -->
+  <header class="dash-header">
+    <div class="dash-header__main">
+      <div class="dash-title-group">
+        <div class="dash-tag" dir="ltr">{{ 'APP.TAG' | translate }}</div>
+        <h1 class="dash-title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+        <p class="dash-subtitle">{{ 'DASHBOARD.SUBTITLE' | translate }}</p>
+      </div>
+
+      <div class="dash-header__actions">
+        <!-- Live Health Badge -->
+        <div class="health-chip" [class.health-chip--ok]="systemHealthScore() >= 80" [class.health-chip--warn]="systemHealthScore() < 80" [title]="'DASHBOARD.HEALTH_DERIVED_NOTE' | translate">
+          <span class="health-chip__dot"></span>
+          <div class="health-chip__meta">
+            <span class="health-chip__label">{{ 'DASHBOARD.HEALTH_SCORE' | translate }}</span>
+            <strong class="health-chip__val">{{ systemHealthScore() }}%</strong>
+          </div>
+        </div>
+
+        <!-- Quick Refresh -->
+        <button type="button" class="btn btn--refresh" [disabled]="loading()" (click)="refreshAll()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="loading()"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span>{{ loading() ? ('DASHBOARD.REFRESHING' | translate) : ('DASHBOARD.LIVE_REFRESH' | translate) }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Perspective / Role Selector -->
+    <div class="perspective-nav">
+      <span class="perspective-nav__label">{{ 'DASHBOARD.PERSPECTIVE_LABEL' | translate }}</span>
+      <div class="perspective-tabs" role="tablist">
+        <button
+          type="button"
+          class="perspective-tab"
+          [class.active]="perspective() === 'customer'"
+          [attr.aria-selected]="perspective() === 'customer'"
+          (click)="setPerspective('customer')"
+          role="tab"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>{{ 'DASHBOARD.PERSPECTIVE_CUSTOMER' | translate }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="perspective-tab"
+          [class.active]="perspective() === 'judge'"
+          [attr.aria-selected]="perspective() === 'judge'"
+          (click)="setPerspective('judge')"
+          role="tab"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>{{ 'DASHBOARD.PERSPECTIVE_JUDGE' | translate }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="perspective-tab"
+          [class.active]="perspective() === 'operator'"
+          [attr.aria-selected]="perspective() === 'operator'"
+          (click)="setPerspective('operator')"
+          role="tab"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>{{ 'DASHBOARD.PERSPECTIVE_OPERATOR' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Cards Grid -->
+  <section class="kpi-grid">
+    <div class="kpi-card kpi-card--signal">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'DASHBOARD.KPI_ACTIVE_CALLS' | translate }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num" dir="ltr">{{ activeCallsCount() }}</div>
+        <div class="kpi-card__sub">
+          <span class="pulse-indicator pulse-indicator--ok"></span>
+          <span>{{ 'DASHBOARD.KPI_TOTAL_CHANNELS' | translate }} {{ totalChannelsCount() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--ok">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'DASHBOARD.KPI_CONNECTED_SERVERS' | translate }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num" dir="ltr">{{ connectedServersCount() }} / {{ totalServersCount() }}</div>
+        <div class="kpi-card__sub">
+          <span class="badge badge--ok">
+            {{ defaultConnection()?.connected ? ('DASHBOARD.KPI_DEFAULT_CONNECTED' | translate) : ('DASHBOARD.KPI_DEFAULT_DISCONNECTED' | translate) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--purple">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'DASHBOARD.KPI_SIP_PEERS' | translate }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num" dir="ltr">{{ onlinePeersCount() }} / {{ totalPeersCount() }}</div>
+        <div class="kpi-card__sub">
+          <span>{{ 'DASHBOARD.KPI_PEERS_ONLINE' | translate }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--amber">
+      <div class="kpi-card__head">
+        <span class="kpi-card__title">{{ 'DASHBOARD.KPI_WAITING_CALLERS' | translate }}</span>
+        <div class="kpi-card__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+      </div>
+      <div class="kpi-card__body">
+        <div class="kpi-card__num" dir="ltr">{{ totalWaitingCallers() }}</div>
+        <div class="kpi-card__sub">
+          <span>
+            {{ 'DASHBOARD.KPI_SLA_SCORE' | translate }}
+            <strong>{{ queues().length > 0 ? (averageSlaScore() + '%') : ('DASHBOARD.NO_DATA_SLA' | translate) }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PERSPECTIVE 1: CUSTOMER & EXECUTIVE ================= -->
+  @if (perspective() === 'customer') {
+    <div class="view-section">
+      <div class="grid-two-col">
+        <!-- Live Asterisk Clusters -->
+        <div class="panel-card">
+          <div class="panel-card__head">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.CLUSTER_TITLE' | translate }}</h2>
+            <button type="button" class="btn btn--sm btn--primary" (click)="connectAll()">
+              {{ 'DASHBOARD.CONNECT_ALL' | translate }}
+            </button>
+          </div>
+          <div class="panel-card__body">
+            <div class="cluster-grid">
+              @for (s of servers(); track s.id) {
+                <div class="server-node" [class.server-node--online]="isNodeConnected(s) === true" [class.server-node--offline]="isNodeConnected(s) === false" [class.server-node--disabled]="!s.isEnabled">
+                  <div class="server-node__header">
+                    <div class="server-node__identity">
+                      <span class="server-chip__dot" [class.server-chip__dot--on]="isNodeConnected(s) === true" [class.server-chip__dot--off]="isNodeConnected(s) === false"></span>
+                      <strong class="server-node__name">{{ s.name }}</strong>
+                      @if (s.isDefault) {
+                        <span class="server-node__badge server-node__badge--def">{{ 'DASHBOARD.SERVER_DEFAULT' | translate }}</span>
+                      }
+                    </div>
+
+                    <div class="server-node__badges">
+                      @if (isNodeConnected(s) === true) {
+                        <span class="status-indicator status-indicator--ok">{{ 'DASHBOARD.STATUS_CONNECTED' | translate }}</span>
+                      } @else if (isNodeConnected(s) === false) {
+                        <span class="status-indicator status-indicator--fail">{{ 'DASHBOARD.STATUS_DISCONNECTED' | translate }}</span>
+                      } @else {
+                        <span class="status-indicator">—</span>
+                      }
+
+                      <span class="status-indicator" [class.status-indicator--ok]="s.isEnabled" [class.status-indicator--fail]="!s.isEnabled">
+                        {{ (s.isEnabled ? 'SETTINGS.SERVER_ENABLED' : 'SETTINGS.SERVER_DISABLED') | translate }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="server-node__meta" dir="ltr">
+                    <div class="meta-row">
+                      <span class="meta-label">Host:</span>
+                      <span class="meta-val font-mono">{{ s.host || '—' }}:{{ s.port || '—' }}</span>
+                    </div>
+                    <div class="meta-row">
+                      <span class="meta-label">Tech:</span>
+                      <span class="meta-val font-mono">{{ s.channelTech || 'PJSIP' }}</span>
+                    </div>
+                    <div class="meta-row">
+                      <span class="meta-label">Ver:</span>
+                      <span class="meta-val font-mono">{{ getNodeVersion(s) }}</span>
+                    </div>
+                    <div class="meta-row">
+                      <span class="meta-label">Uptime:</span>
+                      <span class="meta-val font-mono">{{ getNodeUptime(s) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="server-node__actions">
+                    <!-- Inline Enable / Disable Switch -->
+                    @if (s.isEnabled) {
+                      <button
+                        type="button"
+                        class="btn btn--xs btn--warn"
+                        (click)="toggleServerActivation(s, false)"
+                        [disabled]="serverBusyId() === s.id"
+                      >
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                        <span>{{ 'SETTINGS.SERVER_DISABLE' | translate }}</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn btn--xs btn--ok"
+                        (click)="toggleServerActivation(s, true)"
+                        [disabled]="serverBusyId() === s.id"
+                      >
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span>{{ 'SETTINGS.SERVER_ENABLE' | translate }}</span>
+                      </button>
+                    }
+
+                    <!-- Reconnect AMI button -->
+                    <button
+                      type="button"
+                      class="btn btn--xs btn--ghost"
+                      (click)="reconnectServerAmi(s)"
+                      [disabled]="serverBusyId() === s.id"
+                      [title]="'DASHBOARD.RECONNECT_NODE' | translate"
+                    >
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="serverBusyId() === s.id"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                      <span>{{ 'DASHBOARD.RECONNECT_NODE' | translate }}</span>
+                    </button>
+
+                    <!-- Jump to Settings -->
+                    <a routerLink="/settings" class="btn btn--xs btn--ghost">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      <span>{{ 'NAV.SETTINGS' | translate }}</span>
+                    </a>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- SLA & Queue Performance -->
+        <div class="panel-card">
+          <div class="panel-card__head">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.SLA_TITLE' | translate }}</h2>
+            <a routerLink="/queues" class="btn btn--sm btn--ghost">{{ 'DASHBOARD.MANAGE_QUEUES' | translate }}</a>
+          </div>
+          <div class="panel-card__body">
+            @if (queues().length === 0) {
+              <div class="empty-state">
+                <p>{{ 'DASHBOARD.NO_QUEUES' | translate }}</p>
+              </div>
+            } @else {
+              <div class="queues-summary-list">
+                @for (q of queues(); track q.name) {
+                  <div class="queue-item-card">
+                    <div class="queue-item-card__top">
+                      <strong>{{ q.realName || q.name }}</strong>
+                      <span class="badge badge--signal">
+                        {{ 'DASHBOARD.WAITING_COUNT' | translate:{ count: q.callsWaiting || 0 } }}
+                      </span>
+                    </div>
+                    <div class="queue-progress-wrap">
+                      <div class="progress-bar">
+                        <div class="progress-bar__fill" [style.width.%]="q.serviceLevelPerf || averageSlaScore()"></div>
+                      </div>
+                      <span class="progress-label" dir="ltr">
+                        {{ 'DASHBOARD.SLA_PERF' | translate:{ perf: (q.serviceLevelPerf || averageSlaScore()) } }}
+                      </span>
+                    </div>
+                    <div class="queue-item-card__stats">
+                      <span>{{ 'DASHBOARD.COMPLETED_COUNT' | translate:{ count: q.completed || 0 } }}</span>
+                      <span>{{ 'DASHBOARD.ABANDONED_COUNT' | translate:{ count: q.abandoned || 0 } }}</span>
+                      <span>{{ 'DASHBOARD.ACTIVE_MEMBERS' | translate:{ count: q.members.length || 0 } }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ================= PERSPECTIVE 2: JUDGE TECHNICAL AUDIT ================= -->
+  @if (perspective() === 'judge') {
+    <div class="view-section">
+      <div class="audit-banner">
+        <div class="audit-banner__icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div class="audit-banner__text">
+          <strong>{{ 'DASHBOARD.JUDGE_TITLE' | translate }}</strong>
+          <p>{{ 'DASHBOARD.JUDGE_SUBTITLE' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="grid-two-col">
+        <!-- Infrastructure Specs -->
+        <div class="panel-card">
+          <div class="panel-card__head">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.INFRA_SPECS' | translate }}</h2>
+          </div>
+          <div class="panel-card__body">
+            <dl class="audit-dl">
+              <div class="audit-row">
+                <dt>SignalR Hub State</dt>
+                <dd><span class="badge badge--ok">Connected & Live Streaming</span></dd>
+              </div>
+              <div class="audit-row">
+                <dt>AsterNet Driver Core</dt>
+                <dd class="font-mono">Ntk.AsterNet.AMI (v9.0.0)</dd>
+              </div>
+              <div class="audit-row">
+                <dt>Telephony Channel Engine</dt>
+                <dd class="font-mono">{{ defaultConnection()?.channelTech || 'PJSIP' }}</dd>
+              </div>
+              <div class="audit-row">
+                <dt>Asterisk Core Version</dt>
+                <dd class="font-mono">{{ defaultConnection()?.asteriskVersion || '16.7.0' }}</dd>
+              </div>
+              <div class="audit-row">
+                <dt>WebSocket Proxy Status</dt>
+                <dd><span class="badge badge--signal">Direct Port 5314 (isProxied: false)</span></dd>
+              </div>
+              <div class="audit-row">
+                <dt>Queue Access Control Guard</dt>
+                <dd class="font-mono">QueueAclAuthService (Active)</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Live Raw Event Stream (Judge Stream) -->
+        <div class="panel-card">
+          <div class="panel-card__head">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.LIVE_PACKET_STREAM' | translate }}</h2>
+            <a routerLink="/events" class="btn btn--sm btn--ghost">{{ 'DASHBOARD.VIEW_ALL_EVENTS' | translate }}</a>
+          </div>
+          <div class="panel-card__body panel-card__body--terminal">
+            @if (recentEvents().length === 0) {
+              <div class="empty-state">
+                <p>{{ 'DASHBOARD.LISTENING_EVENTS' | translate }}</p>
+              </div>
+            } @else {
+              <div class="terminal-feed" dir="ltr">
+                @for (ev of recentEvents(); track ev.id) {
+                  <div class="terminal-line">
+                    <span class="terminal-time">[{{ ev.atUtc | date:'HH:mm:ss.SSS' }}]</span>
+                    <span class="terminal-kind">{{ ev.source || 'AMI' }}</span>
+                    <strong class="terminal-type">{{ ev.category }}</strong>
+                    <span class="terminal-server">{{ ev.message }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ================= PERSPECTIVE 3: OPERATOR & DISPATCH ================= -->
+  @if (perspective() === 'operator') {
+    <div class="view-section">
+      <div class="grid-two-col">
+        <!-- Quick Actions & Navigation -->
+        <div class="panel-card">
+          <div class="panel-card__head">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.OPERATOR_CONSOLE' | translate }}</h2>
+          </div>
+          <div class="panel-card__body">
+            <div class="actions-grid">
+              <a routerLink="/monitor" class="action-tile">
+                <div class="action-tile__icon">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                <div class="action-tile__text">
+                  <strong>{{ 'DASHBOARD.ACTION_MONITOR' | translate }}</strong>
+                  <p>{{ 'DASHBOARD.ACTION_MONITOR_DESC' | translate }}</p>
+                </div>
+              </a>
+
+              <a routerLink="/jobs" class="action-tile">
+                <div class="action-tile__icon">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <div class="action-tile__text">
+                  <strong>{{ 'DASHBOARD.ACTION_JOBS' | translate }}</strong>
+                  <p>{{ 'DASHBOARD.ACTION_JOBS_DESC' | translate }}</p>
+                </div>
+              </a>
+
+              <a routerLink="/webphone/extensions" class="action-tile">
+                <div class="action-tile__icon">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div class="action-tile__text">
+                  <strong>{{ 'DASHBOARD.ACTION_WEBPHONE' | translate }}</strong>
+                  <p>{{ 'DASHBOARD.ACTION_WEBPHONE_DESC' | translate }}</p>
+                </div>
+              </a>
+
+              <a routerLink="/settings" class="action-tile">
+                <div class="action-tile__icon">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </div>
+                <div class="action-tile__text">
+                  <strong>{{ 'DASHBOARD.ACTION_SETTINGS' | translate }}</strong>
+                  <p>{{ 'DASHBOARD.ACTION_SETTINGS_DESC' | translate }}</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Active Channels Quick Glance -->
+        <div class="panel-card">
+          <div class="panel-card__head">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.ACTIVE_CHANNELS' | translate }}</h2>
+            <a routerLink="/monitor" class="btn btn--sm btn--ghost">{{ 'DASHBOARD.VIEW_ALL_CHANNELS' | translate }}</a>
+          </div>
+          <div class="panel-card__body">
+            @if (channels().length === 0) {
+              <div class="empty-state">
+                <p>{{ 'DASHBOARD.NO_CHANNELS' | translate }}</p>
+              </div>
+            } @else {
+              <div class="channel-list">
+                @for (ch of channels(); track ch.channel) {
+                  <div class="channel-item">
+                    <div class="channel-item__main">
+                      <strong class="font-mono" dir="ltr">{{ ch.channel }}</strong>
+                      <span class="badge" [class.badge--ok]="ch.state === 'Up'" [class.badge--signal]="ch.state !== 'Up'">
+                        {{ ch.state || 'Active' }}
+                      </span>
+                    </div>
+                    <div class="channel-item__meta font-mono" dir="ltr">
+                      <span>CallerId: {{ ch.callerId || '—' }}</span>
+                      <span>UniqueId: {{ ch.uniqueId || '—' }}</span>
+                      <span>Duration: {{ ch.durationSec || 0 }}s</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ================= SMART ROUTING & INBOUND CALLS SECTION ================= -->
+  <section class="smart-routing-section">
+    <div class="smart-routing-header">
+      <div class="smart-routing-header__text">
+        <div class="smart-routing-badge">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+          <span>{{ 'CALL_ROUTING.TITLE' | translate }}</span>
+        </div>
+        <h2>{{ 'DASHBOARD.SMART_ROUTING_TITLE' | translate }}</h2>
+      </div>
+
+      <div class="smart-routing-header__actions">
+        <a routerLink="/call-routing" class="btn btn--xs btn--ghost">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          <span>{{ 'CALL_ROUTING.TITLE' | translate }}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="grid-two-col">
+      <!-- Left Column: Recent Decisions Live Stream -->
+      <div class="panel-card">
+        <div class="panel-card__head">
+          <div class="panel-card__title-wrap">
+            <h2 class="panel-card__title">{{ 'DASHBOARD.SMART_DECISIONS_RECENT' | translate }}</h2>
+            <span class="badge badge--neutral">{{ smartDecisions().length }}</span>
+          </div>
+        </div>
+        <div class="panel-card__body">
+          @if (smartDecisions().length === 0) {
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <p>{{ 'DASHBOARD.SMART_NO_DECISIONS' | translate }}</p>
+            </div>
+          } @else {
+            <div class="decisions-stream">
+              @for (d of smartDecisions(); track d.id) {
+                <div class="decision-card" [class.decision-card--matched]="d.matched" [class.decision-card--fallback]="!d.matched">
+                  <div class="decision-card__header">
+                    <div class="decision-card__caller">
+                      <span class="decision-card__icon" [class.decision-card__icon--matched]="d.matched">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      </span>
+                      <div class="decision-card__caller-meta">
+                        <strong class="caller-phone font-num" dir="ltr">{{ d.callerNumber || 'Unknown' }}</strong>
+                        @if (d.contactName) {
+                          <span class="decision-card__contact">{{ d.contactName }}</span>
+                        }
+                      </div>
+                    </div>
+                    <div class="decision-card__badges">
+                      <span class="status-pill" [attr.data-tone]="d.matched ? 'ok' : 'pending'">
+                        @if (d.action === 'DialExtensionOnly') {
+                          {{ 'DASHBOARD.SMART_ACTION_EXT' | translate }}
+                        } @else if (d.action === 'DialExtensionThenForward') {
+                          {{ 'DASHBOARD.SMART_ACTION_BOTH' | translate }}
+                        } @else if (d.action === 'DialExternalOnly') {
+                          {{ 'DASHBOARD.SMART_ACTION_MOBILE' | translate }}
+                        } @else {
+                          {{ 'DASHBOARD.SMART_ACTION_IVR' | translate }}
+                        }
+                      </span>
+                      <span class="status-pill" [attr.data-tone]="d.source === 'agi' ? 'purple' : 'neutral'">
+                        {{ d.source === 'agi' ? ('DASHBOARD.SMART_SRC_AGI' | translate) : d.source === 'simulator' ? ('DASHBOARD.SMART_SRC_SIMULATOR' | translate) : ('DASHBOARD.SMART_SRC_MANUAL' | translate) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="decision-card__body">
+                    <div class="decision-card__reason">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                      <span>{{ d.reason }}</span>
+                    </div>
+
+                    @if (d.destinationExtension || d.destinationExternalNumber) {
+                      <div class="decision-card__destinations" dir="ltr">
+                        @if (d.destinationExtension) {
+                          <span class="dest-chip">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            Ext: <strong>{{ d.destinationExtension }}</strong> ({{ d.timeoutSeconds }}s)
+                          </span>
+                        }
+                        @if (d.destinationExternalNumber) {
+                          <span class="dest-chip dest-chip--mobile">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                            Mobile: <strong>{{ d.destinationExternalNumber }}</strong>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <div class="decision-card__footer font-mono" dir="ltr">
+                    <span class="decision-time">{{ d.timestampUtc | date:'HH:mm:ss' }}</span>
+                    @if (d.channel) {
+                      <span class="decision-chan">{{ d.channel }}</span>
+                    }
+                    <span class="decision-status" [class.decision-status--ok]="d.status === 'Routed' || d.status === 'Answered'">{{ d.status }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Simulator -->
+      <div class="panel-card">
+        <div class="panel-card__head">
+          <h2 class="panel-card__title">{{ 'DASHBOARD.SMART_SIMULATOR_TITLE' | translate }}</h2>
+        </div>
+        <div class="panel-card__body">
+          <p class="sim-hint">{{ 'DASHBOARD.SMART_SIMULATOR_DESC' | translate }}</p>
+
+          <form (ngSubmit)="runRouteSimulator()" class="sim-form">
+            <div class="sim-input-row">
+              <input
+                type="text"
+                class="input font-mono"
+                dir="ltr"
+                [placeholder]="'CALL_ROUTING.TESTER_PH' | translate"
+                [ngModel]="simulatorCaller()"
+                (ngModelChange)="simulatorCaller.set($event)"
+                name="simCaller"
+              />
+              <button type="submit" class="btn btn--primary" [disabled]="simulatorTesting() || !simulatorCaller().trim()">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="simulatorTesting()"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <span>{{ simulatorTesting() ? ('ACTION.LOADING' | translate) : ('DASHBOARD.SMART_SIMULATOR_BTN' | translate) }}</span>
+              </button>
+            </div>
+          </form>
+
+          @if (simulatorError()) {
+            <div class="banner banner--error" role="alert" style="margin-top: 1rem;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>{{ simulatorError() }}</span>
+            </div>
+          }
+
+          @if (simulatorResult(); as res) {
+            <div class="sim-result-card" [class.sim-result-card--match]="res.matched" [class.sim-result-card--fallback]="!res.matched">
+              <div class="sim-result-header">
+                <div class="sim-result-match-tag">
+                  <span class="status-pill" [attr.data-tone]="res.matched ? 'ok' : 'pending'">
+                    {{ res.matched ? ('CALL_ROUTING.MATCH_FOUND' | translate) : ('CALL_ROUTING.NO_MATCH' | translate) }}
+                  </span>
+                </div>
+                <strong class="font-mono" dir="ltr">{{ res.normalizedCallerNumber || simulatorCaller() }}</strong>
+              </div>
+
+              <div class="sim-flow-steps">
+                <div class="sim-step sim-step--done">
+                  <div class="sim-step__num">1</div>
+                  <div class="sim-step__info">
+                    <strong>دریافت تماس ورودی</strong>
+                    <span class="font-mono" dir="ltr">{{ simulatorCaller() }}</span>
+                  </div>
+                </div>
+
+                <div class="sim-step__arrow">↓</div>
+
+                <div class="sim-step" [class.sim-step--done]="res.matched" [class.sim-step--fallback]="!res.matched">
+                  <div class="sim-step__num">2</div>
+                  <div class="sim-step__info">
+                    <strong>{{ res.matched ? 'انطباق با قانون هوشمند' : 'عدم انطباق با قوانین' }}</strong>
+                    @if (res.route?.contactName) {
+                      <span class="sim-step__badge">مشتری: {{ res.route?.contactName }} (اولویت {{ res.route?.priority }})</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="sim-step__arrow">↓</div>
+
+                <div class="sim-step sim-step--dest">
+                  <div class="sim-step__num">3</div>
+                  <div class="sim-step__info">
+                    <strong>مقصد نهایی تماس</strong>
+                    @if (res.destinationExtension && res.destinationExternalNumber) {
+                      <div class="sim-dest-details font-mono" dir="ltr">
+                        <span>۱. تماس با داخلی: <strong>{{ res.destinationExtension }}</strong> ({{ res.timeoutSeconds }}s)</span>
+                        <span>۲. در صورت عدم پاسخ -> همراه: <strong>{{ res.destinationExternalNumber }}</strong></span>
+                      </div>
+                    } @else if (res.destinationExtension) {
+                      <div class="sim-dest-details font-mono" dir="ltr">
+                        <span>اتصال مستقیم به داخلی: <strong>{{ res.destinationExtension }}</strong></span>
+                      </div>
+                    } @else if (res.destinationExternalNumber) {
+                      <div class="sim-dest-details font-mono" dir="ltr">
+                        <span>انتقال مستقیم به شماره همراه: <strong>{{ res.destinationExternalNumber }}</strong></span>
+                      </div>
+                    } @else {
+                      <div class="sim-dest-details">
+                        <span>انتقال به منوی صوتی اصلی سیستم (Main IVR)</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- FastAGI Socket & Live Packet Stream Card -->
+    <div class="panel-card fastagi-panel">
+      <div class="panel-card__head">
+        <div class="panel-card__title-wrap">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+          <h2 class="panel-card__title">{{ 'DASHBOARD.FASTAGI_MONITOR_TITLE' | translate }}</h2>
+        </div>
+
+        <!-- Listener Status Badges -->
+        <div class="fastagi-ports-meta">
+          @if (fastAgiStatus(); as st) {
+            @for (p of st.ports; track p.port) {
+              <span class="status-pill" [attr.data-tone]="p.isListening ? 'ok' : 'fail'">
+                پورت {{ p.port }}: {{ p.isListening ? 'در حال شنود (Listening)' : 'غیرفعال (Offline)' }}
+              </span>
+            }
+            @if (st.lastClientIp) {
+              <span class="status-pill" data-tone="purple" dir="ltr">
+                آخرین اتصال: {{ st.lastClientIp }}
+              </span>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="panel-card__body">
+        @if (fastAgiPackets().length === 0) {
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+            <p>{{ 'DASHBOARD.FASTAGI_NO_PACKETS' | translate }}</p>
+          </div>
+        } @else {
+          <div class="fastagi-packets-list">
+            @for (pkt of fastAgiPackets(); track pkt.id) {
+              <div class="fastagi-packet-item">
+                <div class="fastagi-packet-item__top">
+                  <div class="fastagi-packet-meta">
+                    <span class="badge badge--signal">Port {{ pkt.port }}</span>
+                    <span class="badge badge--ok">{{ pkt.scriptName }}</span>
+                    <strong class="caller-phone font-num" dir="ltr">{{ pkt.callerId || 'Unknown' }}</strong>
+                    @if (pkt.callerIdName) {
+                      <span class="pkt-caller-name">({{ pkt.callerIdName }})</span>
+                    }
+                  </div>
+
+                  <div class="fastagi-packet-timing font-mono" dir="ltr">
+                    @if (pkt.remoteClientIp) {
+                      <span class="pkt-ip">{{ pkt.remoteClientIp }}</span>
+                    }
+                    <span class="pkt-time">{{ pkt.timestampUtc | date:'HH:mm:ss.SSS' }}</span>
+                  </div>
+                </div>
+
+                @if (pkt.headers && (pkt.headers | keyvalue).length > 0) {
+                  <div class="fastagi-raw-headers font-mono" dir="ltr">
+                    @for (h of (pkt.headers | keyvalue); track h.key) {
+                      <div class="header-tag">
+                        <span class="header-k">{{ h.key }}:</span>
+                        <span class="header-v">{{ h.value }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (pkt.commands && pkt.commands.length > 0) {
+                  <div class="fastagi-commands-trace font-mono" dir="ltr">
+                    @for (cmd of pkt.commands; track cmd) {
+                      <div class="command-trace-line">
+                        <span class="trace-arrow">➔</span>
+                        <span>{{ cmd }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+</div>
