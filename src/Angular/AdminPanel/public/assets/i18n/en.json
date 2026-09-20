@@ -232,7 +232,11 @@
               },
     "ACTION":  {
                    "REFRESH":  "Refresh",
-                   "LOADING":  "Working…"
+                   "LOADING":  "Working…",
+                   "SAVE":  "Save",
+                   "CANCEL":  "Cancel",
+                   "EDIT":  "Edit",
+                   "DELETE":  "Delete"
                },
     "LIST":  {
                  "QUICK_SEARCH":  "Quick search",

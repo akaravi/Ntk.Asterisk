@@ -232,7 +232,11 @@
               },
     "ACTION":  {
                    "REFRESH":  "بازخوانی",
-                   "LOADING":  "در حال انجام…"
+                   "LOADING":  "در حال انجام…",
+                   "SAVE":  "ذخیره",
+                   "CANCEL":  "انصراف",
+                   "EDIT":  "ویرایش",
+                   "DELETE":  "حذف"
                },
     "LIST":  {
                  "QUICK_SEARCH":  "جستجوی سریع",
