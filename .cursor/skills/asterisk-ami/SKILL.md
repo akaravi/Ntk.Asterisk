@@ -107,7 +107,7 @@ manager show command <action>
 ## This repository
 
 - Use `Ntk.AsterNet.AMI` → `ManagerConnection`, Action/Event/Response types under `Manager/`.
-- Samples: `Asterisk.Console.AMI`, `Asterisk.WinForm.AMI`.
+- Samples: `Ntk.Asterisk.Console.AMI`, `Ntk.Asterisk.WinForm.AMI`.
 - Tutorial cites AsterNET NuGet/GitHub — same design lineage.
 
 ## Auto-dialer pattern (tutorial)

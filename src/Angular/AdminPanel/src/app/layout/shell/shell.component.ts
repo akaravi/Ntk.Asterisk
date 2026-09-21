@@ -3,7 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AsteriskHubService } from '../../core/services/asterisk-hub.service';
 import { QueueAclAuthService } from '../../core/services/queue-acl-auth.service';
-import { ThemeService, ThemeMode } from '../../core/services/theme.service';
+import { ThemeService } from '../../core/services/theme.service';
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -18,18 +18,15 @@ export class ShellComponent implements OnInit {
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly lang = signal('fa');
-  readonly hubOk = signal(false);
-  readonly gateActive = signal(false);
   readonly isAuthenticated = signal(false);
+  readonly gateActive = signal(false);
   readonly isAdmin = signal(false);
   readonly username = signal<string | null>(null);
   readonly logoutBusy = signal(false);
 
   ngOnInit(): void {
     void this.hub.start();
-    this.hub.hubConnected$.subscribe((v) => this.hubOk.set(v));
     const current = this.translate.getCurrentLang() || 'fa';
-    this.lang.set(current);
     document.documentElement.lang = current;
     document.documentElement.dir = current === 'fa' ? 'rtl' : 'ltr';
 

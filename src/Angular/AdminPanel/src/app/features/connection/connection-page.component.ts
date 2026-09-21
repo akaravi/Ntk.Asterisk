@@ -27,7 +27,6 @@ export class ConnectionPageComponent implements OnInit, OnDestroy {
   private readonly i18n = inject(TranslateService);
   private sub?: Subscription;
 
-  readonly hubConnected = signal(false);
   readonly liveStatus = signal<ConnectionStatus | null>(null);
   readonly rowsAll = signal<ConnectionStatus[]>([]);
   readonly rows = signal<ConnectionStatus[]>([]);
@@ -58,7 +57,6 @@ export class ConnectionPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.reload();
     this.sub = new Subscription();
-    this.sub.add(this.hub.hubConnected$.subscribe((v) => this.hubConnected.set(v)));
     this.sub.add(
       this.hub.hubEvents$.subscribe((ev) => {
         if (ev.kind === 'connection') {

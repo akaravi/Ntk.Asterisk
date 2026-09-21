@@ -13,10 +13,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\DotNet\Ntk.Asterisk.WebApi\Ntk.Asterisk.WebApi.csproj" />
     <ProjectReference Include="..\..\WebPhone\Ntk.Asterisk.WebPhone\Ntk.Asterisk.WebPhone.csproj" />
-    <ProjectReference Include="..\..\DotNet\Asterisk.Console.AMI\Asterisk.Console.AMI.csproj" />
-    <ProjectReference Include="..\..\DotNet\Asterisk.Console.ARI\Asterisk.Console.ARI.csproj" />
-    <ProjectReference Include="..\..\DotNet\Asterisk.WinForm.AMI\Asterisk.WinForm.AMI.csproj" />
-    <ProjectReference Include="..\..\DotNet\Asterisk.WinForm.ARI\Asterisk.WinForm.ARI.csproj" />
+    <ProjectReference Include="..\..\DotNet\Ntk.Asterisk.Console.AMI\Ntk.Asterisk.Console.AMI.csproj" />
+    <ProjectReference Include="..\..\DotNet\Ntk.Asterisk.Console.ARI\Ntk.Asterisk.Console.ARI.csproj" />
+    <ProjectReference Include="..\..\DotNet\Ntk.Asterisk.WinForm.AMI\Ntk.Asterisk.WinForm.AMI.csproj" />
+    <ProjectReference Include="..\..\DotNet\Ntk.Asterisk.WinForm.ARI\Ntk.Asterisk.WinForm.ARI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,7 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Ntk.AsterNet.AMI\Ntk.AsterNet.AMI.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.Core\Ntk.Asterisk.Core.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.AMI\Ntk.Asterisk.AMI.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.ARI\Ntk.Asterisk.ARI.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.Monitoring\Ntk.Asterisk.Monitoring.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.Database\Ntk.Asterisk.Database.csproj" />
     <ProjectReference Include="..\..\Aspire\Ntk.Asterisk.ServiceDefaults\Ntk.Asterisk.ServiceDefaults.csproj" />
   </ItemGroup>
 

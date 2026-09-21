@@ -45,9 +45,9 @@
     "user-panel": "src/Angular/UserPanel",
     "ami-lib": "src/DotNet/Ntk.AsterNet.AMI/Ntk.AsterNet.AMI.csproj",
     "ari-lib": "src/DotNet/Ntk.AsterNet.ARI/Ntk.AsterNet.ARI.csproj",
-    "console-ami": "src/DotNet/Asterisk.Console.AMI/Asterisk.Console.AMI.csproj",
-    "console-ari": "src/DotNet/Asterisk.Console.ARI/Asterisk.Console.ARI.csproj",
-    "winform-ami": "src/DotNet/Asterisk.WinForm.AMI/Asterisk.WinForm.AMI.csproj",
-    "winform-ari": "src/DotNet/Asterisk.WinForm.ARI/Asterisk.WinForm.ARI.csproj"
+    "console-ami": "src/DotNet/Ntk.Asterisk.Console.AMI/Ntk.Asterisk.Console.AMI.csproj",
+    "console-ari": "src/DotNet/Ntk.Asterisk.Console.ARI/Ntk.Asterisk.Console.ARI.csproj",
+    "winform-ami": "src/DotNet/Ntk.Asterisk.WinForm.AMI/Ntk.Asterisk.WinForm.AMI.csproj",
+    "winform-ari": "src/DotNet/Ntk.Asterisk.WinForm.ARI/Ntk.Asterisk.WinForm.ARI.csproj"
   }
 }

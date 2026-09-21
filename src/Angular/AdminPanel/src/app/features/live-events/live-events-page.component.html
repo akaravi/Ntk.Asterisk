@@ -6,21 +6,6 @@
       <p class="page__header-sub">{{ 'EVENTS.SUBTITLE' | translate }}</p>
     </div>
     <div class="page__actions">
-      <span
-        class="live-status-pill"
-        [class.live-status-pill--ok]="liveOk() && !paused()"
-        [class.live-status-pill--paused]="paused()"
-        dir="ltr"
-      >
-        <span class="pulse-dot"></span>
-        {{
-          paused()
-            ? ('EVENTS.PAUSED' | translate)
-            : liveOk()
-              ? ('EVENTS.LIVE' | translate)
-              : ('EVENTS.OFFLINE' | translate)
-        }}
-      </span>
 
       <button type="button" class="btn btn--ghost" (click)="togglePause()" [disabled]="actionBusy()">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">

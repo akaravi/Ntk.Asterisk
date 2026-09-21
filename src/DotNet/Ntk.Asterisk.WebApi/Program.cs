@@ -1,3 +1,7 @@
+using Ntk.Asterisk.AMI;
+using Ntk.Asterisk.AuditLog;
+using Ntk.Asterisk.Core;
+using Ntk.Asterisk.Monitoring;
 using Ntk.Asterisk.WebApi.Ami;
 using Ntk.Asterisk.WebApi.Configuration;
 using Ntk.Asterisk.WebApi.Hubs;
@@ -5,10 +9,17 @@ using Ntk.Asterisk.WebApi.Jobs;
 using Ntk.Asterisk.WebApi.Middleware;
 using Ntk.Asterisk.WebApi.Services;
 using CorsOpts = Ntk.Asterisk.WebApi.Configuration.CorsOptions;
+using LegacyAmiSession = Ntk.Asterisk.WebApi.Ami.AmiSession;
+using LegacyAmiContract = Ntk.Asterisk.WebApi.Ami.IAmiSession;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+// Modular composition root. Legacy registrations below remain during migration; new hosts consume only these modules.
+builder.Services.AddAsteriskCore(builder.Configuration);
+builder.Services.AddAsteriskAuditLog();
+builder.Services.AddAsteriskAmi();
+builder.Services.AddAsteriskMonitoring();
 builder.Services.Configure<AsteriskOptions>(builder.Configuration.GetSection(AsteriskOptions.SectionName));
 builder.Services.Configure<CorsOpts>(builder.Configuration.GetSection(CorsOpts.SectionName));
 builder.Services.Configure<WebPhoneOptions>(builder.Configuration.GetSection(WebPhoneOptions.SectionName));
@@ -60,9 +71,9 @@ builder.Services.AddSingleton<IFastAgiTelemetryService, FastAgiTelemetryService>
 builder.Services.AddSingleton<ICallRouteStore, CallRouteStore>();
 builder.Services.AddSingleton<Ntk.Asterisk.WebApi.Services.SmartRouting.Scenario2_LiveIvrAmiScenario>();
 builder.Services.AddHostedService<SmartRouteAmiIvrService>();
-builder.Services.AddSingleton<AmiSession>();
-builder.Services.AddSingleton<IAmiSession>(sp => sp.GetRequiredService<AmiSession>());
-builder.Services.AddHostedService(sp => sp.GetRequiredService<AmiSession>());
+builder.Services.AddSingleton<LegacyAmiSession>();
+builder.Services.AddSingleton<LegacyAmiContract>(sp => sp.GetRequiredService<LegacyAmiSession>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<LegacyAmiSession>());
 
 builder.Services.AddSingleton<ICallJobStore, CallJobStore>();
 builder.Services.AddSingleton<CallJobEngine>();

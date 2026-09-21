@@ -28,6 +28,59 @@
   }
 }
 
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.45rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.status-marker {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.status-marker__icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  border-radius: 50%;
+  background: var(--paper-deep);
+  color: currentColor;
+  svg { width: 1.15rem; height: 1.15rem; }
+}
+
+.status-marker__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.1rem;
+  font-size: 0.68rem;
+  strong { color: var(--ink); font-size: 0.72rem; }
+}
+
+.status-marker[data-state='connected'] { color: var(--ok); }
+.status-marker[data-state='disconnected'] { color: var(--danger, #ef4444); }
+.status-marker[data-state='pending'] { color: var(--warn); }
+.status-marker[data-state='unknown'],
+.status-marker[data-state='unavailable'] { color: var(--muted); }
+
+@media (max-width: 700px) {
+  .status-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .dash-title-group {
   display: flex;
   align-items: center;
@@ -55,40 +108,6 @@
 
 .dash-subtitle { display: none; }
 
-.health-chip {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 999px;
-  background: var(--ok-soft);
-  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
-
-  &--warn {
-    background: var(--warn-soft);
-    border-color: color-mix(in srgb, var(--warn) 30%, transparent);
-    .health-chip__dot { background: var(--warn); box-shadow: 0 0 4px var(--warn); }
-    .health-chip__val { color: var(--warn); }
-  }
-
-  &__dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ok);
-    box-shadow: 0 0 4px var(--ok);
-    animation: pulse-h 2s infinite ease-in-out;
-  }
-
-  &__meta { display: flex; align-items: center; gap: 0.2rem; }
-  &__label { font-size: 0.66rem; color: var(--ink-soft); font-weight: 600; }
-  &__val { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 0.76rem; font-weight: 700; color: var(--ok); }
-}
-
-@keyframes pulse-h {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
 
 .btn--refresh {
   display: inline-flex;

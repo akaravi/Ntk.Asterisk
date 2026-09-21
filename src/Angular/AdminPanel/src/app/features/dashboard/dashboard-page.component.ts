@@ -21,6 +21,7 @@ import { FastAgiPacket, FastAgiStatus } from '../../core/models/fastagi.models';
 import { QueueItem } from '../../core/models/queue.models';
 
 export type DashboardPerspective = 'customer' | 'judge' | 'operator';
+export type StatusState = 'pending' | 'connected' | 'disconnected' | 'unknown' | 'unavailable';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -37,12 +38,15 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   private readonly translate = inject(TranslateService);
   private readonly subs = new Subscription();
 
+
   // Mode / Perspective
   readonly perspective = signal<DashboardPerspective>('customer');
 
   // Core Data Signals
   readonly loading = signal(true);
-  readonly liveSignalROk = signal(false);
+  readonly signalRState = signal<StatusState>('pending');
+  readonly apiHealthState = signal<StatusState>('pending');
+  readonly serviceWorkerState = signal<StatusState>('pending');
   readonly serverBusyId = signal<string | null>(null);
   readonly servers = signal<AsteriskServer[]>([]);
   readonly connections = signal<ConnectionStatus[]>([]);
@@ -64,13 +68,6 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     return list.find((c) => c.isDefault) ?? list[0] ?? null;
   });
 
-  readonly connectedServersCount = computed(() => {
-    return this.connections().filter((c) => c.connected).length;
-  });
-
-  readonly totalServersCount = computed(() => {
-    return Math.max(this.servers().length, this.connections().length);
-  });
 
   readonly activeCallsCount = computed(() => {
     return this.channels().filter(
@@ -103,13 +100,43 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
     return Math.round(avg * 10) / 10;
   });
 
-  readonly systemHealthScore = computed(() => {
-    let score = 50;
-    if (this.connectedServersCount() > 0) score += 25;
-    if (this.liveSignalROk()) score += 15;
-    if (this.onlinePeersCount() > 0) score += 10;
-    return score;
+  readonly amiState = computed<StatusState>(() => {
+    const snapshots = this.connections();
+    if (!snapshots.length) return this.loading() ? 'pending' : 'unavailable';
+    const eligible = snapshots.filter((s) => s.configured !== false && s.isEnabled !== false);
+    if (!eligible.length) return 'unknown';
+    const connected = eligible.filter((s) => s.connected).length;
+    if (connected === eligible.length) return 'connected';
+    return connected > 0 ? 'pending' : 'disconnected';
   });
+
+  readonly statusMarkers = [
+    { source: 'SIGNALR', icon: 'signal' },
+    { source: 'API', icon: 'api' },
+    { source: 'AMI', icon: 'ami' },
+    { source: 'SERVICE_WORKER', icon: 'worker' },
+  ] as const;
+
+  markerState(source: (typeof this.statusMarkers)[number]['source']): StatusState {
+    if (source === 'SIGNALR') return this.signalRState();
+    if (source === 'API') return this.apiHealthState();
+    if (source === 'AMI') return this.amiState();
+    return this.serviceWorkerState();
+  }
+
+  markerLabel(state: StatusState): string {
+    return `DASHBOARD.STATUS_${state.toUpperCase()}`;
+  }
+
+  private probeServiceWorker(): void {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+      this.serviceWorkerState.set('unavailable');
+      return;
+    }
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      this.serviceWorkerState.set(registration?.active ? 'connected' : 'unavailable');
+    }).catch(() => this.serviceWorkerState.set('unknown'));
+  }
 
   formatUptime(seconds: number | null | undefined): string {
     if (seconds == null || seconds <= 0) return '—';
@@ -122,10 +149,21 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.refreshAll();
+    this.probeServiceWorker();
 
     // SignalR Real-time stream
     this.subs.add(
-      this.hub.hubConnected$.subscribe((ok) => this.liveSignalROk.set(ok))
+      this.hub.hubState$.subscribe((state) => {
+        this.signalRState.set(
+          state === 'connected'
+            ? 'connected'
+            : state === 'reconnecting'
+              ? 'pending'
+              : state === 'disconnected'
+                ? 'disconnected'
+                : 'pending',
+        );
+      }),
     );
 
     this.subs.add(
@@ -182,17 +220,28 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
   }
 
   refreshAll(): void {
+    this.api.healthOk().subscribe({
+      next: (ok) => this.apiHealthState.set(ok ? 'connected' : 'disconnected'),
+      error: () => this.apiHealthState.set('unknown'),
+    });
+
     this.loading.set(true);
 
     this.api.getConnectionStatusList().subscribe({
       next: (res) => {
         this.connections.set(res.data || []);
       },
+      error: () => {
+        this.connections.set([]);
+      },
     });
 
     this.api.getServers().subscribe({
       next: (res) => {
         this.servers.set(res.data || []);
+      },
+      error: () => {
+        this.servers.set([]);
       },
     });
 

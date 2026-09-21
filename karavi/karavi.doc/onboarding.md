@@ -15,10 +15,10 @@
 | user-panel | Angular User (call forms/jobs) | `src/Angular/UserPanel/` | `5312` |
 | ami-lib | NuGet library AMI | `src/DotNet/Ntk.AsterNet.AMI/` | — |
 | ari-lib | NuGet library ARI | `src/DotNet/Ntk.AsterNet.ARI/` | — |
-| console-ami | نمونه Console | `src/DotNet/Asterisk.Console.AMI/` | — |
-| console-ari | نمونه Console | `src/DotNet/Asterisk.Console.ARI/` | — |
-| winform-ami | نمونه WinForms | `src/DotNet/Asterisk.WinForm.AMI/` | — |
-| winform-ari | نمونه WinForms | `src/DotNet/Asterisk.WinForm.ARI/` | — |
+| console-ami | نمونه Console | `src/DotNet/Ntk.Asterisk.Console.AMI/` | — |
+| console-ari | نمونه Console | `src/DotNet/Ntk.Asterisk.Console.ARI/` | — |
+| winform-ami | نمونه WinForms | `src/DotNet/Ntk.Asterisk.WinForm.AMI/` | — |
+| winform-ari | نمونه WinForms | `src/DotNet/Ntk.Asterisk.WinForm.ARI/` | — |
 
 **خارجی (نه host این repo):** Asterisk AMI `:5038` · ARI `:8088`
 

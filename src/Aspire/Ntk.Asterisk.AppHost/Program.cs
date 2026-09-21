@@ -4,11 +4,11 @@ var webApi = builder.AddProject<Projects.Ntk_Asterisk_WebApi>("webapi");
 
 var webPhone = builder.AddProject<Projects.Ntk_Asterisk_WebPhone>("webphone")
     .WithReference(webApi);
+var fastAgi = builder.AddProject<Projects.Ntk_Asterisk_Console_AMI>("fastagi");
 
 var adminDir = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "../../Angular/AdminPanel"));
-var adminScript = Path.GetFullPath(Path.Combine(adminDir, "node_modules/@angular/cli/bin/ng.js"));
 
-builder.AddNodeApp("admin-panel", adminDir, adminScript)
+builder.AddNodeApp("admin-panel", adminDir, "node_modules/@angular/cli/bin/ng.js")
     .WithArgs("serve", "--port", "5314")
     .WithReference(webApi)
     .WithReference(webPhone)
@@ -16,9 +16,8 @@ builder.AddNodeApp("admin-panel", adminDir, adminScript)
     .WithExternalHttpEndpoints();
 
 var userDir = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "../../Angular/UserPanel"));
-var userScript = Path.GetFullPath(Path.Combine(userDir, "node_modules/@angular/cli/bin/ng.js"));
 
-builder.AddNodeApp("user-panel", userDir, userScript)
+builder.AddNodeApp("user-panel", userDir, "node_modules/@angular/cli/bin/ng.js")
     .WithArgs("serve", "--port", "5312")
     .WithReference(webApi)
     .WithReference(webPhone)

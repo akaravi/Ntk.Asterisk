@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ntk.AsterNet.ARI\Ntk.AsterNet.ARI.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.Core\Ntk.Asterisk.Core.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.ARI\Ntk.Asterisk.ARI.csproj" />
+    <ProjectReference Include="..\Ntk.Asterisk.Monitoring\Ntk.Asterisk.Monitoring.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="FormMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

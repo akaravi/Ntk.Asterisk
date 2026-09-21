@@ -107,19 +107,15 @@ namespace Ntk.AsterNet.AMI.FastAGI
             }
             catch (AGIException ex)
             {
-                #if LOGGER
-                    logger.Error("AGIException while handling request", ex);
-                #else
-				    throw ex;
-                #endif
+#if LOGGER
+                logger.Error("AGIException while handling request", ex);
+#endif
             }
             catch (Exception ex)
             {
-                #if LOGGER
-                    logger.Error("Unexpected Exception while handling request", ex);
-                #else
-				    throw ex;
-                #endif
+#if LOGGER
+                logger.Error("Unexpected Exception while handling request", ex);
+#endif
             }
 
             Thread.SetData(_channel, null);

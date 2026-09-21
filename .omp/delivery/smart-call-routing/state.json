@@ -6,7 +6,7 @@
     "inScope": [
       "Smart Call Route data model, DTOs, and file-backed store in WebApi",
       "CallRoutesController with CRUD, active-toggle, pagination, and caller-id lookup endpoints",
-      "FastAGI / Dialplan integration support (SmartCallRouteAgiScript) and mapping in Asterisk.Console.AMI",
+      "FastAGI / Dialplan integration support (SmartCallRouteAgiScript) and mapping in Ntk.Asterisk.Console.AMI",
       "Angular models, services, and reactive state in AdminPanel",
       "AdminPanel Smart Call Routing UI page with table, modal add/edit, quick toggle, search, priority management, and online lookup tester",
       "Route registration in app.routes.ts and navigation link in shell.component.html with i18n (fa/en)"

@@ -21,14 +21,14 @@
       "role": "Sample",
       "outputDir": "karavi/karavi.deploy.files/console-ami",
       "stack": "dotnet",
-      "project": "src/DotNet/Asterisk.Console.AMI/Asterisk.Console.AMI.csproj"
+      "project": "src/DotNet/Ntk.Asterisk.Console.AMI/Ntk.Asterisk.Console.AMI.csproj"
     },
     {
       "id": "console-ari",
       "role": "Sample",
       "outputDir": "karavi/karavi.deploy.files/console-ari",
       "stack": "dotnet",
-      "project": "src/DotNet/Asterisk.Console.ARI/Asterisk.Console.ARI.csproj"
+      "project": "src/DotNet/Ntk.Asterisk.Console.ARI/Ntk.Asterisk.Console.ARI.csproj"
     }
   ]
 }

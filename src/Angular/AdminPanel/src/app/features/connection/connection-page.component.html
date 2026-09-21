@@ -43,36 +43,6 @@
     </div>
   }
 
-  <!-- KPI Overview Cards -->
-  <div class="kpi-grid" aria-live="polite">
-    <div class="view-card kpi-card" [class.kpi-card--ok]="hubConnected()" [class.kpi-card--bad]="!hubConnected()">
-      <div class="kpi-card__top">
-        <span class="server-chip__dot" [class.server-chip__dot--on]="hubConnected()" [class.server-chip__dot--off]="!hubConnected()"></span>
-        <h3>{{ 'CONNECTION.SIGNALR' | translate }}</h3>
-      </div>
-      <p class="kpi-card__val font-bold">
-        {{ (hubConnected() ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate }}
-      </p>
-    </div>
-
-    <div class="view-card kpi-card" [class.kpi-card--ok]="liveStatus()?.connected" [class.kpi-card--bad]="liveStatus() && !liveStatus()?.connected">
-      <div class="kpi-card__top">
-        <span class="server-chip__dot" [class.server-chip__dot--on]="liveStatus()?.connected" [class.server-chip__dot--off]="!liveStatus()?.connected"></span>
-        <h3>{{ 'CONNECTION.LIVE_SESSION' | translate }}</h3>
-      </div>
-      <div class="kpi-card__content">
-        <p class="kpi-card__val font-bold">
-          {{
-            liveStatus()
-              ? ((liveStatus()!.connected ? 'CONNECTION.CONNECTED' : 'CONNECTION.DISCONNECTED') | translate)
-              : '—'
-          }}
-        </p>
-        @if (liveStatus()?.serverName) {
-          <span class="font-mono text-muted text-xs" dir="ltr">{{ liveStatus()!.serverName }}</span>
-        }
-      </div>
-    </div>
 
     <div class="view-card kpi-card">
       <div class="kpi-card__top">
@@ -81,7 +51,6 @@
       </div>
       <p class="kpi-card__val font-mono font-bold">{{ rowsAll().length }}</p>
     </div>
-  </div>
 
   <!-- Toolbar with Filters -->
   <app-list-toolbar

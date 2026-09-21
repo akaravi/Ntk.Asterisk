@@ -13,6 +13,7 @@ import {
 import { FastAgiPacket } from '../models/fastagi.models';
 import { QueueItem } from '../models/queue.models';
 
+export type HubConnectionState = 'pending' | 'connected' | 'reconnecting' | 'disconnected';
 export type AsteriskHubEvent =
   | { kind: 'job'; payload: CallJob }
   | { kind: 'peers'; payload: PeerItem[] }
@@ -27,6 +28,7 @@ export type AsteriskHubEvent =
 export class AsteriskHubService implements OnDestroy {
   private readonly events$ = new Subject<AsteriskHubEvent>();
   private readonly connected$ = new BehaviorSubject<boolean>(false);
+  private readonly state$ = new BehaviorSubject<HubConnectionState>('pending');
   private connection: signalR.HubConnection | null = null;
   private eventsSubscribed = false;
   private jobsSubscribed = false;
@@ -35,6 +37,7 @@ export class AsteriskHubService implements OnDestroy {
 
   readonly hubEvents$: Observable<AsteriskHubEvent> = this.events$.asObservable();
   readonly hubConnected$: Observable<boolean> = this.connected$.asObservable();
+  readonly hubState$: Observable<HubConnectionState> = this.state$.asObservable();
 
   async start(): Promise<void> {
     if (this.connection) {
@@ -97,19 +100,28 @@ export class AsteriskHubService implements OnDestroy {
     );
 
     this.connection.onreconnected(async () => {
+      this.state$.next('connected');
       this.connected$.next(true);
       await this.rejoinGroupsAfterReconnect();
     });
-    this.connection.onreconnecting(() => this.connected$.next(false));
-    this.connection.onclose(() => this.connected$.next(false));
+    this.connection.onreconnecting(() => {
+      this.state$.next('reconnecting');
+      this.connected$.next(false);
+    });
+    this.connection.onclose(() => {
+      this.state$.next('disconnected');
+      this.connected$.next(false);
+    });
 
     try {
       await this.connection.start();
+      this.state$.next('connected');
       this.connected$.next(true);
       // Live call-job status for Admin dashboard
       this.jobsSubscribed = true;
       await this.ensureDefaultGroups();
     } catch {
+      this.state$.next('disconnected');
       this.connected$.next(false);
     }
   }

@@ -43,7 +43,6 @@ export class LiveEventsPageComponent implements OnInit, OnDestroy, AfterViewChec
   readonly error = signal<string | null>(null);
   readonly paused = signal(false);
   readonly autoScroll = signal(true);
-  readonly liveOk = signal(false);
   readonly events = signal<LiveEventItem[]>([]);
   readonly visible = signal<LiveEventItem[]>([]);
   readonly totalCount = signal(0);
@@ -68,7 +67,6 @@ export class LiveEventsPageComponent implements OnInit, OnDestroy, AfterViewChec
 
   ngOnInit(): void {
     void this.hub.start().then(() => this.hub.subscribeEvents());
-    this.hub.hubConnected$.subscribe((v) => this.liveOk.set(v));
     this.sub = this.hub.hubEvents$.subscribe((ev) => {
       if (ev.kind !== 'liveEvent') return;
       if (this.paused()) return;
